@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaPlus, FaSpinner, FaSearch } from 'react-icons/fa';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface ProgramSearchResult {
     _id: string;
     university: string;
@@ -36,7 +38,7 @@ const ProgramSearch: React.FC = () => {
 
         try {
             const response = await axios.get<ProgramSearchResult[]>(
-                `http://localhost:5000/api/programs/search?query=${searchQuery}`
+                `${API_URL}/api/programs/search?query=${searchQuery}`
             );
             setResults(response.data);
         } catch (err) {
@@ -54,7 +56,7 @@ const ProgramSearch: React.FC = () => {
         }
 
         try {
-            await axios.post('http://localhost:5000/api/applications', {
+            await axios.post(`${API_URL}/api/applications`, {
                 userId: currentUser.uid,
                 schoolName: program.university,
                 programName: program.department,

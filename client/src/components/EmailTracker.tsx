@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import type { Application, Email } from '../types/Application';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface EmailTrackerProps {
   application: Application;
   onEmailAdded: () => void;
@@ -73,7 +75,7 @@ Sincerely,
     }
 
     try {
-      await axios.post(`http://localhost:5000/api/applications/${application._id}/emails`, {
+      await axios.post(`${API_URL}/api/applications/${application._id}/emails`, {
         subject,
         body,
         recipient,

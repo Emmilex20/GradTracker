@@ -5,6 +5,8 @@ import type { Program } from '../types/Program';
 import { useAuth } from '../context/AuthContext';
 import { FaPlus, FaSpinner, FaSearch, FaFilter } from 'react-icons/fa';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 
 const ProgramList: React.FC = () => {
     const { currentUser } = useAuth();
@@ -18,7 +20,7 @@ const ProgramList: React.FC = () => {
     useEffect(() => {
         const fetchPrograms = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/programs');
+                const response = await axios.get(`${API_URL}/api/programs`);
                 setAllPrograms(response.data);
                 setFilteredPrograms(response.data); // Initialize filtered programs with all programs
             } catch (error) {
@@ -61,7 +63,7 @@ const ProgramList: React.FC = () => {
 
         setIsAdding(true);
         try {
-            await axios.post('http://localhost:5000/api/applications', {
+            await axios.post(`${API_URL}/api/applications`, {
                 userId: currentUser.uid,
                 schoolName: program.university,
                 programName: program.department,

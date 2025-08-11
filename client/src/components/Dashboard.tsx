@@ -13,6 +13,8 @@ import ApplicationStatusChart from './ApplicationStatusChart';
 import { FaPlus, FaSpinner, FaChartPie, FaUserCircle, FaCalendarPlus, FaBell, FaCommentAlt } from 'react-icons/fa'; // FaSearch is removed
 import type { UserProfile } from '../types/UserProfile';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Dashboard: React.FC = () => {
     const { currentUser, userProfile } = useAuth();
     const typedUserProfile = userProfile as UserProfile | null;
@@ -37,7 +39,7 @@ const Dashboard: React.FC = () => {
         setLoading(true);
         setFetchError(null);
         try {
-            const response = await axios.get<Application[]>(`http://localhost:5000/api/applications/${currentUser.uid}`);
+            const response = await axios.get<Application[]>(`${API_URL}/api/applications/${currentUser.uid}`);
             setApplications(response.data);
         } catch (error) {
             console.error('Error fetching applications:', error);
@@ -104,7 +106,7 @@ const Dashboard: React.FC = () => {
         setApplications(newApplications);
 
         try {
-            await axios.put(`http://localhost:5000/api/applications/${draggableId}`, {
+            await axios.put(`${API_URL}/api/applications/${draggableId}`, {
                 status: newStatus,
             });
         } catch (err) {
@@ -141,7 +143,7 @@ const Dashboard: React.FC = () => {
         setReceiveNotifications(newSetting);
 
         try {
-            await axios.put(`http://localhost:5000/api/users/${currentUser.uid}/notifications`, {
+            await axios.put(`${API_URL}/api/users/${currentUser.uid}/notifications`, {
                 receiveNotifications: newSetting,
             });
             console.log('Notification settings updated.');
@@ -154,7 +156,7 @@ const Dashboard: React.FC = () => {
     
     const handleCalendarSync = () => {
         if (!currentUser) return;
-        const icalUrl = `http://localhost:5000/api/applications/${currentUser.uid}/calendar`;
+        const icalUrl = `${API_URL}/api/applications/${currentUser.uid}/calendar`;
         
         alert(`Copy this URL to subscribe to your calendar feed:\n\n${icalUrl}\n\n1. Go to your Google/Outlook Calendar.\n2. Find the "Add Calendar" or "Subscribe from URL" option.\n3. Paste the URL. Changes will sync automatically.`);
     };
@@ -194,7 +196,7 @@ const Dashboard: React.FC = () => {
         {/* Right-aligned: Action Buttons */}
         <div className="flex items-center space-x-2 sm:space-x-3">
             <a
-                href="http://localhost:5000/auth/google"
+                href="${API_URL}/auth/google"
                 className="bg-blue-500 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-blue-600 transition-colors duration-200 text-sm sm:text-base flex items-center justify-center whitespace-nowrap"
             >
                 <span className="hidden sm:inline">Connect Gmail</span>
