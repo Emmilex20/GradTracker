@@ -1,18 +1,17 @@
 import admin from 'firebase-admin';
-import { readFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import 'dotenv/config'; // Use this to load environment variables
 
-// Get the directory name of the current module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const firebaseServiceAccountString = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
 
-// Read the JSON file synchronously
-const serviceAccountPath = join(__dirname, '../grad-tracker-app-firebase-adminsdk.json');
-const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
+if (!firebaseServiceAccountString) {
+  throw new Error('FIREBASE_ADMIN_PRIVATE_KEY environment variable is not set. Please set it in your .env file or environment settings.');
+}
+
+const serviceAccount = JSON.parse(firebaseServiceAccountString);
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
+  // Add other options if needed, like databaseURL
 });
 
 const db = admin.firestore();
