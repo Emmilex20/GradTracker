@@ -8,11 +8,7 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithPhoneNumber,
-  RecaptchaVerifier,
-  type ConfirmationResult,
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
-  type Auth,
 } from 'firebase/auth';
 
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
@@ -33,9 +29,7 @@ let app: FirebaseApp;
 let db: Firestore;
 
 if (!firebaseConfig.apiKey) {
-  console.error(
-    'Firebase config is missing environment variables. App will not be initialized.'
-  );
+  console.error("Firebase config is missing environment variables. App will not be initialized.");
 } else {
   app = initializeApp(firebaseConfig);
   db = getFirestore(app);
@@ -54,25 +48,16 @@ interface AuthContextType {
   signup: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<any>;
-  loginWithPhoneNumber: (
-    phoneNumber: string,
-    appVerifier: RecaptchaVerifier
-  ) => Promise<ConfirmationResult>;
   saveUserData: (uid: string, data: UserProfile) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
-  recaptchaVerifier: RecaptchaVerifier | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [recaptchaVerifier, setRecaptchaVerifier] =
-    useState<RecaptchaVerifier | null>(null);
 
   const googleProvider = new GoogleAuthProvider();
 
@@ -88,13 +73,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return signInWithPopup(auth, googleProvider);
   };
 
-  const loginWithPhoneNumber = (
-    phoneNumber: string,
-    appVerifier: RecaptchaVerifier
-  ): Promise<ConfirmationResult> => {
-    return signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-  };
-
   const logout = () => {
     return signOut(auth);
   };
@@ -106,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUserProfile(data);
       }
     } catch (error) {
-      console.error('Error writing document: ', error);
+      console.error("Error writing document: ", error);
     }
   };
 
@@ -115,50 +93,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (user: User | null) => {
-        setCurrentUser(user);
-        if (user) {
-          if (db) {
-            const userDocRef = doc(db, 'users', user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-              setUserProfile(userDocSnap.data() as UserProfile);
-            } else {
-              setUserProfile(null);
-            }
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
+      setCurrentUser(user);
+      if (user) {
+        if (db) {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            setUserProfile(userDocSnap.data() as UserProfile);
+          } else {
+            setUserProfile(null);
           }
-        } else {
-          setUserProfile(null);
         }
-        setLoading(false);
+      } else {
+        setUserProfile(null);
       }
-    );
-
-    // Initialize recaptchaVerifier for phone number login
-    if (auth.app.name && !recaptchaVerifier) {
-      // Ensure the container is in the DOM
-      if (!document.getElementById('recaptcha-container')) {
-        const container = document.createElement('div');
-        container.id = 'recaptcha-container';
-        document.body.appendChild(container);
-      }
-
-      // Pass: containerId, options, auth
-      const verifier = new (RecaptchaVerifier as unknown as {
-  new (
-    container: string | HTMLElement,
-    parameters: object,
-    auth: Auth
-  ): RecaptchaVerifier;
-})('recaptcha-container', { size: 'invisible' }, auth);
-
-      setRecaptchaVerifier(verifier);
-    }
-
+      setLoading(false);
+    });
+    
     return unsubscribe;
-  }, [recaptchaVerifier]);
+  }, []);
 
   const value: AuthContextType = {
     currentUser,
@@ -167,10 +121,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     signup,
     logout,
     loginWithGoogle,
-    loginWithPhoneNumber,
     saveUserData,
     sendPasswordResetEmail,
-    recaptchaVerifier,
   };
 
   return (
