@@ -1,14 +1,20 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
+// Use environment variables for Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCX2B7vcjvOxnN4BbAzSbBNNwLFKt8Fjj4",
-  authDomain: "grad-tracker-app.firebaseapp.com",
-  projectId: "grad-tracker-app",
-  storageBucket: "grad-tracker-app.firebasestorage.app",
-  messagingSenderId: "533399239376",
-  appId: "1:533399239376:web:55f4e35c20a1624f73fcd5",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
+
+// Check if the API key is present before initializing to avoid errors
+if (!firebaseConfig.apiKey) {
+  throw new Error('Firebase configuration environment variables are missing.');
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
