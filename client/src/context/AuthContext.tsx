@@ -14,24 +14,30 @@ import {
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
 } from 'firebase/auth';
 
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore'; // Import getDoc
-
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { Firestore } from 'firebase/firestore';
 import { auth } from '../firebase';
-import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCX2B7vcjvOxnN4BbAzSbBNNwLFKt8Fjj4",
-  authDomain: "grad-tracker-app.firebaseapp.com",
-  projectId: "grad-tracker-app",
-  storageBucket: "grad-tracker-app.firebasestorage.app",
-  messagingSenderId: "533399239376",
-  appId: "1:533399239376:web:55f4e35c20a1624f73fcd5",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+let app: FirebaseApp;
+let db: Firestore;
 
-// Define the UserProfile interface
+if (!firebaseConfig.apiKey) {
+  console.error("Firebase config is missing environment variables. App will not be initialized.");
+} else {
+  app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+}
+
 interface UserProfile {
   firstName: string;
   lastName: string;
@@ -40,22 +46,24 @@ interface UserProfile {
 
 interface AuthContextType {
   currentUser: User | null;
-  userProfile: UserProfile | null; // Added userProfile to the context type
+  userProfile: UserProfile | null;
   login: (email: string, password: string) => Promise<any>;
   signup: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<any>;
   loginWithPhoneNumber: (phoneNumber: string, appVerifier: RecaptchaVerifier) => Promise<ConfirmationResult>;
-  saveUserData: (uid: string, data: UserProfile) => Promise<void>; // Updated type
+  saveUserData: (uid: string, data: UserProfile) => Promise<void>;
   sendPasswordResetEmail: (email: string) => Promise<void>;
+  recaptchaVerifier: RecaptchaVerifier | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null); // New state for user profile
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [recaptchaVerifier, setRecaptchaVerifier] = useState<RecaptchaVerifier | null>(null);
 
   const googleProvider = new GoogleAuthProvider();
 
@@ -79,17 +87,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return signOut(auth);
   };
 
-  // New function to save user data to Firestore
   const saveUserData = async (uid: string, data: UserProfile) => {
     try {
-      await setDoc(doc(db, 'users', uid), data);
-      setUserProfile(data); // Set profile state after saving
+      if (db) {
+        await setDoc(doc(db, 'users', uid), data);
+        setUserProfile(data);
+      }
     } catch (error) {
       console.error("Error writing document: ", error);
     }
   };
 
-  // New function to handle password reset
   const sendPasswordResetEmail = (email: string) => {
     return firebaseSendPasswordResetEmail(auth, email);
   };
@@ -98,13 +106,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       setCurrentUser(user);
       if (user) {
-        // If a user is logged in, fetch their profile from Firestore
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setUserProfile(userDocSnap.data() as UserProfile);
-        } else {
-          setUserProfile(null);
+        if (db) {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            setUserProfile(userDocSnap.data() as UserProfile);
+          } else {
+            setUserProfile(null);
+          }
         }
       } else {
         setUserProfile(null);
@@ -112,12 +121,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
+    // Initialize recaptchaVerifier for phone number login
+    if (auth.app.name) {
+      const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible'
+      });
+      setRecaptchaVerifier(verifier);
+    }
+    
     return unsubscribe;
   }, []);
 
   const value: AuthContextType = {
     currentUser,
-    userProfile, // Add userProfile to the context value
+    userProfile,
     login,
     signup,
     logout,
@@ -125,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loginWithPhoneNumber,
     saveUserData,
     sendPasswordResetEmail,
+    recaptchaVerifier,
   };
 
   return (
