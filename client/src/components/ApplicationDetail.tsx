@@ -5,6 +5,8 @@ import EmailTracker from './EmailTracker';
 import { FaTimes, FaEdit, FaTrashAlt, FaGraduationCap, FaLink, FaCalendarAlt, FaDollarSign, FaUserGraduate, FaFileAlt } from 'react-icons/fa';
 import EmailForm from './EmailForm'; // Ensure this import is correct
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface ApplicationDetailProps {
     application: Application;
     onClose: () => void;
@@ -35,7 +37,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
     const handleDelete = async () => {
         if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
             try {
-                await axios.delete(`http://localhost:5000/api/applications/${application._id}`);
+                await axios.delete(`${API_URL}/api/applications/${application._id}`);
                 onDelete(application._id);
                 onClose();
             } catch (err) {

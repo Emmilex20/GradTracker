@@ -5,6 +5,8 @@ import { FaTimes, FaSave, FaSpinner } from 'react-icons/fa';
 import type { Application } from '../types/Application';
 import type { Program } from '../types/Program';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface AddApplicationFormProps {
     onApplicationAdded: () => void;
     onClose: () => void;
@@ -92,7 +94,7 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
               contactEmail: ''
             };
 
-            await axios.post('http://localhost:5000/api/applications', {
+            await axios.post(`${API_URL}/api/applications`, {
                 ...applicationData,
                 userId: currentUser.uid,
                 status: 'Interested',

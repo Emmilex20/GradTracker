@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface FeedbackFormProps {
   onClose: () => void;
   onFeedbackSubmitted: () => void;
@@ -21,7 +23,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onClose, onFeedbackSubmitte
     }
 
     try {
-      await axios.post('http://localhost:5000/api/feedback', {
+      await axios.post(`${API_URL}/api/feedback`, {
         userId: currentUser.uid,
         message,
       });

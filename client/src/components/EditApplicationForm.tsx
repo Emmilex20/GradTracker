@@ -3,6 +3,8 @@ import axios from 'axios';
 import type { Application } from '../types/Application';
 import { FaTimes, FaSave, FaSpinner } from 'react-icons/fa';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface EditApplicationFormProps {
     application: Application;
     onApplicationUpdated: () => void;
@@ -47,7 +49,7 @@ const EditApplicationForm: React.FC<EditApplicationFormProps> = ({ application, 
                 appLink,
             };
 
-            await axios.put(`http://localhost:5000/api/applications/${application._id}`, updatedData);
+            await axios.put(`${API_URL}/api/applications/${application._id}`, updatedData);
             onApplicationUpdated();
             onClose();
         } catch (err) {

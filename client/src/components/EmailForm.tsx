@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { FaPaperPlane, FaSpinner } from 'react-icons/fa';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface EmailFormProps {
   to: string; // The recipient email address
   onClose: () => void;
@@ -23,7 +25,7 @@ const EmailForm: React.FC<EmailFormProps> = ({ to, onClose }) => {
     try {
       setStatus('sending');
       setStatusMessage('Sending...');
-      await axios.post('http://localhost:5000/api/emails/send', { to, subject, body }, {
+      await axios.post(`${API_URL}/api/emails/send`, { to, subject, body }, {
         withCredentials: true,
       });
       setStatus('success');
