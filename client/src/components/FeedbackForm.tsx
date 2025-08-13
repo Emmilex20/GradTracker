@@ -23,7 +23,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ onClose, onFeedbackSubmitte
     }
 
     try {
-      await axios.post(`${API_URL}/api/feedback`, {
+      await axios.post(`${API_URL}/feedback`, {
         userId: currentUser.uid,
         message,
       });

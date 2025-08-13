@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { Application } from '../types/Application';
 import { FaGraduationCap, FaCheckCircle, FaTimesCircle, FaPaperPlane, FaHourglassHalf, FaDollarSign, FaCalendarAlt } from 'react-icons/fa';
 
 interface ApplicationCardProps {
     application: Application;
-    onClick: () => void;
+    onViewDetailsModal: (application: Application) => void;
+    onViewDashboardSections: (application: Application) => void;
     isDragging: boolean;
     dragHandleProps?: any;
 }
 
-// Map status to a Tailwind CSS background color class
 const getStatusBgClass = (status: string) => {
     switch (status) {
         case 'Accepted':
@@ -26,7 +26,6 @@ const getStatusBgClass = (status: string) => {
     }
 };
 
-// Map status to a Tailwind CSS border color class
 const getStatusBorderClass = (status: string) => {
     switch (status) {
         case 'Accepted':
@@ -42,7 +41,6 @@ const getStatusBorderClass = (status: string) => {
     }
 };
 
-// Map status to an appropriate icon
 const getStatusIcon = (status: string) => {
     switch (status) {
         case 'Accepted':
@@ -59,17 +57,42 @@ const getStatusIcon = (status: string) => {
 };
 
 const ApplicationCard = React.forwardRef<HTMLDivElement, ApplicationCardProps>(
-    ({ application, onClick, isDragging, ...props }, ref) => {
-        // Safely format the deadline date.
-        // It checks if the deadline string is not empty and can be successfully parsed into a valid date.
+    ({ application, onViewDetailsModal, onViewDashboardSections, isDragging, ...props }, ref) => {
+        const [isMenuOpen, setIsMenuOpen] = useState(false);
+        const cardRef = useRef<HTMLDivElement>(null);
+
+        useEffect(() => {
+            const handleOutsideClick = (event: MouseEvent) => {
+                if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+                    setIsMenuOpen(false);
+                }
+            };
+
+            document.addEventListener('mousedown', handleOutsideClick);
+            return () => {
+                document.removeEventListener('mousedown', handleOutsideClick);
+            };
+        }, []);
+
+        const handleMenuClick = (event: React.MouseEvent) => {
+            event.stopPropagation();
+            setIsMenuOpen(!isMenuOpen);
+        };
+
+        const handleViewDetails = () => {
+            onViewDetailsModal(application);
+            setIsMenuOpen(false);
+        };
+
+        const handleViewDashboard = () => {
+            onViewDashboardSections(application);
+            setIsMenuOpen(false);
+        };
+
         const formattedDeadline = application.deadline && application.deadline.trim() !== ''
             ? new Date(application.deadline).toLocaleDateString()
             : 'N/A';
-
-        // Check for a valid date after parsing.
         const isDeadlineValid = !isNaN(new Date(application.deadline).getTime());
-
-        // Check if the funding amount is a non-empty string.
         const isFundingAmountPresent = application.fundingAmount && application.fundingAmount.trim() !== '';
 
         return (
@@ -77,7 +100,6 @@ const ApplicationCard = React.forwardRef<HTMLDivElement, ApplicationCardProps>(
                 ref={ref}
                 {...props.dragHandleProps}
                 {...props}
-                onClick={onClick}
                 className={`
                     relative bg-white rounded-xl p-5 mb-4 border-l-4 cursor-grab
                     shadow-sm transition-all duration-300
@@ -85,6 +107,7 @@ const ApplicationCard = React.forwardRef<HTMLDivElement, ApplicationCardProps>(
                     ${isDragging ? 'shadow-xl scale-105 opacity-80' : ''}
                     ${getStatusBorderClass(application.status)}
                 `}
+                onClick={handleMenuClick} // Click on card toggles menu
             >
                 <div className="flex justify-between items-start mb-4">
                     <div>
@@ -99,7 +122,6 @@ const ApplicationCard = React.forwardRef<HTMLDivElement, ApplicationCardProps>(
                     </div>
                 </div>
                 
-                {/* Only render the details section if there is at least one piece of data to show. */}
                 {(isDeadlineValid || isFundingAmountPresent) && (
                     <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
                         {isDeadlineValid && (
@@ -116,6 +138,23 @@ const ApplicationCard = React.forwardRef<HTMLDivElement, ApplicationCardProps>(
                                 <span className="ml-1">{application.fundingAmount}</span>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {isMenuOpen && (
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                        <button
+                            onClick={handleViewDetails}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                            View Details
+                        </button>
+                        <button
+                            onClick={handleViewDashboard}
+                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                            Email & Docs
+                        </button>
                     </div>
                 )}
             </div>

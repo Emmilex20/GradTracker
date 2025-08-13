@@ -1,441 +1,463 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { IoCheckmarkCircle, IoArrowForwardCircle } from 'react-icons/io5';
+import { motion } from 'framer-motion';
+import {
+  FaGraduationCap,
+  FaSearchDollar,
+  FaCalendarAlt,
+  FaUserFriends,
+  FaFileAlt,
+  FaShieldAlt,
+  FaCheckCircle,
+  FaPlayCircle,
+  FaStar,
+  FaBolt,
+} from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
 
-// Import the useAuth hook to get the user's login status
-import { useAuth } from '../context/AuthContext'; // Adjust the path as needed
+// --- Small helper: animated counter (no external dependencies) ---
+const CountUp = ({ end, suffix = '', duration = 1200 }) => {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const step = Math.max(1, Math.ceil((end - start) / (duration / 16)));
+    const id = setInterval(() => {
+      start += step;
+      if (start >= end) {
+        setValue(end);
+        clearInterval(id);
+      } else setValue(start);
+    }, 16);
+    return () => clearInterval(id);
+  }, [end, duration]);
+  return <span>{value.toLocaleString()}{suffix}</span>;
+};
 
-const HomePage: React.FC = () => {
-  // Use the useAuth hook to get the current user
+// --- Animation variants ---
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } };
+const item = { hidden: { y: 24, opacity: 0 }, show: { y: 0, opacity: 1, transition: { duration: 0.6 } } };
+const floatBtn = { whileHover: { scale: 1.05 }, whileTap: { scale: 0.97 } };
+
+const ScholarshipCard = ({ school }) => (
+  <motion.div variants={item} className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition transform hover:-translate-y-2">
+    <img src={school.image} alt={school.name} className="h-44 w-full object-cover" />
+    <div className="p-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="font-bold text-lg text-secondary">{school.name}</h4>
+          <p className="text-sm text-neutral-dark">{school.location} • {school.level}</p>
+        </div>
+        <span className="text-sm px-3 py-1 rounded-full bg-green-50 text-green-600 font-semibold">{school.funding}</span>
+      </div>
+      <p className="mt-3 text-sm text-neutral-dark h-14 overflow-hidden">{school.blurb}</p>
+      <div className="mt-4 flex items-center justify-between">
+        <div className="text-xs text-neutral-dark">Deadline: <span className="font-semibold">{school.deadline}</span></div>
+        <Link to="/apply" className="px-4 py-2 bg-primary text-white rounded-full text-sm font-semibold hover:opacity-95">Apply</Link>
+      </div>
+    </div>
+  </motion.div>
+);
+
+export default function HomePage() {
   const { currentUser } = useAuth();
-  // We no longer need the local isLoggedIn state, as we can check currentUser
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
-
-  const faqData = [
+  // Sample data (replace with real API data)
+  const featuredScholarships = [
     {
-      question: "How does Grad Tracker help with my applications?",
-      answer: "Grad Tracker provides a visual kanban board to organize applications, tracks all your deadlines, and helps you find new graduate programs, all in one place.",
+      name: 'Global Masters Scholarship — Greenfield University',
+      location: 'United Kingdom',
+      level: 'Masters',
+      funding: 'Full Scholarship',
+      deadline: 'Dec 15, 2025',
+      blurb: 'Full tuition + stipend for outstanding international students in STEM & Social Sciences. Covers travel and living allowance.',
+      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1200&q=80&auto=format&fit=crop',
     },
     {
-      question: "Is Grad Tracker free to use?",
-      answer: "Yes! You can sign up for a free account with limited features. We also offer a premium plan for students who want access to all our advanced tools and resources.",
+      name: 'Africa Fellowship for Development',
+      location: 'USA (virtual + campus)',
+      level: 'Masters & PhD',
+      funding: 'Tuition + Stipend',
+      deadline: 'Jan 20, 2026',
+      blurb: 'Supporting researchers and practitioners from Africa with funding, mentorship and placement opportunities.',
+      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&q=80&auto=format&fit=crop',
     },
     {
-      question: "Can I collaborate with my mentors or advisors?",
-      answer: "Our premium plan includes collaboration features, allowing you to share your progress and notes with mentors and advisors for seamless feedback.",
+      name: 'No-Fee International MBA Grants',
+      location: 'Canada',
+      level: 'MBA',
+      funding: 'Partial Scholarship',
+      deadline: 'Nov 30, 2025',
+      blurb: 'Merit-based partial scholarships and waived application fee for select MBA applicants.',
+      image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1200&q=80&auto=format&fit=crop',
+    },
+  ];
+
+  const testimonials = [
+    {
+      name: 'Amina Yusuf',
+      role: 'Fulbright Scholar 2024',
+      quote: 'Grad Tracker turned hours of research into one dashboard. I found funded programs and connected with a mentor who reviewed my SOP — I got in! ',
+      image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80&auto=format&fit=crop',
+    },
+    {
+      name: 'Daniel Okoye',
+      role: 'Masters — Greenfield University',
+      quote: 'The deadline reminders saved me from missing a key scholarship. The document review service is gold.',
+      image: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=800&q=80&auto=format&fit=crop',
+    },
+  ];
+
+  // How it works steps
+  const steps = [
+    {
+      title: 'Search & Discover',
+      desc: 'Filter programs by funding type, country, field, and application fee to find matches in seconds.',
+      icon: <FaSearchDollar className="text-4xl" />,
+      img: 'https://images.unsplash.com/photo-1483058712412-4245e9b90334?w=1000&q=80&auto=format&fit=crop',
+    },
+    {
+      title: 'Track Applications',
+      desc: 'One place for deadlines, required docs, statuses and notes. Share progress with mentors.',
+      icon: <FaCalendarAlt className="text-4xl" />,
+      img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1000&q=80&auto=format&fit=crop',
+    },
+    {
+      title: 'Get Reviews & Mentorship',
+      desc: 'Submit essays, CVs, and documents for mentor feedback and iterate until it shines.',
+      icon: <FaUserFriends className="text-4xl" />,
+      img: 'https://images.unsplash.com/photo-1544717305-996b815c338c?w=1000&q=80&auto=format&fit=crop',
+    },
+    {
+      title: 'Celebrate Offers',
+      desc: 'Track your acceptances and next steps — celebrate milestones and plan your next move.',
+      icon: <FaGraduationCap className="text-4xl" />,
+      img: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1000&q=80&auto=format&fit=crop',
     },
   ];
 
   return (
-    <div className="bg-neutral-100 min-h-screen py-20 pb-2">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-white flex items-center justify-center min-h-screen-minus-nav">
-        {/* Background Image and Overlay */}
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 ease-in-out"
-          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)' }}
-        >
-          <div className="absolute inset-0 bg-secondary opacity-70"></div>
-        </div>
+    <div className="min-h-screen font-sans bg-neutral-light text-neutral-900 relative overflow-x-hidden">
 
-        {/* Main Content */}
-        <div className="container mx-auto px-6 text-center relative z-10 py-24 sm:py-32 animate-fade-in">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-tight animate-slide-up">
-            {currentUser ? (
-              <>Welcome Back, <span className="text-primary">Ready to Track?</span></>
-            ) : (
-              <>Your Grad School Journey, <span className="text-primary">Mastered.</span></>
-            )}
-          </h1>
-          <p className="mt-6 text-xl md:text-2xl text-white/90 max-w-4xl mx-auto animate-slide-up animation-delay-300">
-            {currentUser ? (
-              "Your personalized dashboard is waiting for you. Dive back into your applications and stay on top of your deadlines."
-            ) : (
-              "From application deadlines to professor emails, manage every step of your graduate school journey in one beautiful, organized platform."
-            )}
-          </p>
-          <div className="mt-12 flex justify-center space-x-4 sm:space-x-6 animate-slide-up animation-delay-500">
-            {currentUser ? (
-              <Link to="/dashboard">
-                <button className="bg-primary text-white font-bold py-4 px-8 sm:py-4 sm:px-10 rounded-full text-lg shadow-xl hover:bg-blue-700 transform hover:scale-105 transition-all duration-300">
-                  Go to Dashboard
-                </button>
-              </Link>
-            ) : (
-              <>
-                <Link to="/signup">
-                  <button className="bg-primary text-white font-bold py-4 px-8 sm:py-4 sm:px-10 rounded-full text-lg shadow-xl hover:bg-blue-700 transform hover:scale-105 transition-all duration-300">
-                    Get Started for Free
-                  </button>
-                </Link>
-                <Link to="/features">
-                  <button className="bg-white text-secondary font-bold py-4 px-8 sm:py-4 sm:px-10 rounded-full text-lg border-2 border-neutral-300 hover:bg-neutral-200 transform hover:scale-105 transition-all duration-300">
-                    Learn More
-                  </button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* Floating actions (desktop) */}
+      <div className="hidden lg:flex fixed top-1/3 right-6 flex-col gap-4 z-50">
+        <motion.div {...floatBtn} className="rounded-full overflow-hidden">
+          <Link to="/mentors">
+            <button className="bg-white text-primary px-6 py-3 rounded-full shadow-md border border-primary font-semibold">Talk to Mentor</button>
+          </Link>
+        </motion.div>
+        <motion.div {...floatBtn} className="rounded-full overflow-hidden">
+          <Link to="/programs">
+            <button className="bg-gradient-to-r from-primary to-indigo-600 text-white px-6 py-3 rounded-full shadow-md font-semibold">Search Now</button>
+          </Link>
+        </motion.div>
+      </div>
 
-      {/* The rest of your component remains the same */}
-      <section className="bg-neutral-100 py-16 sm:py-24">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-secondary mb-12">
-            Features Designed for Your Success
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-neutral-200 text-center animate-slide-up">
-              <span className="text-4xl text-primary mb-4 block">📝</span>
-              <h3 className="text-xl font-semibold text-secondary mb-2">Kanban Board</h3>
-              <p className="text-neutral-500">
-                Organize applications visually with a drag-and-drop board.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-neutral-200 text-center animate-slide-up animation-delay-100">
-              <span className="text-4xl text-primary mb-4 block">🗓️</span>
-              <h3 className="text-xl font-semibold text-secondary mb-2">Deadline Tracking</h3>
-              <p className="text-neutral-500">
-                Never miss a deadline with automated reminders and a unified calendar.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-neutral-200 text-center animate-slide-up animation-delay-200">
-              <span className="text-4xl text-primary mb-4 block">🔎</span>
-              <h3 className="text-xl font-semibold text-secondary mb-2">Program Search</h3>
-              <p className="text-neutral-500">
-                Discover new programs with our curated, automatically updated database.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-neutral-200 text-center animate-slide-up animation-delay-300">
-              <span className="text-4xl text-primary mb-4 block">💬</span>
-              <h3 className="text-xl font-semibold text-secondary mb-2">Feedback & Notes</h3>
-              <p className="text-neutral-500">
-                Keep detailed notes and feedback for each application in one place.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* HERO (light premium gradient + frosted card + floating shapes) */}
+      <motion.section
+        initial="hidden"
+        animate="show"
+        variants={container}
+        className="relative overflow-hidden py-20 sm:py-28"
+      >
+        {/* Pale gradient background for hero */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-100 z-0"></div>
 
-      {/* How It Works Section */}
-      <section className="bg-white py-16 sm:py-24">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-secondary mb-16">
-            How It Works
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 text-center">
-            {/* Step 1 */}
-            <div className="relative">
-              <div className="w-20 h-20 bg-primary/10 rounded-full mx-auto flex items-center justify-center mb-6">
-                <span className="text-4xl font-bold text-primary">1</span>
-              </div>
-              <h3 className="text-xl font-semibold text-secondary mb-2">Create Your Account</h3>
-              <p className="text-neutral-500 max-w-sm mx-auto">
-                Sign up in minutes and start building your profile. It's quick, easy, and free.
-              </p>
-              <div className="hidden lg:block absolute right-[-6rem] top-1/2 -translate-y-1/2 w-24 border-t-2 border-dashed border-neutral-300"></div>
-            </div>
+        {/* Floating soft shapes */}
+        <motion.div
+          className="absolute z-0 w-72 h-72 bg-blue-200 rounded-full opacity-20 blur-3xl"
+          animate={{ y: [0, -30, 0], x: [0, 20, 0] }}
+          transition={{ repeat: Infinity, duration: 8 }}
+          style={{ top: '6%', left: '-8%' }}
+        />
+        <motion.div
+          className="absolute z-0 w-96 h-96 bg-blue-300 rounded-full opacity-18 blur-3xl"
+          animate={{ y: [0, 20, 0], x: [0, -20, 0] }}
+          transition={{ repeat: Infinity, duration: 10 }}
+          style={{ bottom: '2%', right: '-12%' }}
+        />
 
-            {/* Step 2 */}
-            <div className="relative">
-              <div className="w-20 h-20 bg-primary/10 rounded-full mx-auto flex items-center justify-center mb-6">
-                <span className="text-4xl font-bold text-primary">2</span>
-              </div>
-              <h3 className="text-xl font-semibold text-secondary mb-2">Add Your Programs</h3>
-              <p className="text-neutral-500 max-w-sm mx-auto">
-                Use our database to add the graduate programs you're interested in applying to.
-              </p>
-              <div className="hidden lg:block absolute right-[-6rem] top-1/2 -translate-y-1/2 w-24 border-t-2 border-dashed border-neutral-300"></div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="relative">
-              <div className="w-20 h-20 bg-primary/10 rounded-full mx-auto flex items-center justify-center mb-6">
-                <span className="text-4xl font-bold text-primary">3</span>
-              </div>
-              <h3 className="text-xl font-semibold text-secondary mb-2">Track & Manage</h3>
-              <p className="text-neutral-500 max-w-sm mx-auto">
-                Monitor deadlines, track your application status, and stay on top of all your tasks.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* In-depth Feature Showcase: Kanban Board */}
-      <section className="bg-neutral-100 py-16 sm:py-24">
-        <div className="container mx-auto px-6">
-          <div className="lg:flex lg:items-center lg:space-x-12 mb-16">
-            <div className="lg:w-1/2">
-              <img
-                src="https://images.ctfassets.net/w6r2i5d8q73s/6wpAeUvjqESIFd6ayYpLcR/d19af2d0b32be76f1a8d64860e8fafbe/agile_kanban_product-image_EN_big_3_2.png"
-                alt="Kanban Board Screenshot"
-                className="rounded-2xl shadow-2xl mb-8 lg:mb-0 transform hover:scale-105 transition-all duration-500"
-              />
-            </div>
-            <div className="lg:w-1/2 text-center lg:text-left">
-              <h2 className="text-3xl font-extrabold text-secondary mb-4">
-                Organize Your World with Our Kanban Board
-              </h2>
-              <p className="text-lg text-neutral-500 mb-6">
-                Our intuitive drag-and-drop kanban board lets you visualize your entire application pipeline. See what’s in progress, what's pending, and what’s complete at a glance.
-              </p>
-              <ul className="text-neutral-500 text-lg space-y-3">
-                <li className="flex items-center justify-center lg:justify-start">
-                  <IoCheckmarkCircle className="text-primary text-2xl mr-2 flex-shrink-0" />
-                  <span>Visualize every step of your application journey.</span>
-                </li>
-                <li className="flex items-center justify-center lg:justify-start">
-                  <IoCheckmarkCircle className="text-primary text-2xl mr-2 flex-shrink-0" />
-                  <span>Easily move applications between different stages.</span>
-                </li>
-                <li className="flex items-center justify-center lg:justify-start">
-                  <IoCheckmarkCircle className="text-primary text-2xl mr-2 flex-shrink-0" />
-                  <span>Attach notes, documents, and deadlines to each card.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* In-depth Feature Showcase: Deadline Tracking */}
-      <section className="bg-white py-16 sm:py-24">
-        <div className="container mx-auto px-6">
-          <div className="lg:flex lg:flex-row-reverse lg:items-center lg:space-x-12">
-            <div className="lg:w-1/2">
-              <img
-                src="https://images.pexels.com/photos/5060979/pexels-photo-5060979.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
-                alt="Deadline Tracking Screenshot"
-                className="rounded-2xl shadow-2xl mb-8 lg:mb-0 transform hover:scale-105 transition-all duration-500"
-              />
-            </div>
-            <div className="lg:w-1/2 text-center lg:text-left">
-              <h2 className="text-3xl font-extrabold text-secondary mb-4">
-                Never Miss a Deadline Again
-              </h2>
-              <p className="text-lg text-neutral-500 mb-6">
-                Our integrated calendar and automated reminders ensure you're always on top of application deadlines, recommendation letter requests, and other important dates.
-              </p>
-              <ul className="text-neutral-500 text-lg space-y-3">
-                <li className="flex items-center justify-center lg:justify-start">
-                  <IoCheckmarkCircle className="text-primary text-2xl mr-2 flex-shrink-0" />
-                  <span>Automated email and in-app notifications.</span>
-                </li>
-                <li className="flex items-center justify-center lg:justify-start">
-                  <IoCheckmarkCircle className="text-primary text-2xl mr-2 flex-shrink-0" />
-                  <span>Syncs with your personal calendar (Google, Outlook).</span>
-                </li>
-                <li className="flex items-center justify-center lg:justify-start">
-                  <IoCheckmarkCircle className="text-primary text-2xl mr-2 flex-shrink-0" />
-                  <span>View deadlines at a glance on your dashboard.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust & Authority Section */}
-      <section className="bg-neutral-100 py-16 sm:py-24">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-secondary mb-12">
-            Trusted by students at leading universities
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 items-center justify-items-center">
-            {/* Placeholder university logos */}
-            <img src="https://static.vecteezy.com/system/resources/previews/021/996/239/non_2x/university-logo-design-vector.jpg" alt="University Logo" className="w-full h-auto opacity-70 hover:opacity-100 transition-opacity duration-300" />
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSlbc0XcxwgPqJ0uC5bFdqBGsFbLTwv0NoEx4a6SLWBkJCljaAnhOveq3S_qwtLvTKO1k&usqp=CAU" alt="University Logo" className="w-full h-auto opacity-70 hover:opacity-100 transition-opacity duration-300" />
-            <img src="https://bcassetcdn.com/public/blog/wp-content/uploads/2022/05/11161506/Harvard-University-Logo.png" alt="University Logo" className="w-full h-auto opacity-70 hover:opacity-100 transition-opacity duration-300" />
-            <img src="https://m.media-amazon.com/images/I/71yQYMM1mrL._UF350,350_QL80_.jpg" alt="University Logo" className="w-full h-auto opacity-70 hover:opacity-100 transition-opacity duration-300" />
-            <img src="https://bcassetcdn.com/public/blog/wp-content/uploads/2022/05/11161532/Chicago-University-Logo.png" alt="University Logo" className="w-full h-auto opacity-70 hover:opacity-100 transition-opacity duration-300" />
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof/Testimonials Section */}
-      <section className="bg-white py-16 sm:py-24">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-secondary mb-12">
-            What Our Users Are Saying
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-neutral-100 p-8 rounded-2xl shadow-inner-lg animate-slide-up">
-              <p className="italic text-neutral-500 mb-4">
-                "Grad Tracker was a game-changer. I went from scattered notes to a crystal-clear, organized process. Highly recommend!"
-              </p>
-              <p className="font-semibold text-secondary">- Alex M.</p>
-              <p className="text-sm text-neutral-400">Future Ph.D. Student</p>
-            </div>
-            <div className="bg-neutral-100 p-8 rounded-2xl shadow-inner-lg animate-slide-up animation-delay-100">
-              <p className="italic text-neutral-500 mb-4">
-                "The automated program discovery saved me countless hours. It's the only tool you need to manage your applications."
-              </p>
-              <p className="font-semibold text-secondary">- Dr. Sarah P.</p>
-              <p className="text-sm text-neutral-400">University of Cambridge</p>
-            </div>
-            <div className="bg-neutral-100 p-8 rounded-2xl shadow-inner-lg animate-slide-up animation-delay-200">
-              <p className="italic text-neutral-500 mb-4">
-                "The kanban board is fantastic! It made tracking my deadlines and application statuses so easy and intuitive."
-              </p>
-              <p className="font-semibold text-secondary">- Jessica R.</p>
-              <p className="text-sm text-neutral-400">Graduate Student, MIT</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Customer Spotlight Section */}
-      <section className="bg-white py-16 sm:py-24">
-        <div className="container mx-auto px-6 text-center lg:flex lg:items-center lg:text-left space-y-8 lg:space-y-0 lg:space-x-12">
-          <div className="lg:w-1/3 flex justify-center">
-            <img
-              src="https://img.freepik.com/free-photo/portrait-male-student-with-books_23-2148882426.jpg?semt=ais_hybrid&w=740&q=80"
-              alt="Customer"
-              className="w-48 h-48 rounded-full object-cover shadow-xl"
-            />
-          </div>
-          <div className="lg:w-2/3">
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-secondary mb-4">
-              "My dream school was within reach, thanks to Grad Tracker."
-            </h3>
-            <p className="italic text-lg text-neutral-500 mb-6">
-              "I was overwhelmed with all the requirements for my top-choice program. Grad Tracker's tools helped me break down the process into manageable steps. The deadline reminders were a lifesaver, and I felt confident and in control the entire time. I couldn't have done it without this platform!"
+        <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-10">
+          <motion.div variants={item} className="flex-1 text-center lg:text-left">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-blue-900">
+              Find Funded Schools, Track Applications, and Land The Scholarship That Changes Everything.
+            </h1>
+            <p className="mt-5 text-lg text-gray-700 max-w-2xl">
+              Stop hopping between sites. Grad Tracker aggregates funded programs, zero-fee applications, and deadlines — plus mentorship and document reviews — all in one place.
             </p>
-            <p className="font-semibold text-secondary">- Michael B., University of California, Berkeley</p>
-          </div>
-        </div>
-      </section>
 
-      {/* Latest from Our Blog Section */}
-      <section className="bg-neutral-100 py-16 sm:py-24">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-secondary mb-12">
-            Latest from Our Blog
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 overflow-hidden">
-              <img
-                src="https://ichef.bbci.co.uk/images/ic/976x549/p08zhw6w.jpg"
-                alt="Blog Article"
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-secondary mb-2">
-                  <a href="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.bbc.co.uk%2Fbitesize%2Farticles%2Fzb8pxbk&psig=AOvVaw1ngDEikYqV5jziDGA41jT-&ust=1754699752273000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCNiNppX8-Y4DFQAAAAAdAAAAABAE" className="hover:text-primary transition-colors duration-300" target='_blank'>
-                    5 Tips for Writing a Standout Personal Statement
-                  </a>
-                </h3>
-                <p className="text-neutral-500 text-sm">
-                  A deep dive into crafting a powerful and memorable personal statement that will get you noticed.
-                </p>
-              </div>
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center sm:items-start justify-center lg:justify-start">
+              {!currentUser ? (
+                <>
+                  <Link to="/signup">
+                    <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="px-7 py-4 rounded-full bg-blue-600 text-white font-bold shadow-2xl flex items-center gap-3">
+                      <FaGraduationCap /> Get Started — It’s Free
+                    </motion.button>
+                  </Link>
+                  <Link to="/features">
+                    <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="px-6 py-4 rounded-full border-2 border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition">
+                      Explore Features
+                    </motion.button>
+                  </Link>
+                </>
+              ) : (
+                <Link to="/dashboard">
+                  <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="px-8 py-4 rounded-full bg-white text-blue-700 font-bold shadow-2xl">Go to Dashboard</motion.button>
+                </Link>
+              )}
             </div>
-            <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 overflow-hidden">
-              <img
-                src="https://thephmillennial.com/wp-content/uploads/2019/08/Copy-of-Copy-of-Copy-of-Copy-of-Copy-of-Copy-of-Copy-of-what-to-din-times-14.png"
-                alt="Blog Article"
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-secondary mb-2">
-                  <a href="https://www.google.com/url?sa=i&url=https%3A%2F%2Fthephmillennial.com%2Fa-simple-guide-to-crush-your-first-semester-of-graduate-school%2F&psig=AOvVaw0pwA3TsRj0nDXzzVkIL2KD&ust=1754699949968000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCNim4-38-Y4DFQAAAAAdAAAAABAE" className="hover:text-primary transition-colors duration-300" target='_blank'>
-                    Navigating Your First Semester of Graduate School
-                  </a>
-                </h3>
-                <p className="text-neutral-500 text-sm">
-                  Practical advice and strategies for a smooth transition into your graduate studies.
-                </p>
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl shadow-lg border border-neutral-200 overflow-hidden">
-              <img
-                src="https://i.ytimg.com/vi/iq_KAQ2k0Yg/maxresdefault.jpg"
-                alt="Blog Article"
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-6">
-                <h3 className="text-xl font-semibold text-secondary mb-2">
-                  <a href="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3Diq_KAQ2k0Yg&psig=AOvVaw0LVp3uzMZVdSBmA73smszS&ust=1754700028585000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCLi8hpT9-Y4DFQAAAAAdAAAAABAE" className="hover:text-primary transition-colors duration-300" target='_blank'>
-                    The Ultimate Guide to Securing Recommendation Letters
-                  </a>
-                </h3>
-                <p className="text-neutral-500 text-sm">
-                  Learn how to approach professors and secure strong letters of recommendation.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="text-center mt-12">
-            <Link to="/blog">
-              <button className="bg-white text-secondary font-bold py-3 px-8 rounded-full text-lg border-2 border-neutral-300 hover:bg-neutral-200 transform hover:scale-105 transition-all duration-300">
-                View All Articles
-              </button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {/* FAQ Section */}
-      <section className="bg-white py-16 sm:py-24">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-center text-secondary mb-12">
-            Frequently Asked Questions
-          </h2>
-          <div className="max-w-3xl mx-auto">
-            {faqData.map((item, index) => (
-              <div key={index} className="border-b border-neutral-300 py-4">
-                <button
-                  className="flex justify-between items-center w-full text-left text-lg font-semibold text-secondary"
-                  onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
-                >
-                  <span>{item.question}</span>
-                  <IoArrowForwardCircle
-                    className={`text-2xl transition-transform duration-300 ${openFAQ === index ? 'rotate-90 text-primary' : ''}`}
-                  />
-                </button>
-                <div
-                  className={`overflow-hidden transition-max-h duration-500 ease-in-out ${openFAQ === index ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}
-                >
-                  <p className="text-neutral-500 pt-2">{item.answer}</p>
+            <div className="mt-8 flex flex-wrap gap-4 items-center text-sm text-gray-700">
+              <div className="flex items-center gap-3"><FaBolt /><span>Curated funded programs</span></div>
+              <div className="flex items-center gap-3"><FaShieldAlt /><span>Verified application info</span></div>
+              <div className="flex items-center gap-3"><FaCheckCircle /><span>Mentors & document reviews</span></div>
+            </div>
+          </motion.div>
+
+          <motion.div variants={item} className="flex-1 relative">
+            {/* frosted mock dashboard card */}
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden p-6">
+              <div className="flex items-start gap-4">
+                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&q=80&auto=format&fit=crop" alt="student" className="w-20 h-20 rounded-xl object-cover shadow" />
+                <div>
+                  <div className="text-sm text-neutral-dark">Featured Match</div>
+                  <h3 className="font-bold text-lg">Global Masters Scholarship</h3>
+                  <p className="text-sm text-neutral-dark mt-1">Full scholarship • Deadline: Dec 15, 2025</p>
                 </div>
               </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-lg bg-neutral-50">
+                  <div className="text-xs text-neutral-dark">Applications Tracked</div>
+                  <div className="font-bold text-2xl"><CountUp end={12} /></div>
+                </div>
+                <div className="p-4 rounded-lg bg-neutral-50">
+                  <div className="text-xs text-neutral-dark">Mentor Requests</div>
+                  <div className="font-bold text-2xl"><CountUp end={3} /></div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <Link to="/programs" className="flex-1 text-center py-3 bg-primary text-white rounded-full font-semibold">Start an Application</Link>
+                <Link to="/mentor" className="flex-1 text-center py-3 border border-primary rounded-full font-semibold">Request Review</Link>
+              </div>
+            </div>
+
+            {/* decorative tiny cards */}
+            <div className="absolute -bottom-26 left-8 bg-white rounded-xl p-4 shadow-lg w-64">
+              <div className="text-xs text-neutral-dark">No application fee</div>
+              <div className="font-semibold">Apply to 20+ programs with waived fees</div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Platform Highlights */}
+      <section className="container mx-auto px-6 py-14">
+        <motion.h2 className="text-3xl md:text-4xl font-bold text-center text-secondary" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>What you get with Grad Tracker</motion.h2>
+        <motion.p className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark">Everything from discovery to mentorship — built for applicants who want results and less stress.</motion.p>
+
+        <motion.div className="mt-10 grid md:grid-cols-4 gap-6" variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
+          {[
+            { icon: <FaSearchDollar className="text-3xl" />, title: 'Curated Scholarships', desc: 'We verify scholarships and clearly show funding coverage so you apply to high-value programs.' },
+            { icon: <FaCalendarAlt className="text-3xl" />, title: 'Deadline Tracker', desc: 'Smart reminders with checklist items so nothing is missed.' },
+            { icon: <FaFileAlt className="text-3xl" />, title: 'Document Reviews', desc: 'Submit SOPs, CVs and essays for mentor review with line-by-line feedback.' },
+            { icon: <FaUserFriends className="text-3xl" />, title: 'Verified Mentors', desc: 'Experienced students and graduates who helped others get funded.' },
+          ].map((feat, i) => (
+            <motion.div key={i} variants={item} className="p-6 bg-white rounded-2xl shadow hover:shadow-xl transition">
+              <div className="rounded-lg w-14 h-14 flex items-center justify-center bg-blue-100 text-primary mb-4">{feat.icon}</div>
+              <h4 className="font-bold text-lg">{feat.title}</h4>
+              <p className="mt-2 text-sm text-neutral-dark">{feat.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* How it Works (Steps with images) */}
+      <section className="bg-gradient-to-r from-blue-50 to-white py-14">
+        <div className="container mx-auto px-6">
+          <h3 className="text-3xl font-bold text-center text-secondary">How it works — 4 simple steps</h3>
+          <p className="text-center max-w-2xl mx-auto mt-3 text-neutral-dark">From discovery to acceptance. Designed for clarity and speed.</p>
+
+          <div className="mt-10 grid md:grid-cols-2 gap-8">
+            {steps.map((s, i) => (
+              <motion.div key={i} className="flex gap-6 items-center bg-white rounded-2xl p-6 shadow" variants={item}>
+                <img src={s.img} alt={s.title} className="w-32 h-24 rounded-lg object-cover shadow-sm" />
+                <div>
+                  <div className="flex items-center gap-3 text-primary font-semibold">{s.icon}<span>{i + 1}</span></div>
+                  <h4 className="font-bold text-lg mt-2">{s.title}</h4>
+                  <p className="text-sm text-neutral-dark mt-2 max-w-md">{s.desc}</p>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final Call to Action Section with Image */}
+      {/* Scholarship Showcase */}
+      <section className="container mx-auto px-6 py-14">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-2xl font-bold text-secondary">Featured Scholarships & Funding</h3>
+          <Link to="/programs" className="text-primary font-semibold">Browse all</Link>
+        </div>
+
+        <motion.div className="grid md:grid-cols-3 gap-6" variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
+          {featuredScholarships.map((s, i) => <ScholarshipCard key={i} school={s} />)}
+        </motion.div>
+      </section>
+
+      {/* Video Walkthrough */}
+      <section className="py-14 bg-neutral-50">
+        <div className="container mx-auto px-6 text-center">
+          <h3 className="text-3xl font-bold text-secondary">See Grad Tracker in action</h3>
+          <p className="max-w-2xl mx-auto mt-3 text-neutral-dark">Watch this short walkthrough to see how quickly you can find fully-funded programs and manage applications.</p>
+
+          <div className="mt-8 max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl aspect-video">
+            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Demo" allowFullScreen className="w-full h-full"></iframe>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials & Success Stories */}
+      <section className="container mx-auto px-6 py-14">
+        <h3 className="text-3xl font-bold text-secondary text-center">Success stories</h3>
+        <p className="text-center max-w-2xl mx-auto mt-3 text-neutral-dark">Real people. Real offers. Real change.</p>
+
+        <div className="mt-8 grid md:grid-cols-3 gap-6">
+          <motion.div variants={item} className="col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-8 shadow-lg">
+            <div className="flex items-center gap-6">
+              <img src={testimonials[0].image} alt={testimonials[0].name} className="w-20 h-20 rounded-lg object-cover shadow" />
+              <div>
+                <div className="font-bold text-xl">{testimonials[0].name}</div>
+                <div className="text-sm opacity-90">{testimonials[0].role}</div>
+              </div>
+            </div>
+            <blockquote className="mt-6 italic">"{testimonials[0].quote}"</blockquote>
+
+            <div className="mt-6 flex gap-3">
+              <Link to="/stories" className="underline">Read full story</Link>
+              <div className="ml-auto flex items-center gap-2">
+                <FaStar /> <FaStar /> <FaStar /> <FaStar /> <FaStar />
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div variants={item} className="bg-white rounded-2xl p-6 shadow">
+            <div className="flex items-center gap-4">
+              <img src={testimonials[1].image} alt={testimonials[1].name} className="w-16 h-16 rounded-lg object-cover" />
+              <div>
+                <div className="font-bold">{testimonials[1].name}</div>
+                <div className="text-sm opacity-90">{testimonials[1].role}</div>
+              </div>
+            </div>
+            <p className="mt-4 text-neutral-dark">"{testimonials[1].quote}"</p>
+            <div className="mt-4">
+              <Link to="/stories" className="text-primary font-semibold">More stories</Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Community and impact counters */}
+<section className="relative py-16 overflow-hidden">
+  {/* Animated gradient background */}
+  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 animate-gradient bg-[length:400%_400%]"></div>
+
+  {/* Soft glowing animated orbs */}
+  <div className="absolute top-0 left-0 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+  <div className="absolute bottom-0 right-0 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
+
+  {/* Content */}
+  <div className="relative container mx-auto px-8 flex flex-wrap items-center justify-center gap-28 text-white text-center">
+    <div className="hover:scale-110 transition-transform duration-500">
+      <div className="font-bold text-4xl drop-shadow-lg">
+        <CountUp end={300} suffix="+" />
+      </div>
+      <div className="opacity-90 text-lg">Mentors</div>
+    </div>
+    <div className="hover:scale-110 transition-transform duration-500">
+      <div className="font-bold text-4xl drop-shadow-lg">
+        <CountUp end={2000} suffix="+" />
+      </div>
+      <div className="opacity-90 text-lg">Students helped</div>
+    </div>
+    <div className="hover:scale-110 transition-transform duration-500">
+      <div className="font-bold text-4xl drop-shadow-lg">
+        <CountUp end={95} suffix="%" />
+      </div>
+      <div className="opacity-90 text-lg">Success rate</div>
+    </div>
+  </div>
+
+  <style jsx>{`
+    @keyframes gradientAnimation {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+    .animate-gradient {
+      animation: gradientAnimation 8s ease infinite;
+    }
+  `}</style>
+</section>
+
+
+      {/* FAQs */}
+      <section className="container mx-auto px-6 py-14">
+        <h3 className="text-3xl font-bold text-secondary text-center">Frequently asked questions</h3>
+        <div className="mt-8 grid md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl p-6 shadow">
+            <h4 className="font-semibold">Are programs verified?</h4>
+            <p className="mt-2 text-sm text-neutral-dark">We verify funding types and application fees—but always include original program links so you can confirm details.</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow">
+            <h4 className="font-semibold">How does document review work?</h4>
+            <p className="mt-2 text-sm text-neutral-dark">Upload drafts, pick a mentor or paid reviewer, and receive feedback with suggested edits and comments.</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 shadow">
+            <h4 className="font-semibold">Is Grad Tracker free?</h4>
+            <p className="mt-2 text-sm text-neutral-dark">Yes — core discovery and tracking features are free. Premium services such as in-depth review are paid.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA (light gradient + frosted card + floating shapes) */}
       {!currentUser && (
-        <section
-          className="relative overflow-hidden py-16 sm:py-24"
-          style={{
-            backgroundImage: 'url(https://blog.aifsabroad.com/wp-content/uploads/2020/02/aifs-study-abroad-preparation-research.jpg)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="absolute inset-0 bg-primary opacity-50"></div> {/* Overlay for text contrast */}
-          <div className="container mx-auto px-6 text-center relative z-10">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-6">
-              Ready to Take Control of Your Future?
-            </h2>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto mb-10">
-              Join thousands of students who are simplifying their application process. Sign up for free today and get started.
-            </p>
-            <Link to="/signup">
-              <button className="bg-accent text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-pink-600 transform hover:scale-105 transition-all duration-300">
-                Start Your Free Account
-              </button>
-            </Link>
+        <section className="relative overflow-hidden py-16">
+          {/* CTA background gradient */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 via-white to-blue-100 z-0"></div>
+
+          {/* floating shapes */}
+          <motion.div
+            className="absolute z-0 w-80 h-80 bg-blue-200 rounded-full opacity-16 blur-3xl"
+            animate={{ y: [0, -20, 0] }}
+            transition={{ repeat: Infinity, duration: 9 }}
+            style={{ top: '12%', left: '-6%' }}
+          />
+          <motion.div
+            className="absolute z-0 w-96 h-96 bg-blue-300 rounded-full opacity-14 blur-3xl"
+            animate={{ y: [0, 30, 0] }}
+            transition={{ repeat: Infinity, duration: 11 }}
+            style={{ bottom: '6%', right: '-10%' }}
+          />
+
+          <div className="container mx-auto px-6 relative z-10 text-center">
+            <div className="max-w-3xl mx-auto bg-white/50 backdrop-blur-lg p-10 rounded-3xl shadow-lg border border-white/50">
+              <h3 className="text-3xl font-bold text-blue-800">Ready to find your funded path?</h3>
+              <p className="max-w-2xl mx-auto mt-3 text-gray-700">Sign up free and get personalized matches — plus one free document review when you create your profile.</p>
+              <div className="mt-6 flex items-center justify-center gap-4">
+                <Link to="/signup" className="bg-blue-600 text-white font-bold px-6 py-3 rounded-full shadow hover:bg-blue-700 transition">Create free account</Link>
+                <Link to="/contact" className="underline text-blue-700">Contact sales</Link>
+              </div>
+            </div>
           </div>
         </section>
       )}
     </div>
   );
-};
-
-export default HomePage;
+}

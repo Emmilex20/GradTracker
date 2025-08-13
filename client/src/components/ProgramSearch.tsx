@@ -38,7 +38,7 @@ const ProgramSearch: React.FC = () => {
 
         try {
             const response = await axios.get<ProgramSearchResult[]>(
-                `${API_URL}/api/programs/search?query=${searchQuery}`
+                `${API_URL}/programs/search?query=${searchQuery}`
             );
             setResults(response.data);
         } catch (err) {
@@ -56,7 +56,7 @@ const ProgramSearch: React.FC = () => {
         }
 
         try {
-            await axios.post(`${API_URL}/api/applications`, {
+            await axios.post(`${API_URL}/applications`, {
                 userId: currentUser.uid,
                 schoolName: program.university,
                 programName: program.department,

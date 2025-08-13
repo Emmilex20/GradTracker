@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+// src/components/Dashboard.tsx
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
@@ -10,13 +11,15 @@ import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-p
 import FeedbackForm from './FeedbackForm';
 import ApplicationCard from './ApplicationCard';
 import ApplicationStatusChart from './ApplicationStatusChart';
-import { FaPlus, FaSpinner, FaChartPie, FaUserCircle, FaCalendarPlus, FaBell, FaCommentAlt } from 'react-icons/fa'; // FaSearch is removed
+import { FaPlus, FaSearch, FaSpinner, FaChartPie, FaUserCircle, FaCalendarPlus, FaBell, FaCommentAlt, FaTimes, FaEnvelope, FaPaperclip, FaUserGraduate } from 'react-icons/fa'; // ADDED FaUserGraduate
 import type { UserProfile } from '../types/UserProfile';
+import EmailTracker from './EmailTracker';
+import DocumentReview from './DocumentReview';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Dashboard: React.FC = () => {
-    const { currentUser, userProfile } = useAuth();
+    const { currentUser, userProfile, token } = useAuth();
     const typedUserProfile = userProfile as UserProfile | null;
 
     const [applications, setApplications] = useState<Application[]>([]);
@@ -29,18 +32,39 @@ const Dashboard: React.FC = () => {
 
     const [receiveNotifications, setReceiveNotifications] = useState<boolean | null>(null);
 
-    const statusColumns = ['Interested', 'Applying', 'Submitted', 'Accepted', 'Rejected'];
-
-    // --- NEW: State for upcoming deadlines and milestone count ---
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
     
+    const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
+    
+    // NEW STATE: Manage mentor connection status
+    const [mentorConnectionStatus, setMentorConnectionStatus] = useState<'idle' | 'connecting' | 'success' | 'error'>('idle');
+
+    const detailsSectionRef = useRef<HTMLDivElement>(null);
+
+    const statusColumns = ['Interested', 'Applying', 'Submitted', 'Accepted', 'Rejected'];
+
     const fetchApplications = async () => {
-        if (!currentUser) return;
+        if (!currentUser || !token) { 
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         setFetchError(null);
         try {
-            const response = await axios.get<Application[]>(`${API_URL}/api/applications/${currentUser.uid}`);
+            const response = await axios.get<Application[]>(
+                `${API_URL}/applications/${currentUser.uid}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
             setApplications(response.data);
+            if (response.data.length > 0) {
+                setSelectedApplicationForTabs(response.data[0]);
+            } else {
+                setSelectedApplicationForTabs(null);
+            }
         } catch (error) {
             console.error('Error fetching applications:', error);
             setFetchError('Failed to load applications. Please try again.');
@@ -50,13 +74,12 @@ const Dashboard: React.FC = () => {
     };
 
     useEffect(() => {
-        if (currentUser) {
+        if (currentUser && token) {
             fetchApplications();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentUser, token]);
 
-    // --- NEW: Effect to calculate upcoming deadlines ---
     useEffect(() => {
         const today = new Date();
         const sevenDaysFromNow = new Date();
@@ -96,7 +119,7 @@ const Dashboard: React.FC = () => {
         }
 
         const updatedApplication = applications.find(app => app._id === draggableId);
-        if (!updatedApplication) return;
+        if (!updatedApplication || !token) return;
 
         const newStatus = destination.droppableId as Application['status'];
 
@@ -106,9 +129,14 @@ const Dashboard: React.FC = () => {
         setApplications(newApplications);
 
         try {
-            await axios.put(`${API_URL}/api/applications/${draggableId}`, {
-                status: newStatus,
-            });
+            await axios.put(`${API_URL}/applications/${draggableId}`, 
+                { status: newStatus },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
         } catch (err) {
             console.error('Failed to update application status:', err);
             fetchApplications();
@@ -137,15 +165,21 @@ const Dashboard: React.FC = () => {
     const displayName = typedUserProfile?.firstName || currentUser?.email?.split('@')[0] || 'User';
 
     const handleToggleNotifications = async () => {
-        if (!currentUser) return;
+        if (!currentUser || !token) return;
 
         const newSetting = !receiveNotifications;
         setReceiveNotifications(newSetting);
 
         try {
-            await axios.put(`${API_URL}/api/users/${currentUser.uid}/notifications`, {
-                receiveNotifications: newSetting,
-            });
+            await axios.put(
+                `${API_URL}/users/${currentUser.uid}/notifications`,
+                { receiveNotifications: newSetting },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
             console.log('Notification settings updated.');
         } catch (error) {
             console.error('Failed to update notification settings:', error);
@@ -156,9 +190,43 @@ const Dashboard: React.FC = () => {
     
     const handleCalendarSync = () => {
         if (!currentUser) return;
-        const icalUrl = `${API_URL}/api/applications/${currentUser.uid}/calendar`;
+        const icalUrl = `${API_URL}/applications/${currentUser.uid}/calendar`;
         
         alert(`Copy this URL to subscribe to your calendar feed:\n\n${icalUrl}\n\n1. Go to your Google/Outlook Calendar.\n2. Find the "Add Calendar" or "Subscribe from URL" option.\n3. Paste the URL. Changes will sync automatically.`);
+    };
+
+    // NEW FUNCTION: Handle mentor connection
+    const handleConnectWithMentor = async () => {
+      if (!currentUser || !token) {
+        alert("You must be logged in to connect with a mentor.");
+        return;
+      }
+
+      setMentorConnectionStatus('connecting');
+
+      try {
+        const response = await axios.post(
+          `${API_URL}/mentors/connect`,
+          { userId: currentUser.uid },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        if (response.status === 200) {
+          setMentorConnectionStatus('success');
+          alert('You have been successfully connected with a mentor! They will reach out to you shortly.');
+        } else {
+          setMentorConnectionStatus('error');
+          alert('Failed to connect with a mentor. Please try again later.');
+        }
+      } catch (error) {
+        console.error('Error connecting with a mentor:', error);
+        setMentorConnectionStatus('error');
+        alert('An error occurred. Please try again.');
+      }
     };
 
     if (!currentUser) {
@@ -177,61 +245,72 @@ const Dashboard: React.FC = () => {
         return diffDays;
     };
 
+    const handleViewDetailsModal = (application: Application) => {
+        setSelectedApplication(application);
+    };
+
+    const handleViewDashboardSections = (application: Application) => {
+        setSelectedApplicationForTabs(application);
+        setTimeout(() => {
+            if (detailsSectionRef.current) {
+                detailsSectionRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 100);
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
             
             {/* Header */}
             <header className="sticky top-0 bg-white shadow-md z-20 py-20 pb-2">
-    <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Left-aligned: Brand and Greeting */}
-        <div className="flex items-center space-x-2 sm:space-x-4">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-blue-600 whitespace-nowrap">
-                Grad Tracker
-            </h1>
-            <span className="hidden md:block text-gray-500 font-medium text-lg">
-                Hello, {displayName}! 👋
-            </span>
-        </div>
+                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+                    <div className="flex items-center space-x-2 sm:space-x-4">
+                        <h1 className="text-xl sm:text-2xl font-extrabold text-blue-600 whitespace-nowrap">
+                            Grad Tracker
+                        </h1>
+                        <span className="hidden md:block text-gray-500 font-medium text-lg">
+                            Hello, {displayName}! 👋
+                        </span>
+                    </div>
 
-        {/* Right-aligned: Action Buttons */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
-            <a
-                href="${API_URL}/auth/google"
-                className="bg-blue-500 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-blue-600 transition-colors duration-200 text-sm sm:text-base flex items-center justify-center whitespace-nowrap"
-            >
-                <span className="hidden sm:inline">Connect Gmail</span>
-                <span className="sm:hidden">Gmail</span>
-            </a>
-            <button
-                onClick={handleCalendarSync}
-                className="bg-green-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-green-700 transition-colors duration-200 flex items-center space-x-1 text-sm sm:text-base whitespace-nowrap"
-                title="Sync to Calendar"
-            >
-                <FaCalendarPlus />
-                <span className="hidden sm:inline">Sync</span>
-            </button>
+                    <div className="flex items-center space-x-2 sm:space-x-3">
+                        <a
+                            href={`${API_URL}/auth/google`}
+                            className="bg-blue-500 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-blue-600 transition-colors duration-200 text-sm sm:text-base flex items-center justify-center whitespace-nowrap"
+                        >
+                            <span className="hidden sm:inline">Connect Gmail</span>
+                            <span className="sm:hidden">Gmail</span>
+                        </a>
+                        <button
+                            onClick={handleCalendarSync}
+                            className="bg-green-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-green-700 transition-colors duration-200 flex items-center space-x-1 text-sm sm:text-base whitespace-nowrap"
+                            title="Sync to Calendar"
+                        >
+                            <FaCalendarPlus />
+                            <span className="hidden sm:inline">Sync</span>
+                        </button>
 
-            <Link to="/programs">
-                <button className="bg-gray-100 text-gray-700 font-semibold py-2 px-3 sm:px-4 rounded-xl hover:bg-gray-200 transition-colors duration-200 text-sm sm:text-base flex items-center space-x-1 whitespace-nowrap">
-                    <span className="sm:hidden">
-                        <FaPlus />
-                    </span>
-                    <span className="hidden sm:inline">Browse Programs</span>
-                </button>
-            </Link>
+                        <Link to="/programs">
+                            <button className="bg-gray-100 text-gray-700 font-semibold py-2 px-3 sm:px-4 rounded-xl hover:bg-gray-200 transition-colors duration-200 text-sm sm:text-base flex items-center space-x-1 whitespace-nowrap">
+                                <span className="sm:hidden">
+                                    <FaSearch />
+                                </span>
+                                <span className="hidden sm:inline">Browse Programs</span>
+                            </button>
+                        </Link>
 
-            <button
-                onClick={() => setIsFeedbackOpen(true)}
-                className="bg-purple-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-purple-700 transition-colors duration-200 text-sm sm:text-base flex items-center space-x-1 whitespace-nowrap"
-            >
-                <span className="sm:hidden">
-                    <FaCommentAlt />
-                </span>
-                <span className="hidden sm:inline">Feedback</span>
-            </button>
-        </div>
-    </div>
-</header>
+                        <button
+                            onClick={() => setIsFeedbackOpen(true)}
+                            className="bg-purple-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-purple-700 transition-colors duration-200 text-sm sm:text-base flex items-center space-x-1 whitespace-nowrap"
+                        >
+                            <span className="sm:hidden">
+                                <FaCommentAlt />
+                            </span>
+                            <span className="hidden sm:inline">Feedback</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
             
             <main className="container mx-auto px-4 sm:px-6 py-10 sm:py-40">
                 
@@ -298,8 +377,8 @@ const Dashboard: React.FC = () => {
                         </div>
                     </label>
                 </div>
-        
-                {/* --- NEW: Upcoming Deadlines Section --- */}
+            
+                {/* Upcoming Deadlines Section */}
                 {upcomingDeadlines.length > 0 && (
                     <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-10 animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
                         <div className="flex items-center justify-between mb-4 sm:mb-6">
@@ -326,7 +405,40 @@ const Dashboard: React.FC = () => {
                         </ul>
                     </div>
                 )}
-
+                
+                {/* NEW SECTION: Mentor Connection */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-10 flex flex-col md:flex-row justify-between md:items-center animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
+                    <div className="flex items-center space-x-4 mb-4 md:mb-0">
+                        <FaUserGraduate size={40} className="text-blue-500" />
+                        <div>
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-800">Connect with a Scholar Mentor</h3>
+                            <p className="text-gray-500 mt-1 text-sm sm:text-base">Get personalized guidance from an expert in your field.</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleConnectWithMentor}
+                        className={`py-3 px-6 rounded-full shadow-lg text-white font-semibold flex items-center space-x-2 transition-all duration-300 ${
+                            mentorConnectionStatus === 'connecting'
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : mentorConnectionStatus === 'success'
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-blue-600 hover:bg-blue-700'
+                        }`}
+                        disabled={mentorConnectionStatus === 'connecting' || mentorConnectionStatus === 'success'}
+                    >
+                        {mentorConnectionStatus === 'connecting' && <FaSpinner className="animate-spin" />}
+                        {mentorConnectionStatus === 'connecting' && <span>Connecting...</span>}
+                        {mentorConnectionStatus === 'success' && <span>Connected!</span>}
+                        {mentorConnectionStatus === 'error' && <span>Try Again</span>}
+                        {mentorConnectionStatus === 'idle' && (
+                            <>
+                                <FaPlus />
+                                <span>Find a Mentor</span>
+                            </>
+                        )}
+                    </button>
+                </div>
+                
                 {/* Kanban Board Section */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 animate-fade-in">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 sm:mb-6">
@@ -371,7 +483,8 @@ const Dashboard: React.FC = () => {
                                                             {(provided, snapshot) => (
                                                                 <ApplicationCard
                                                                     application={app}
-                                                                    onClick={() => setSelectedApplication(app)}
+                                                                    onViewDetailsModal={handleViewDetailsModal}
+                                                                    onViewDashboardSections={handleViewDashboardSections}
                                                                     isDragging={snapshot.isDragging}
                                                                     ref={provided.innerRef}
                                                                     {...provided.draggableProps}
@@ -393,6 +506,65 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </section>
                         </DragDropContext>
+                    )}
+                </div>
+
+                {/* Email and Documents Sections */}
+                <div ref={detailsSectionRef} className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 sm:mt-10 animate-fade-in">
+                    {applications.length > 0 ? (
+                        <>
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                                    Application Details: <span className="text-blue-600">{selectedApplicationForTabs?.schoolName}</span>
+                                </h2>
+                                <button
+                                    onClick={() => setSelectedApplicationForTabs(null)}
+                                    className="text-gray-500 hover:text-red-500 transition-colors text-2xl p-2 rounded-full hover:bg-gray-100"
+                                    title="Close Details"
+                                >
+                                    <FaTimes />
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+                                <div className="bg-gray-50 rounded-xl p-4 sm:p-6 shadow-inner">
+                                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                        <FaEnvelope className="mr-2 text-blue-500" />
+                                        Email Tracker
+                                    </h3>
+                                    {selectedApplicationForTabs ? (
+                                        <EmailTracker 
+                                            application={selectedApplicationForTabs} 
+                                            onEmailAdded={fetchApplications} 
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-48 text-gray-500 italic">
+                                            Select an application above to view its details.
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="bg-gray-50 rounded-xl p-4 sm:p-6 shadow-inner">
+                                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                        <FaPaperclip className="mr-2 text-blue-500" />
+                                        Document Checklist
+                                    </h3>
+                                    {selectedApplicationForTabs ? (
+                                        <DocumentReview 
+                                            application={selectedApplicationForTabs} 
+                                            onDocumentUpdated={fetchApplications} 
+                                        />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-48 text-gray-500 italic">
+                                            Select an application above to view its details.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="text-center p-8 text-gray-500 animate-fade-in">
+                            <h3 className="text-xl font-bold mb-2">No Applications Added Yet</h3>
+                            <p className="mb-4">Add your first application using the "Add New" button above to get started!</p>
+                        </div>
                     )}
                 </div>
             </main>

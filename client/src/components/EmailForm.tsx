@@ -25,7 +25,7 @@ const EmailForm: React.FC<EmailFormProps> = ({ to, onClose }) => {
     try {
       setStatus('sending');
       setStatusMessage('Sending...');
-      await axios.post(`${API_URL}/api/emails/send`, { to, subject, body }, {
+      await axios.post(`${API_URL}/emails/send`, { to, subject, body }, {
         withCredentials: true,
       });
       setStatus('success');

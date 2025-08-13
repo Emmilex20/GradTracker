@@ -11,14 +11,22 @@
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
+    "@tippyjs/react": "^4.2.6",
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
     "firebase": "^12.0.0",
+    "flowbite": "^3.1.2",
+    "flowbite-react": "^0.12.7",
+    "framer-motion": "^12.23.12",
     "react": "^19.1.1",
     "react-chartjs-2": "^5.3.0",
+    "react-countup": "^6.5.3",
     "react-dom": "^19.1.1",
+    "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
-    "react-router-dom": "^7.7.1"
+    "react-router-dom": "^7.7.1",
+    "react-spinners": "^0.17.0",
+    "tippy.js": "^6.3.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

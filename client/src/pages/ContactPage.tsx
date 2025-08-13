@@ -1,234 +1,286 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FaMapMarkerAlt, FaEnvelope, FaPhone, FaFacebook, FaTwitter, FaLinkedin } from 'react-icons/fa';
-import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  FaMapMarkerAlt,
+  FaEnvelope,
+  FaPhone,
+  FaFacebook,
+  FaTwitter,
+  FaLinkedin,
+} from "react-icons/fa";
+import { motion } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
 
-const ContactPage: React.FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [status, setStatus] = useState('');
+// Reusing the same animation variants as the HomePage
+const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } };
+const item = { hidden: { y: 24, opacity: 0 }, show: { y: 0, opacity: 1, transition: { duration: 0.6 } } };
+const floatBtn = { whileHover: { scale: 1.05 }, whileTap: { scale: 0.97 } };
 
-  const { currentUser } = useAuth(); // Get the current user's login status
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus('Sending...');
-    // In a real application, you would send this data to a backend endpoint.
-    // For now, we'll just simulate a successful submission.
-    setTimeout(() => {
-      console.log({ name, email, message });
-      setStatus('Message sent successfully!');
-      setName('');
-      setEmail('');
-      setMessage('');
-    }, 1500);
-  };
+export default function ContactPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [status, setStatus] = useState("");
+
+  const { currentUser } = useAuth();
 
   const faq = [
     {
-      question: 'What are your business hours?',
-      answer: 'Our office is open Monday to Friday from 9:00 AM to 5:00 PM WAT.',
+      question: "What are your business hours?",
+      answer:
+        "Our office is open Monday to Friday from 9:00 AM to 5:00 PM WAT.",
     },
     {
-      question: 'How long will it take to get a response?',
-      answer: 'We aim to respond to all inquiries within 24 business hours.',
+      question: "How long will it take to get a response?",
+      answer: "We aim to respond to all inquiries within 24 business hours.",
     },
     {
-      question: 'Do you offer support on weekends?',
-      answer: 'While our regular business hours are Monday to Friday, we do monitor urgent requests occasionally on weekends.',
+      question: "Do you offer support on weekends?",
+      answer:
+        "While our regular business hours are Monday to Friday, we do monitor urgent requests occasionally on weekends.",
     },
   ];
 
-  const renderCtaButton = () => {
-    if (currentUser) {
-      return (
-        <Link to="/dashboard">
-          <button className="bg-accent text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-pink-600 transform hover:scale-105 transition-all duration-300 animate-slide-up animation-delay-400">
-            Go to Dashboard
-          </button>
-        </Link>
-      );
-    } else {
-      return (
-        <Link to="/signup">
-          <button className="bg-accent text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-pink-600 transform hover:scale-105 transition-all duration-300 animate-slide-up animation-delay-400">
-            Get Started for Free
-          </button>
-        </Link>
-      );
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setStatus("Sending...");
+    setTimeout(() => {
+      console.log({ name, email, message });
+      setStatus("Message sent successfully!");
+      setName("");
+      setEmail("");
+      setMessage("");
+    }, 1500);
   };
 
+  const renderCtaButton = () =>
+    currentUser ? (
+      <Link to="/dashboard">
+        <motion.button {...floatBtn} className="bg-primary text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-blue-600 transition-all duration-300">
+          Go to Dashboard
+        </motion.button>
+      </Link>
+    ) : (
+      <Link to="/signup">
+        <motion.button {...floatBtn} className="bg-primary text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-blue-600 transition-all duration-300">
+          Get Started for Free
+        </motion.button>
+      </Link>
+    );
+
   return (
-    <div className="bg-neutral-100 min-h-screen py-20 pb-2">
-      
-      {/* Hero Section with Image */}
-      <section className="relative overflow-hidden bg-white py-24 sm:py-32 flex items-center justify-center">
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center transition-all duration-500 ease-in-out"
-          style={{ backgroundImage: 'url(https://www.shutterstock.com/image-photo/using-laptop-show-icon-address-600nw-2521386695.jpg)' }}
-          role="img"
-          aria-label="Laptop screen showing contact information icons like a location pin, an email envelope, and a phone, set against a blurred city background."
+    <div className="bg-neutral-50 overflow-hidden">
+      {/* Hero Section */}
+      <section className="relative min-h-[60vh] flex items-center justify-center text-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-100 z-0"></div>
+        {/* Floating soft shapes */}
+        <motion.div
+          className="absolute z-0 w-72 h-72 bg-blue-200 rounded-full opacity-20 blur-3xl"
+          animate={{ y: [0, -30, 0], x: [0, 20, 0] }}
+          transition={{ repeat: Infinity, duration: 8 }}
+          style={{ top: '6%', left: '-8%' }}
+        />
+        <motion.div
+          className="absolute z-0 w-96 h-96 bg-blue-300 rounded-full opacity-18 blur-3xl"
+          animate={{ y: [0, 20, 0], x: [0, -20, 0] }}
+          transition={{ repeat: Infinity, duration: 10 }}
+          style={{ bottom: '2%', right: '-12%' }}
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-3xl px-6 text-blue-900"
         >
-          <div className="absolute inset-0 bg-secondary opacity-60"></div>
-        </div>
-        <div className="container mx-auto px-6 text-center relative z-10 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight animate-slide-up">
+          <h1 className="text-5xl font-bold mb-4">
             Contact Our Team in Lekki, Lagos
           </h1>
-          <p className="mt-4 text-lg md:text-xl text-white/90 max-w-3xl mx-auto animate-slide-up animation-delay-300">
-            We're here to help you navigate your graduate school applications. Reach out with any questions or feedback.
+          <p className="text-lg opacity-90 text-neutral-dark">
+            We're here to help you navigate your graduate school applications.
+            Reach out with any questions or feedback.
           </p>
-        </div>
+        </motion.div>
       </section>
 
-      {/* Contact Form & Information Grid */}
-      <section className="bg-neutral-100 py-16">
-        <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      {/* Contact Form & Info */}
+      <section className="py-16 px-6 max-w-7xl mx-auto grid lg:grid-cols-2 gap-12">
+        {/* Form */}
+        <motion.div
+          variants={item} initial="hidden" whileInView="show" viewport={{ once: true }}
+          className="bg-white rounded-2xl shadow-lg p-8"
+        >
+          <h2 className="text-2xl font-bold mb-6 text-blue-900">
+            Send Us a Message
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block font-semibold mb-2 text-neutral-dark">
+                Name
+              </label>
+              <input
+                type="text"
+                className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block font-semibold mb-2 text-neutral-dark">
+                Email
+              </label>
+              <input
+                type="email"
+                className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label className="block font-semibold mb-2 text-neutral-dark">
+                Message
+              </label>
+              <textarea
+                className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary outline-none"
+                rows={6}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-primary hover:bg-blue-600 text-white font-bold py-3 rounded-full transition-all"
+            >
+              {status || "Send Message"}
+            </button>
+          </form>
+        </motion.div>
 
-            {/* Contact Form */}
-            <div className="bg-white p-8 rounded-2xl shadow-lg border border-neutral-200 animate-slide-up">
-              <h2 className="text-2xl font-bold text-secondary mb-6">Send Us a Message</h2>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                  <label htmlFor="name" className="block text-secondary font-semibold mb-2">Name</label>
-                  <input
-                    type="text"
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-secondary font-semibold mb-2">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
-                    required
-                  />
-                </div>
-                <div className="mb-6">
-                  <label htmlFor="message" className="block text-secondary font-semibold mb-2">Message</label>
-                  <textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
-                    rows={6}
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-primary text-white font-bold py-4 px-8 rounded-full text-lg shadow-xl hover:bg-blue-700 transform hover:scale-105 transition-all duration-300"
+        {/* Info */}
+        <motion.div
+          variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}
+          className="space-y-8"
+        >
+          <motion.div variants={item} className="bg-white p-8 rounded-2xl shadow-lg">
+            <h3 className="text-xl font-bold mb-4 text-blue-900">Our Office in Lekki</h3>
+            <div className="space-y-4 text-neutral-dark">
+              <div className="flex gap-3">
+                <FaMapMarkerAlt className="text-primary mt-1" />
+                <address className="not-italic">
+                  12A, Adewale Kolawole Crescent,
+                  <br />
+                  Lekki Phase 1, Lagos State, Nigeria
+                </address>
+              </div>
+              <div className="flex gap-3">
+                <FaEnvelope className="text-primary mt-1" />
+                <a
+                  href="mailto:info.ng@yourdomain.com"
+                  className="hover:underline"
                 >
-                  {status || 'Send Message'}
-                </button>
-              </form>
-              {status && (
-                <p className="mt-4 text-center text-primary font-semibold">
-                  {status}
-                </p>
-              )}
-            </div>
-
-            {/* Contact Information */}
-            <div className="flex flex-col gap-8 animate-slide-up animation-delay-200">
-              <div className="bg-white p-8 rounded-2xl shadow-lg border border-neutral-200">
-                <h3 className="text-xl font-bold text-secondary mb-4">Our Office in Lekki</h3>
-                <div className="text-neutral-500 space-y-4">
-                  <div className="flex items-start gap-3">
-                    <FaMapMarkerAlt className="text-primary mt-1 flex-shrink-0" size={20} />
-                    <address className="not-italic">
-                      12A, Adewale Kolawole Crescent,<br />
-                      Lekki Phase 1,<br />
-                      Lagos State,<br />
-                      Nigeria
-                    </address>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <FaEnvelope className="text-primary flex-shrink-0" size={20} />
-                    <a href="mailto:info.ng@yourdomain.com" className="hover:underline text-secondary font-semibold">info.ng@yourdomain.com</a>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <FaPhone className="text-primary flex-shrink-0" size={20} />
-                    <a href="tel:+2349012345678" className="hover:underline text-secondary font-semibold">+234 901 234 5678</a>
-                  </div>
-                </div>
+                  info.ng@yourdomain.com
+                </a>
               </div>
-
-              {/* Map Embed */}
-              <div className="bg-white p-8 rounded-2xl shadow-lg border border-neutral-200 animate-slide-up animation-delay-400">
-                <h3 className="text-xl font-bold text-secondary mb-4">Find Us on Google Maps</h3>
-                <div className="overflow-hidden rounded-lg">
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3964.6738917835157!2d3.447833215286591!3d6.435764026367339!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103bf47b7c25a075%3A0x28639f758782a466!2s12A%20Adewale%20Kolawole%20Cres%2C%20Lekki%20Phase%201%20106104%2C%20Lagos%2C%20Nigeria!5e0!3m2!1sen!2sus!4v1625064560000!5m2!1sen!2sus"
-                    width="100%"
-                    height="300"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Google Maps location of our office in Lekki, Lagos"
-                  ></iframe>
-                </div>
+              <div className="flex gap-3">
+                <FaPhone className="text-primary mt-1" />
+                <a href="tel:+2349012345678" className="hover:underline">
+                  +234 901 234 5678
+                </a>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+
+          <motion.div variants={item} className="bg-white p-8 rounded-2xl shadow-lg">
+            <h3 className="text-xl font-bold mb-4 text-blue-900">Find Us on Google Maps</h3>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=..."
+              width="100%"
+              height="250"
+              style={{ border: 0 }}
+              loading="lazy"
+              title="Google Maps location"
+              className="rounded-lg"
+            ></iframe>
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="bg-white py-16 sm:py-24">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-3xl font-extrabold text-secondary mb-12 animate-slide-up">
+      {/* FAQ */}
+      <section className="bg-neutral-100 py-16 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-8 text-blue-900">
             Frequently Asked Questions
           </h2>
-          <div className="max-w-3xl mx-auto space-y-6">
+          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="space-y-6">
             {faq.map((item, index) => (
-              <div key={index} className="bg-neutral-100 p-6 rounded-lg shadow-inner border border-neutral-200 animate-slide-up">
-                <h4 className="text-xl font-semibold text-secondary mb-2">{item.question}</h4>
-                <p className="text-neutral-500">{item.answer}</p>
-              </div>
+              <motion.div
+                key={index}
+                variants={item}
+                className="bg-white p-6 rounded-xl shadow"
+              >
+                <h4 className="text-lg font-semibold mb-2 text-blue-900">
+                  {item.question}
+                </h4>
+                <p className="text-neutral-dark">{item.answer}</p>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Connect on Social Media */}
-      <section className="bg-neutral-100 py-12">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-2xl font-semibold text-secondary mb-6 animate-slide-up">
-            Connect With Us
-          </h2>
-          <div className="flex justify-center space-x-6 text-primary text-3xl animate-slide-up animation-delay-200">
-            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70"><FaFacebook /></a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70"><FaTwitter /></a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70"><FaLinkedin /></a>
-          </div>
+      {/* Social */}
+      <section className="py-12 text-center">
+        <h2 className="text-2xl font-semibold mb-6 text-blue-900">Connect With Us</h2>
+        <div className="flex justify-center gap-6 text-3xl text-primary">
+          <a href="https://facebook.com" target="_blank" rel="noreferrer">
+            <FaFacebook />
+          </a>
+          <a href="https://twitter.com" target="_blank" rel="noreferrer">
+            <FaTwitter />
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noreferrer">
+            <FaLinkedin />
+          </a>
         </div>
       </section>
 
-      {/* Final Call to Action */}
-      <section className="bg-primary py-20 sm:py-28">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-8 animate-slide-up">
-            {currentUser ? "Ready to get back to your applications?" : "We're Here to Help You Succeed"}
-          </h2>
-          <p className="text-xl text-white/90 max-w-3xl mx-auto mb-10 animate-slide-up animation-delay-200">
-            {currentUser ? "Head to your dashboard to manage your applications and deadlines." : "Don't hesitate to reach out. Our team in Lekki, Lagos is ready to answer your questions and provide the support you need."}
-          </p>
-          {renderCtaButton()}
-        </div>
-      </section>
+      {/* CTA */}
+      {!currentUser && (
+        <section className="relative overflow-hidden py-16">
+          <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 via-white to-blue-100 z-0"></div>
+          <motion.div
+            className="absolute z-0 w-80 h-80 bg-blue-200 rounded-full opacity-16 blur-3xl"
+            animate={{ y: [0, -20, 0] }}
+            transition={{ repeat: Infinity, duration: 9 }}
+            style={{ top: '12%', left: '-6%' }}
+          />
+          <motion.div
+            className="absolute z-0 w-96 h-96 bg-blue-300 rounded-full opacity-14 blur-3xl"
+            animate={{ y: [0, 30, 0] }}
+            transition={{ repeat: Infinity, duration: 11 }}
+            style={{ bottom: '6%', right: '-10%' }}
+          />
+
+          <div className="container mx-auto px-6 relative z-10 text-center">
+            <div className="max-w-3xl mx-auto bg-white/50 backdrop-blur-lg p-10 rounded-3xl shadow-lg border border-white/50">
+              <h3 className="text-3xl font-bold text-blue-800">We're Here to Help You Succeed</h3>
+              <p className="max-w-2xl mx-auto mt-3 text-gray-700">Don't hesitate to reach out. Our team in Lekki, Lagos is ready to answer your questions and provide the support you need.</p>
+              <div className="mt-6 flex items-center justify-center gap-4">
+                <Link to="/signup">
+                  <motion.button {...floatBtn} className="bg-primary text-white font-bold px-6 py-3 rounded-full shadow hover:bg-blue-600 transition">
+                    Create free account
+                  </motion.button>
+                </Link>
+                <Link to="/contact" className="underline text-blue-700">Contact sales</Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
-};
-
-export default ContactPage;
+}
