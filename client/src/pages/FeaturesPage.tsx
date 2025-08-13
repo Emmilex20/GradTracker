@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import CountUp from 'react-countup';
@@ -92,20 +91,6 @@ const howItWorksSteps = [
 export default function FeaturesPage() {
   const { currentUser } = useAuth();
 
-  const renderCtaButton = () =>
-    currentUser ? (
-      <Link to="/dashboard">
-        <motion.button {...floatBtn} className="bg-primary text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-blue-600 transition-all duration-300">
-          Go to Dashboard
-        </motion.button>
-      </Link>
-    ) : (
-      <Link to="/signup">
-        <motion.button {...floatBtn} className="bg-primary text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-blue-600 transition-all duration-300">
-          Get Started for Free
-        </motion.button>
-      </Link>
-    );
 
   return (
     <div className="bg-neutral-50 min-h-screen">

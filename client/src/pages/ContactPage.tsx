@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   FaMapMarkerAlt,
@@ -15,7 +15,6 @@ import { useAuth } from "../context/AuthContext";
 const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } };
 const item = { hidden: { y: 24, opacity: 0 }, show: { y: 0, opacity: 1, transition: { duration: 0.6 } } };
 const floatBtn = { whileHover: { scale: 1.05 }, whileTap: { scale: 0.97 } };
-
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -53,21 +52,6 @@ export default function ContactPage() {
       setMessage("");
     }, 1500);
   };
-
-  const renderCtaButton = () =>
-    currentUser ? (
-      <Link to="/dashboard">
-        <motion.button {...floatBtn} className="bg-primary text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-blue-600 transition-all duration-300">
-          Go to Dashboard
-        </motion.button>
-      </Link>
-    ) : (
-      <Link to="/signup">
-        <motion.button {...floatBtn} className="bg-primary text-white font-bold py-4 px-12 rounded-full text-lg shadow-xl hover:bg-blue-600 transition-all duration-300">
-          Get Started for Free
-        </motion.button>
-      </Link>
-    );
 
   return (
     <div className="bg-neutral-50 overflow-hidden">
@@ -210,27 +194,28 @@ export default function ContactPage() {
       </section>
 
       {/* FAQ */}
-      <section className="bg-neutral-100 py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8 text-blue-900">
-            Frequently Asked Questions
-          </h2>
-          <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="space-y-6">
-            {faq.map((item, index) => (
-              <motion.div
-                key={index}
-                variants={item}
-                className="bg-white p-6 rounded-xl shadow"
-              >
-                <h4 className="text-lg font-semibold mb-2 text-blue-900">
-                  {item.question}
-                </h4>
-                <p className="text-neutral-dark">{item.answer}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+<section className="bg-neutral-100 py-16 px-6">
+  <div className="max-w-4xl mx-auto text-center">
+    <h2 className="text-3xl font-bold mb-8 text-blue-900">
+      Frequently Asked Questions
+    </h2>
+    <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }} className="space-y-6">
+      {faq.map((item, index) => (
+        <motion.div
+          key={index}
+          // The line below was causing the error. It's removed to fix the type mismatch.
+          // variants={item}
+          className="bg-white p-6 rounded-xl shadow"
+        >
+          <h4 className="text-lg font-semibold mb-2 text-blue-900">
+            {item.question}
+          </h4>
+          <p className="text-neutral-dark">{item.answer}</p>
+        </motion.div>
+      ))}
+    </motion.div>
+  </div>
+</section>
 
       {/* Social */}
       <section className="py-12 text-center">
