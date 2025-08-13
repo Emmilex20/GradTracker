@@ -9,7 +9,7 @@ interface NavLinkProps {
     setIsMenuOpen: (val: boolean) => void;
 }
 
-// Helper for nav links
+// Helper for nav links (Desktop styling)
 const NavLink: React.FC<NavLinkProps> = ({ to, label, setIsMenuOpen }) => (
     <Link
         to={to}
@@ -43,14 +43,7 @@ const Navbar: React.FC = () => {
     };
 
     const adminLink = userProfile?.role === 'admin' ? (
-        <Link
-            to="/admin"
-            className="relative block px-4 py-2 text-secondary font-semibold transition-all duration-300 hover:text-primary group"
-            onClick={() => setIsMenuOpen(false)}
-        >
-            Admin Dashboard
-            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-        </Link>
+        <NavLink to="/admin" label="Admin Dashboard" setIsMenuOpen={setIsMenuOpen} />
     ) : null;
 
     const menuItems = (
@@ -59,6 +52,7 @@ const Navbar: React.FC = () => {
             {adminLink}
             <NavLink to="/features" label="Features" setIsMenuOpen={setIsMenuOpen} />
             <NavLink to="/about" label="About" setIsMenuOpen={setIsMenuOpen} />
+            <NavLink to="/blog" label="Blog" setIsMenuOpen={setIsMenuOpen} />
             <NavLink to="/contact" label="Contact" setIsMenuOpen={setIsMenuOpen} />
         </>
     );
@@ -105,6 +99,19 @@ const Navbar: React.FC = () => {
         </>
     );
 
+    const mobileMenuItems = (
+        <>
+            <Link to="/" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Home</Link>
+            {userProfile?.role === 'admin' && (
+                <Link to="/admin" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Admin Dashboard</Link>
+            )}
+            <Link to="/features" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Features</Link>
+            <Link to="/about" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>About</Link>
+            <Link to="/blog" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Blog</Link>
+            <Link to="/contact" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Contact</Link>
+        </>
+    );
+
     return (
         <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'backdrop-blur-lg bg-white/70 shadow-lg' : 'bg-white'}`}>
             <div className="container mx-auto px-6 py-4 flex justify-between items-center relative">
@@ -144,8 +151,8 @@ const Navbar: React.FC = () => {
                     className={`absolute top-0 right-0 w-64 h-full bg-white shadow-xl p-8 transform transition-all duration-500 ease-in-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className="flex flex-col space-y-8 mt-16">
-                        {menuItems}
+                    <div className="flex flex-col space-y-4 mt-16">
+                        {mobileMenuItems}
                         <div className="border-t border-neutral-200 pt-8"></div>
                         {authButtons}
                     </div>

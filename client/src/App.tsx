@@ -11,6 +11,7 @@ import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import FeaturesPage from './pages/FeaturesPage';
 import ContactPage from './pages/ContactPage';
+import BlogPage from './pages/BlogPage';
 import ProgramSearch from './components/ProgramSearch';
 import ScrollToTop from './components/ScrollToTop';
 import AdminDashboard from './components/AdminDashboard'; // Import the new dashboard
@@ -37,6 +38,8 @@ const App: React.FC = () => {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/programs" element={<ProgramList />} />
                 <Route path="/search" element={<ProgramSearch />} />
+                <Route path="/blog" element={<BlogPage />} />
+
 
                 {/* Authenticated Routes (for all logged-in users) */}
                 <Route element={<ProtectedRoute />}>
