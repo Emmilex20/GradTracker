@@ -23,24 +23,21 @@ import path from 'path';
 import admin from 'firebase-admin';
 import verifyToken from './middleware/auth.js';
 
-// Import the new mentor routes file
-import mentorRoutes from './routes/mentorRoutes.js';
-
 try {
-    const serviceAccountPath = './config/grad-tracker-app-firebase-adminsdk.json';
-    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+  const serviceAccountPath = './config/grad-tracker-app-firebase-adminsdk.json';
+  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
 
-    if (!admin.apps.length) {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
-        console.log('Firebase Admin SDK initialized successfully.');
-    } else {
-        console.log('Firebase Admin SDK already initialized.');
-    }
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log('Firebase Admin SDK initialized successfully.');
+  } else {
+    console.log('Firebase Admin SDK already initialized.');
+  }
 } catch (error) {
-    console.error('Failed to initialize Firebase Admin SDK. Check your service account key file.');
-    console.error(error);
+  console.error('Failed to initialize Firebase Admin SDK. Check your service account key file.');
+  console.error(error);
 }
 
 const app = express();
@@ -52,111 +49,157 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: async (req, file) => {
-        const applicationId = req.params.id;
-        const userId = req.user.uid;
-        const originalName = path.parse(file.originalname).name;
-        return {
-            folder: `grad-tracker/${userId}/${applicationId}`,
-            public_id: `${originalName}-${Date.now()}`,
-            resource_type: 'raw',
-            format: file.mimetype.split('/')[1],
-        };
-    },
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    // Get userId and applicationId from the request, depending on the route
+    const userId = req.user?.uid;
+    const applicationId = req.params.id;
+
+    const originalName = path.parse(file.originalname).name;
+    const publicId = `${originalName}-${Date.now()}`;
+
+    // Ensure the folder path is consistent
+    let folderPath = `grad-tracker/${userId}/${applicationId}`;
+    if (!userId || !applicationId) {
+      console.warn('Could not determine folder path for upload, using generic folder.');
+      folderPath = 'grad-tracker/misc';
+    }
+
+    return {
+      folder: folderPath,
+      public_id: publicId,
+      resource_type: 'raw',
+      format: file.mimetype.split('/')[1],
+    };
+  },
 });
 
 const upload = multer({ storage: storage });
 
 app.post('/api/applications/:id/documents', verifyToken, upload.single('document'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('No file uploaded.');
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+
+  const { id } = req.params;
+  const { fileType } = req.body;
+  const userId = req.user.uid;
+
+  if (!fileType || !userId) {
+    if (req.file) {
+      cloudinary.uploader.destroy(req.file.filename, { resource_type: 'raw' });
+    }
+    return res.status(400).send('Missing file type or user ID.');
+  }
+
+  try {
+    const newDocument = new Document({
+      applicationId: id,
+      userId,
+      fileName: req.file.originalname,
+      fileUrl: req.file.path,
+      filePublicId: req.file.filename,
+      fileType
+    });
+    await newDocument.save();
+    res.status(201).json(newDocument);
+  } catch (error) {
+    console.error('Document upload error:', error);
+    if (req.file) {
+      cloudinary.uploader.destroy(req.file.filename, { resource_type: 'raw' });
+    }
+    res.status(500).send('Server error.');
+  }
+});
+
+// NEW ROUTE for uploading a corrected document
+app.post('/api/applications/:id/documents/:docId/corrected-version', verifyToken, upload.single('document'), async (req, res) => {
+    // Check if the user is an admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden: Only administrators can upload corrected documents.' });
     }
-
-    const { id } = req.params;
-    const { fileType } = req.body;
-    const userId = req.user.uid;
-
-    if (!fileType || !userId) {
-        if (req.file) {
-            cloudinary.uploader.destroy(req.file.filename, { resource_type: 'raw' });
-        }
-        return res.status(400).send('Missing file type or user ID.');
+    
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded.' });
     }
 
     try {
-        const isRawFile = req.file.mimetype.startsWith('application/');
-        let filePublicId;
+      const { docId } = req.params;
+      const document = await Document.findById(docId);
 
-        if (isRawFile) {
-            filePublicId = req.file.filename;
-        } else {
-            filePublicId = req.file.filename.replace(/\.[^/.]+$/, "");
-        }
+      if (!document) {
+        // If document not found, delete the uploaded file from Cloudinary
+        await cloudinary.uploader.destroy(req.file.filename, { resource_type: 'raw' });
+        return res.status(404).json({ message: 'Document not found.' });
+      }
 
-        const newDocument = new Document({
-            applicationId: id,
-            userId,
-            fileName: req.file.originalname,
-            fileUrl: req.file.path,
-            filePublicId: filePublicId,
-            fileType
-        });
-        await newDocument.save();
-        res.status(201).json(newDocument);
+      // Check if a corrected file already exists and delete the old one from Cloudinary
+      if (document.correctedFilePublicId) {
+        await cloudinary.uploader.destroy(document.correctedFilePublicId, { resource_type: 'raw' });
+      }
+      
+      // Update the existing document with the new corrected file data
+      document.correctedFileUrl = req.file.path;
+      document.correctedFilePublicId = req.file.filename;
+      document.status = 'review_complete';
+      await document.save();
+
+      res.status(200).json({ message: 'Corrected document uploaded successfully', document });
     } catch (error) {
-        console.error('Document upload error:', error);
-        if (req.file) {
-            cloudinary.uploader.destroy(req.file.filename, { resource_type: 'raw' });
-        }
-        res.status(500).send('Server error.');
+      console.error('Error uploading corrected document:', error);
+      // In case of an error after file upload, attempt to clean up the Cloudinary file
+      if (req.file) {
+        await cloudinary.uploader.destroy(req.file.filename, { resource_type: 'raw' }).catch(err => console.error('Cloudinary cleanup failed:', err));
+      }
+      res.status(500).json({ message: 'Server error.' });
     }
 });
 
+
 app.get('/api/applications/:id/documents', verifyToken, async (req, res) => {
-    try {
-        const documents = await Document.find({ applicationId: req.params.id, userId: req.user.uid });
-        res.status(200).json(documents);
-    } catch (error) {
-        console.error('Error fetching documents:', error);
-        res.status(500).send('Server error.');
-    }
+  try {
+    const documents = await Document.find({ applicationId: req.params.id, userId: req.user.uid });
+    res.status(200).json(documents);
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    res.status(500).send('Server error.');
+  }
 });
 
 app.get('/api/documents/:docId/download-url', verifyToken, async (req, res) => {
-    try {
-        const document = await Document.findById(req.params.docId);
-        if (!document) {
-            return res.status(404).json({ message: 'Document not found' });
-        }
+  try {
+    const document = await Document.findById(req.params.docId);
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
 
-        if (document.userId !== req.user.uid && req.user.role !== 'admin') {
-            return res.status(403).json({ message: 'Forbidden' });
-        }
+    if (document.userId !== req.user.uid && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
 
-        const signedUrl = cloudinary.url(document.filePublicId, {
-            resource_type: 'raw',
-            flags: 'attachment',
-            attachment: document.fileName,
-            sign_url: true,
-            secure: true,
-        });
+    const fileUrlToSign = document.correctedFilePublicId ? document.correctedFilePublicId : document.filePublicId;
+    const fileName = document.correctedFilePublicId ? `${document.fileName}_corrected` : document.fileName;
 
-        res.json({ downloadUrl: signedUrl });
-    } catch (error) {
-        console.error('Error generating download URL:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
+    const signedUrl = cloudinary.url(fileUrlToSign, {
+      resource_type: 'raw',
+      flags: 'attachment',
+      attachment: fileName,
+      sign_url: true,
+      secure: true,
+    });
+
+    res.json({ downloadUrl: signedUrl });
+  } catch (error) {
+    console.error('Error generating download URL:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
-
-// Use the new mentor routes
-app.use('/api/mentors', verifyToken, mentorRoutes); 
 
 app.use('/api/applications', verifyToken, applicationRoutes);
 app.use('/api/feedback', verifyToken, feedbackRoutes);
@@ -168,18 +211,18 @@ app.use('/api/admin', verifyToken, adminRoutes);
 const mongoUri = process.env.MONGO_URI;
 
 mongoose.connect(mongoUri)
-    .then(() => {
-        console.log('MongoDB connected successfully');
-        startCronJob();
-    })
-    .catch(err => console.error('MongoDB connection error:', err));
+  .then(() => {
+    console.log('MongoDB connected successfully');
+    startCronJob();
+  })
+  .catch(err => console.error('MongoDB connection error:', err));
 
 app.get('/', (req, res) => {
-    res.send('Grad School Application API is running!');
+  res.send('Grad School Application API is running!');
 });
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+  console.log(`Server is running on port ${PORT}`);
+}); 
