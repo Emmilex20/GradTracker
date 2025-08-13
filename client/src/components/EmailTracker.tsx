@@ -75,7 +75,7 @@ Sincerely,
     }
 
     try {
-      await axios.post(`${API_URL}/api/applications/${application._id}/emails`, {
+      await axios.post(`${API_URL}/applications/${application._id}/emails`, {
         subject,
         body,
         recipient,

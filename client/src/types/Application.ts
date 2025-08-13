@@ -1,3 +1,5 @@
+// src/types/Application.ts or a new file like src/types/index.ts
+
 export interface Email {
   subject: string;
   body: string;
@@ -5,14 +7,28 @@ export interface Email {
   sentAt: string;
 }
 
+export interface Document {
+  _id: string;
+  applicationId: Application;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  uploadedAt: string;
+  // Fields for the document review feature
+  status: 'uploaded' | 'pending_review' | 'review_complete';
+  correctedFileUrl?: string;
+}
+
 export interface Application {
   contactEmail: string;
   _id: string;
+  userId: string;
+  userEmail: string;
   schoolName: string;
   programName: string;
   funding: string;
   fundingAmount: string;
-  deadline: string; // Changed from applicationDeadline to deadline
+  deadline: string;
   status: 'Interested' | 'Applying' | 'Submitted' | 'Accepted' | 'Rejected';
   notes: string;
   emails: Email[];

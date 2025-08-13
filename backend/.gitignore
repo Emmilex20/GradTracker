@@ -1,4 +1,7 @@
-# Logs
+# Firebase Admin SDK credentials
+backend/config/grad-tracker-app-firebase-adminsdk.json
+
+# Logs and dependency management files
 logs
 *.log
 npm-debug.log*
@@ -7,22 +10,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Directories
 node_modules
 dist
 dist-ssr
+
+# Environment variables
 .env
 local.env
 *.local
 
-# Editor directories and files
-.vscode/*
+# Editor and OS files
+.vscode/
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-backend/grad-tracker-app-firebase-adminsdk.json

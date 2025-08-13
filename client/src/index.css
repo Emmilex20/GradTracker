@@ -9,7 +9,7 @@
     @apply bg-neutral-100 text-secondary font-sans;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading text-secondary font-bold;
+    @apply font-display text-secondary font-bold;
   }
   h1 {
     @apply text-4xl sm:text-5xl lg:text-6xl;
@@ -17,4 +17,21 @@
   a {
     @apply text-primary hover:text-accent transition-colors duration-300;
   }
+}
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradientFlow 12s ease infinite;
 }

@@ -1,5 +1,6 @@
-// src/types/Program.ts
+// src/types/documents.ts
 
+// The main Program interface, which seems to be the core application data
 export interface Program {
   _id: string;
   university: string;
@@ -14,17 +15,17 @@ export interface Program {
   appLink: string;
 }
 
-// NEW: Interface for the populated application data
+// Interface for the populated application data returned from the API
 export interface PopulatedApplication {
   _id: string;
   schoolName: string;
   programName: string;
 }
 
-// NEW: Document interface that uses the populated type
+// The Document interface, which now correctly uses the populated application type
 export interface Document {
   _id: string;
-  applicationId: PopulatedApplication; // <-- Updated to the populated type
+  applicationId: PopulatedApplication;
   userId: string;
   fileName: string;
   fileUrl: string;
@@ -32,4 +33,12 @@ export interface Document {
   uploadedAt: string;
   status: 'uploaded' | 'pending_review' | 'review_complete';
   correctedFileUrl?: string;
+}
+
+// You can add other related types here as well
+export interface Email {
+  subject: string;
+  body: string;
+  recipient: string;
+  sentAt: string;
 }

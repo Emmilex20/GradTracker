@@ -80,21 +80,22 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
 
         try {
             const applicationData: Omit<Application, '_id' | 'emails' | 'status'> = {
-              schoolName: university,
-              programName: department,
-              deadline,
-              notes,
-              funding,
-              fundingAmount,
-              greWaiver,
-              ieltsWaiver,
-              appFeeWaiver,
-              requiredDocs: requiredDocs.split(',').map(doc => doc.trim()),
-              appLink: '',
-              contactEmail: ''
+                schoolName: university,
+                programName: department,
+                deadline,
+                notes,
+                funding,
+                fundingAmount,
+                greWaiver,
+                ieltsWaiver,
+                appFeeWaiver,
+                requiredDocs: requiredDocs.split(',').map(doc => doc.trim()),
+                appLink: '',
+                contactEmail: '',
+                userId: ''
             };
 
-            await axios.post(`${API_URL}/api/applications`, {
+            await axios.post(`${API_URL}/applications`, {
                 ...applicationData,
                 userId: currentUser.uid,
                 status: 'Interested',

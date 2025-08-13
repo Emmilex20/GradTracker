@@ -1,6 +1,8 @@
 import express from 'express';
 import Application from '../models/Application.js';
 import ical from 'ical-generator';
+import Document from '../models/Document.js';
+import { v2 as cloudinary } from 'cloudinary';
 
 const router = express.Router();
 
@@ -117,24 +119,76 @@ router.delete('/:id', async (req, res) => {
         if (!application) {
             return res.status(404).json({ message: 'Application not found' });
         }
-        res.json({ message: 'Application deleted successfully' });
+        // --- Delete all associated documents from Cloudinary and MongoDB ---
+        const documents = await Document.find({ applicationId: req.params.id });
+        for (const doc of documents) {
+            const publicId = doc.fileUrl.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(publicId, { resource_type: 'raw', invalidate: true });
+            await Document.findByIdAndDelete(doc._id);
+        }
+
+        res.json({ message: 'Application and associated documents deleted successfully' });
     } catch (err) {
+        console.error('Error deleting application and documents:', err);
         res.status(500).json({ message: err.message });
     }
 });
 
+// --- DELETE a specific document from an application ---
+router.delete('/:applicationId/documents/:documentId', async (req, res) => {
+    try {
+        const { documentId } = req.params;
+        const document = await Document.findById(documentId);
+
+        if (!document) {
+            return res.status(404).json({ message: 'Document not found' });
+        }
+
+        // Extract the public ID from the Cloudinary URL
+        const publicId = document.fileUrl.split('/').pop().split('.')[0];
+        
+        // Delete the file from Cloudinary
+        await cloudinary.uploader.destroy(publicId, { resource_type: 'raw', invalidate: true });
+
+        // Delete the document record from the database
+        await Document.findByIdAndDelete(documentId);
+
+        res.json({ message: 'Document deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting document:', err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// --- NEW: Route to submit a document for review ---
+router.put('/:applicationId/documents/:documentId/submit-for-review', async (req, res) => {
+    try {
+        const document = await Document.findByIdAndUpdate(
+            req.params.documentId,
+            { status: 'pending_review' },
+            { new: true }
+        );
+        if (!document) {
+            return res.status(404).json({ error: 'Document not found' });
+        }
+        // TODO: Add logic to send an email notification to the app owners
+        res.status(200).json(document);
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ... Existing email route
 router.post('/:applicationId/emails', async (req, res) => {
     const { applicationId } = req.params;
     const { subject, body, recipient } = req.body;
 
     try {
-        // Find the application by its ID
         const application = await Application.findById(applicationId);
         if (!application) {
             return res.status(404).send('Application not found');
         }
 
-        // Save the email as a record in the database
         application.emails.push({
             subject,
             body,
@@ -142,9 +196,6 @@ router.post('/:applicationId/emails', async (req, res) => {
             sentAt: new Date(),
         });
         await application.save();
-
-        // Optionally, send the email using a separate service function
-        // await sendEmail(recipient, subject, body);
 
         res.status(201).send('Email record added successfully!');
     } catch (error) {

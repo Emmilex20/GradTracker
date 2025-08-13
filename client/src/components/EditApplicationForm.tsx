@@ -49,7 +49,7 @@ const EditApplicationForm: React.FC<EditApplicationFormProps> = ({ application, 
                 appLink,
             };
 
-            await axios.put(`${API_URL}/api/applications/${application._id}`, updatedData);
+            await axios.put(`${API_URL}/applications/${application._id}`, updatedData);
             onApplicationUpdated();
             onClose();
         } catch (err) {
