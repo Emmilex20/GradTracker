@@ -67,8 +67,11 @@ export const platformFeatures: Feature[] = [
     {
         icon: <FaSearchDollar className="text-2xl" />, 
         src: scholarshipImage, 
-        title: 'Program search with details', 
-        desc: 'It allows you to search for a specific course and School (e.g Chemistry, Harvard University) and when you do, it shows funding, waivers (GRE, IELTS, Application fees) and application documents.',
+        title: 'Program Search with Details', 
+        desc: `Allows you to type in your course and school (e.g., Chemistry, Harvard University) and instantly see:
+- Graduate funding opportunities
+- GRE, IELTS, and application fee waiver status
+- Required documents for your application.`,
         fullDesc: 'Our advanced search engine allows you to filter and discover thousands of graduate programs with funding. You can search by degree level, subject, location, and even specific research interests. We provide verified information on funding availability, application fees, and key requirements, helping you save time and focus on the best-fit opportunities. The platform also gives you a personalized dashboard to track and manage your potential programs.',
         fullImage: scholarshipImage2,
     },
@@ -76,7 +79,7 @@ export const platformFeatures: Feature[] = [
         icon: <FaCalendarAlt className="text-2xl" />, 
         src: calendarImage, 
         title: 'Application Tracker', 
-        desc: 'Allows you to add programs to your dashboard. Track those you have applied to, and those in progress. Also Professors you have emailed and those you have not.',
+        desc: "Allows you to add programs to your dashboard. Track those you have applied to, and those in progress. You can also track professors you've contacted and those you haven't.",
         fullDesc: 'The GradTrack dashboard is your central hub for all applications. It features a customisable kanban board and a calendar view, allowing you to track each program from "Researching" to "Accepted." You can upload documents, add notes, set reminders, and manage your to-do lists all in one place, ensuring you never miss a critical step.',
         fullImage: calendarImage2,
     },
@@ -84,7 +87,7 @@ export const platformFeatures: Feature[] = [
         icon: <FaFileAlt className="text-2xl" />, 
         src: documentImage, 
         title: 'Document Storage and Reviews', 
-        desc: "No more fear of your laptop crashing and all documents gone. You can upload and store documents (SOPs, CVs, e.t.c) for whenever you need them on the app. You can also request for document review from expert scholars.",
+        desc: "Store and access your important documents (SOPs, CVs, recommendation letters, etc.) anytime. No worries about losing files, and you can request expert document reviews directly through the app.",
         fullDesc: 'Never worry about losing your important files again. With this app, you can securely upload and store documents like SOPs, CVs, and more, ready for access anytime you need them. Plus, you can request expert scholar reviews to refine and improve your documents for the best results.',
         fullImage: documentImage2,
     },

@@ -59,9 +59,12 @@ const FeatureModal: React.FC<FeatureModalProps> = ({ feature, onClose }) => {
                     )}
                 </div>
                 <div className="mt-8 flex justify-center">
-                    <Link to="/" className="px-6 py-3 bg-primary text-white rounded-full font-bold shadow-lg hover:opacity-95 transition">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-3 bg-primary text-white rounded-full font-bold shadow-lg hover:opacity-95 transition"
+                    >
                         Back to Home
-                    </Link>
+                    </button>
                 </div>
             </motion.div>
         </motion.div>
@@ -321,14 +324,14 @@ export default function HomePage() {
                                         <div className="rounded-lg w-full h-48 flex-grow-0 flex-shrink-0 flex items-center justify-center mb-4 overflow-hidden relative">
                                             <img src={feat.src} alt={feat.title} className="w-full h-full object-cover rounded-lg" />
                                         </div>
-                                        <p className="mt-auto text-sm text-neutral-dark flex-grow">{feat.desc}</p>
+                                        <p className="mt-auto text-sm text-neutral-dark flex-grow whitespace-pre-wrap">{feat.desc}</p>
                                         
                                         {/* Added "See More" button here */}
                                         <button
                                             onClick={() => setModalFeature(feat)}
                                             className="mt-4 self-start text-sm text-primary font-semibold hover:underline transition"
                                         >
-                                            See More
+                                            Dashboard View
                                         </button>
                                     </div>
                                 </motion.div>
