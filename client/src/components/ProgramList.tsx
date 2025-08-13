@@ -77,6 +77,7 @@ const ProgramList: React.FC = () => {
       alert(
         `✅ Successfully added ${program.department} at ${program.university} to your dashboard!`
       );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('Failed to add program:', err);
       if (err.response && err.response.status === 409) {
