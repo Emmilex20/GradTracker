@@ -15,10 +15,10 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 // Import local images
-import scholarshipImage from '../assets/images/scholarship.jpg';
+import scholarshipImage from '../assets/images/scholarship_resized.png';
 import calendarImage from '../assets/images/calendar.jpg';
 import documentImage from '../assets/images/document.jpg';
-import mentorImage from '../assets/images/mentor.png';
+import mentorImage from '../assets/images/mentor.jpg';
 import blogImage from '../assets/images/blog.webp';
 import connectImage from '../assets/images/connect.png';
 
@@ -233,7 +233,7 @@ export default function HomePage() {
     ];
 
     const platformFeatures = [
-        { icon: <FaSearchDollar className="text-2xl" />, src: scholarshipImage, title: 'Program search with Core details', desc: 'It allows you to search for a specific course and School (e.g Chemistry, Harvard University) and when you do, it shows funding, waivers (GRE, IELTS, Application fees) and application documents.' },
+        { icon: <FaSearchDollar className="text-2xl" />, src: scholarshipImage, title: 'Program search with details', desc: 'It allows you to search for a specific course and School (e.g Chemistry, Harvard University) and when you do, it shows funding, waivers (GRE, IELTS, Application fees) and application documents.' },
         { icon: <FaCalendarAlt className="text-2xl" />, src: calendarImage, title: 'Application Tracker', desc: 'Allows you to add programs to your dashboard. Track those you have applied to, and those in progress. Also Professors you have emailed and those you have not.' },
         { icon: <FaFileAlt className="text-2xl" />, src: documentImage, title: 'Document Reviews', desc: "Get your SOP's essays, academic CVs, and cold email reviewed." },
         { icon: <FaUserFriends className="text-2xl" />, src: mentorImage, title: 'Find a Mentor and Alumni', desc: 'This allows you to find a scholarship mentor and/or alumni of a specific scholarship or specific school.' },
@@ -316,7 +316,7 @@ export default function HomePage() {
                         <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-10">
                             <motion.div variants={item} className="flex-1 text-center lg:text-left">
                                 <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-blue-900">
-                                    Grad School Application Can Be Overwhelming And That Is Why We Exist.
+                                    Grad School Application Can Be Overwhelming!
                                 </h1>
                                 <p className="mt-5 text-lg text-gray-700 max-w-2xl">
                                     From program search to writing tons of SOPs/CVs unto managing cold emails, reference letters, waivers, and deadlines - It is a full time job.
@@ -330,7 +330,7 @@ export default function HomePage() {
                                         <>
                                             <Link to="/signup">
                                                 <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="px-7 py-4 rounded-full bg-blue-600 text-white font-bold shadow-2xl flex items-center gap-3">
-                                                    <FaGraduationCap /> Get Started — It’s Free
+                                                    <FaGraduationCap /> Join Us Now
                                                 </motion.button>
                                             </Link>
                                             <Link to="/features">
@@ -373,24 +373,50 @@ export default function HomePage() {
 
                     {/* What GradTrack Offers (Updated to include local images) */}
                     <section className="container mx-auto px-6 py-14">
-                        <motion.h2 className="text-3xl md:text-4xl font-bold text-center text-secondary" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>What GradTrack Offers.</motion.h2>
-                        <motion.p className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark">Everything from discovery to mentorship — built for applicants who want results and less stress.</motion.p>
+    <motion.h2
+        className="text-3xl md:text-4xl font-bold text-center text-secondary"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+    >
+        What GradTrack Offers.
+    </motion.h2>
+    <motion.p className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark">
+        Everything from discovery to mentorship — built for applicants who want results and less stress.
+    </motion.p>
 
-                        <motion.div className="mt-10 grid md:grid-cols-4 gap-6" variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                            {platformFeatures.map((feat, i) => (
-                                <motion.div key={i} variants={item} className="p-6 bg-white rounded-2xl shadow hover:shadow-xl transition">
-                                    <div className="rounded-lg w-full h-48 flex items-center justify-center bg-blue-100 mb-4 overflow-hidden relative">
-                                        <img src={feat.src} alt={feat.title} className="w-full h-full object-cover rounded-lg" />
-                                        <div className="absolute top-4 left-4 bg-white/70 backdrop-blur p-2 rounded-md">
-                                            {feat.icon}
-                                        </div>
-                                    </div>
-                                    <h4 className="font-bold text-lg">{feat.title}</h4>
-                                    <p className="mt-2 text-sm text-neutral-dark">{feat.desc}</p>
-                                </motion.div>
-                            ))}
-                        </motion.div>
-                    </section>
+    <motion.div
+        className="mt-10 grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+        variants={container}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.2 }}
+    >
+        {platformFeatures.map((feat, i) => (
+            <motion.div
+                key={i}
+                variants={item}
+                className="relative p-8 bg-white rounded-2xl shadow-lg border border-transparent overflow-hidden
+                           transform hover:scale-105 transition-all duration-300 group
+                           hover:shadow-xl"
+            >
+                {/* Animated Border on Hover */}
+                <div className="absolute inset-0 border-2 border-primary rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
+
+                <div className="relative z-10 flex flex-col h-full">
+                    <div className="rounded-full w-14 h-14 flex items-center justify-center bg-blue-100 text-primary mb-6">
+                        {feat.icon}
+                    </div>
+                    {/* The fix is here: Added h-12 and flex items-start */}
+                    <h4 className="font-bold text-lg text-secondary pb-16 h-12 flex items-start">{feat.title}</h4> 
+                    <div className="rounded-lg w-full h-48 flex-grow-0 flex-shrink-0 flex items-center justify-center mb-4 overflow-hidden relative">
+                        <img src={feat.src} alt={feat.title} className="w-full h-full object-cover rounded-lg" />
+                    </div>
+                    <p className="mt-auto text-sm text-neutral-dark flex-grow">{feat.desc}</p>
+                </div>
+            </motion.div>
+        ))}
+    </motion.div>
+</section>                  
 
                     {/* How it Works (Steps with images) */}
                     <section className="bg-gradient-to-r from-blue-50 to-white py-14">
