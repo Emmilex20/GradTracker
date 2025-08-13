@@ -18,7 +18,7 @@ import { useAuth } from '../context/AuthContext';
 import scholarshipImage from '../assets/images/scholarship_resized.png';
 import calendarImage from '../assets/images/calendar.jpg';
 import documentImage from '../assets/images/document.jpg';
-import mentorImage from '../assets/images/mentor.jpg';
+import mentorImage from '../assets/images/mentor.webp';
 import blogImage from '../assets/images/blog.webp';
 import connectImage from '../assets/images/connect.png';
 
