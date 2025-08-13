@@ -36,10 +36,10 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
                 return;
             }
 
-            const { 
-                university, 
-                department, 
-                deadline, 
+            const {
+                university,
+                department,
+                deadline,
                 funding,
                 fundingAmount,
                 greWaiver,
@@ -57,7 +57,7 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
             if (ieltsWaiver) setIeltsWaiver(ieltsWaiver);
             if (appFeeWaiver) setAppFeeWaiver(appFeeWaiver);
             if (requiredDocs) {
-                 setRequiredDocs(requiredDocs.join(', '));
+                setRequiredDocs(requiredDocs.join(', '));
             }
         };
 
@@ -70,8 +70,11 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!currentUser) {
-            setError('You must be logged in to add an application.');
+        
+        // This is the updated check that handles the null case for currentUser and currentUser.email
+        if (!currentUser || !currentUser.email) {
+            setError('You must be logged in with a valid email to add an application.');
+            setLoading(false);
             return;
         }
 
@@ -92,12 +95,12 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
                 requiredDocs: requiredDocs.split(',').map(doc => doc.trim()),
                 appLink: '',
                 contactEmail: '',
-                userId: ''
+                userId: currentUser.uid,
+                userEmail: currentUser.email, // TypeScript now knows this is a string
             };
 
             await axios.post(`${API_URL}/applications`, {
                 ...applicationData,
-                userId: currentUser.uid,
                 status: 'Interested',
             });
 
@@ -116,8 +119,6 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
     };
 
     return (
-        // The container now has `overflow-y-auto` to enable vertical scrolling.
-        // `max-h-full` and `h-fit` are also added to ensure it doesn't overflow the viewport.
         <div className="relative w-full max-w-xl mx-auto bg-white rounded-3xl shadow-xl p-8 transform transition-all duration-300 scale-100 animate-slide-up-fade h-fit max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6 border-b pb-4 border-gray-200">
                 <h2 className="text-3xl font-extrabold text-gray-800">Add New Application</h2>

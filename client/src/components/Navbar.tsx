@@ -1,6 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+// Define the props interface for the NavLink component
+interface NavLinkProps {
+    to: string;
+    label: string;
+    setIsMenuOpen: (val: boolean) => void;
+}
+
+// Helper for nav links
+const NavLink: React.FC<NavLinkProps> = ({ to, label, setIsMenuOpen }) => (
+    <Link
+        to={to}
+        className="relative block px-4 py-2 text-secondary font-semibold transition-all duration-300 hover:text-primary group"
+        onClick={() => setIsMenuOpen(false)}
+    >
+        {label}
+        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
+    </Link>
+);
 
 const Navbar: React.FC = () => {
     const { currentUser, userProfile, logout } = useAuth();
@@ -133,7 +152,7 @@ const Navbar: React.FC = () => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
                 @keyframes gradient {
                     0% { background-position: 0% 50%; }
                     50% { background-position: 100% 50%; }
@@ -147,17 +166,5 @@ const Navbar: React.FC = () => {
         </nav>
     );
 };
-
-// Helper for nav links
-const NavLink = ({ to, label, setIsMenuOpen }: { to: string, label: string, setIsMenuOpen: (val: boolean) => void }) => (
-    <Link
-        to={to}
-        className="relative block px-4 py-2 text-secondary font-semibold transition-all duration-300 hover:text-primary group"
-        onClick={() => setIsMenuOpen(false)}
-    >
-        {label}
-        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-blue-400 to-purple-500 transform scale-x-0 transition-transform duration-300 origin-left group-hover:scale-x-100"></span>
-    </Link>
-);
 
 export default Navbar;
