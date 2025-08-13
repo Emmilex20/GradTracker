@@ -183,7 +183,7 @@ export default function HomePage() {
             name: 'No-Fee International MBA Grants',
             location: 'Canada',
             level: 'MBA',
-            funding: 'Partial Scholarship',
+            funding: 'Partial Scholarships',
             deadline: 'Nov 30, 2025',
             blurb: 'Merit-based partial scholarships and waived application fee for select MBA applicants.',
             image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1200&q=80&auto=format&fit=crop',
