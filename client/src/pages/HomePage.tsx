@@ -3,35 +3,70 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaGraduationCap,
-    FaSearchDollar,
-    FaCalendarAlt,
-    FaUserFriends,
-    FaFileAlt,
     FaShieldAlt,
     FaCheckCircle,
     FaBolt,
     FaStar,
+    FaTimes, // Import FaTimes for the close button
 } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { platformFeatures, steps, featuredScholarships, testimonials, blogPosts, type Scholarship, type Feature } from '../data/homePageData';
 
-// Import local images
-import scholarshipImage from '../assets/images/scholarship_resized.png';
-import calendarImage from '../assets/images/calendar.jpg';
-import documentImage from '../assets/images/document.jpg';
-import mentorImage from '../assets/images/mentor.webp';
-import blogImage from '../assets/images/blog.webp';
-import connectImage from '../assets/images/connect.png';
-
-// Define the type for a scholarship object
-interface Scholarship {
-    name: string;
-    location: string;
-    level: string;
-    funding: string;
-    deadline: string;
-    blurb: string;
-    image: string;
+// --- Modal Component ---
+interface FeatureModalProps {
+    feature: Feature | null;
+    onClose: () => void;
 }
+
+const FeatureModal: React.FC<FeatureModalProps> = ({ feature, onClose }) => {
+    if (!feature) return null;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4"
+            onClick={onClose}
+        >
+            <motion.div
+                initial={{ scale: 0.9, y: 50 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 50 }}
+                transition={{ type: 'spring', stiffness: 100 }}
+                className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 overflow-y-auto max-h-[90vh]"
+                onClick={e => e.stopPropagation()} // Prevents closing when clicking inside the modal
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+                >
+                    <FaTimes size={24} />
+                </button>
+                <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex-1">
+                        <h3 className="text-3xl font-bold text-secondary mb-4">{feature.title}</h3>
+                        <p className="text-neutral-dark whitespace-pre-wrap">{feature.fullDesc}</p>
+                    </div>
+                    {feature.fullImage && (
+                        <div className="flex-1 flex items-center justify-center">
+                            <img
+                                src={feature.fullImage}
+                                alt={feature.title}
+                                className="rounded-lg shadow-md w-full md:w-auto md:max-w-xs object-cover"
+                            />
+                        </div>
+                    )}
+                </div>
+                <div className="mt-8 flex justify-center">
+                    <Link to="/" className="px-6 py-3 bg-primary text-white rounded-full font-bold shadow-lg hover:opacity-95 transition">
+                        Back to Home
+                    </Link>
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+};
 
 // --- Small helper: animated counter ---
 interface CountUpProps {
@@ -61,7 +96,6 @@ const CountUp: React.FC<CountUpProps> = ({ end, suffix = '', duration = 1200 }) 
 const OutstandingLoader: React.FC = () => (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white">
         <div className="relative flex flex-col items-center">
-            {/* Pulsating Gradient Background */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -69,8 +103,6 @@ const OutstandingLoader: React.FC = () => (
                 transition={{ duration: 0.8 }}
                 className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 rounded-full blur-xl animate-pulse-slow"
             ></motion.div>
-
-            {/* Central Icon */}
             <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -89,31 +121,31 @@ const OutstandingLoader: React.FC = () => (
             >
                 Loading Your Journey...
             </motion.p>
+            <style>
+                {`
+                @keyframes pulse-slow {
+                    0%, 100% {
+                        transform: scale(1);
+                        opacity: 0.7;
+                    }
+                    50% {
+                        transform: scale(1.2);
+                        opacity: 1;
+                    }
+                }
+                .animate-pulse-slow {
+                    animation: pulse-slow 3s infinite ease-in-out;
+                }
+                @keyframes spin-slow {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                .animate-spin-slow {
+                    animation: spin-slow 1.5s linear infinite;
+                }
+                `}
+            </style>
         </div>
-        <style>
-            {`
-            @keyframes pulse-slow {
-                0%, 100% {
-                    transform: scale(1);
-                    opacity: 0.7;
-                }
-                50% {
-                    transform: scale(1.2);
-                    opacity: 1;
-                }
-            }
-            .animate-pulse-slow {
-                animation: pulse-slow 3s infinite ease-in-out;
-            }
-            @keyframes spin-slow {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            .animate-spin-slow {
-                animation: spin-slow 1.5s linear infinite;
-            }
-            `}
-        </style>
     </div>
 );
 
@@ -150,117 +182,15 @@ const ScholarshipCard: React.FC<ScholarshipCardProps> = ({ school }) => (
 export default function HomePage() {
     const { currentUser } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [modalFeature, setModalFeature] = useState<Feature | null>(null);
 
     useEffect(() => {
-        // Simulate a network request
         const timer = setTimeout(() => {
             setLoading(false);
-        }, 2000); // 2-second delay
+        }, 2000);
 
         return () => clearTimeout(timer);
     }, []);
-
-    const featuredScholarships: Scholarship[] = [
-        {
-            name: 'Global Masters Scholarship — Greenfield University',
-            location: 'United Kingdom',
-            level: 'Masters',
-            funding: 'Full Scholarship',
-            deadline: 'Dec 15, 2025',
-            blurb: 'Full tuition + stipend for outstanding international students in STEM & Social Sciences. Covers travel and living allowance.',
-            image: 'https://www.lps.upenn.edu/sites/default/files/2020-10/news-graduation-2019-final2.png',
-        },
-        {
-            name: 'Africa Fellowship for Development',
-            location: 'USA (virtual + campus)',
-            level: 'Masters & PhD',
-            funding: 'Tuition + Stipend',
-            deadline: 'Jan 20, 2026',
-            blurb: 'Supporting researchers and practitioners from Africa with funding, mentorship and placement opportunities.',
-            image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&q=80&auto=format&fit=crop',
-        },
-        {
-            name: 'No-Fee International MBA Grants',
-            location: 'Canada',
-            level: 'MBA',
-            funding: 'Partial Scholarships',
-            deadline: 'Nov 30, 2025',
-            blurb: 'Merit-based partial scholarships and waived application fee for select MBA applicants.',
-            image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1200&q=80&auto=format&fit=crop',
-        },
-    ];
-
-    const testimonials = [
-        {
-            name: 'Amina Yusuf',
-            role: 'Fulbright Scholar 2024',
-            quote: 'Grad Tracker turned hours of research into one dashboard. I found funded programs and connected with a mentor who reviewed my SOP — I got in! ',
-            image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80&auto=format&fit=crop',
-        },
-        {
-            name: 'Daniel Okoye',
-            role: 'Masters — Greenfield University',
-            quote: 'The deadline reminders saved me from missing a key scholarship. The document review service is gold.',
-            image: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=800&q=80&auto=format&fit=crop',
-        },
-    ];
-
-    const steps = [
-        {
-            title: 'Search & Discover',
-            desc: 'Filter programs by funding type, country, field, and application fee to find matches in seconds.',
-            icon: <FaSearchDollar className="text-4xl" />,
-            img: 'https://images.unsplash.com/photo-1483058712412-4245e9b90334?w=1000&q=80&auto=format&fit=crop',
-        },
-        {
-            title: 'Track Applications',
-            desc: 'One place for deadlines, required docs, statuses and notes. Share progress with mentors.',
-            icon: <FaCalendarAlt className="text-4xl" />,
-            img: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=1000&q=80&auto=format&fit=crop',
-        },
-        {
-            title: 'Get Reviews & Mentorship',
-            desc: 'Submit essays, CVs, and documents for mentor feedback and iterate until it shines.',
-            icon: <FaUserFriends className="text-4xl" />,
-            img: 'https://images.unsplash.com/photo-1544717305-996b815c338c?w=1000&q=80&auto=format&fit=crop',
-        },
-        {
-            title: 'Celebrate Offers',
-            desc: 'Track your acceptances and next steps — celebrate milestones and plan your next move.',
-            icon: <FaGraduationCap className="text-4xl" />,
-            img: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1000&q=80&auto=format&fit=crop',
-        },
-    ];
-
-    const platformFeatures = [
-        { icon: <FaSearchDollar className="text-2xl" />, src: scholarshipImage, title: 'Program search with details', desc: 'It allows you to search for a specific course and School (e.g Chemistry, Harvard University) and when you do, it shows funding, waivers (GRE, IELTS, Application fees) and application documents.' },
-        { icon: <FaCalendarAlt className="text-2xl" />, src: calendarImage, title: 'Application Tracker', desc: 'Allows you to add programs to your dashboard. Track those you have applied to, and those in progress. Also Professors you have emailed and those you have not.' },
-        { icon: <FaFileAlt className="text-2xl" />, src: documentImage, title: 'Document Reviews', desc: "Get your SOP's essays, academic CVs, and cold email reviewed." },
-        { icon: <FaUserFriends className="text-2xl" />, src: mentorImage, title: 'Find a Mentor and Alumni', desc: 'This allows you to find a scholarship mentor and/or alumni of a specific scholarship or specific school.' },
-        { icon: <FaUserFriends className="text-2xl" />, src: blogImage, title: 'Application Resources and Blog', desc: 'You will find curated and organized content and videos to help you along the process, from how to craft award-winning SOPs to approaching your referees, e.t.c.' },
-        { icon: <FaUserFriends className="text-2xl" />, src: connectImage, title: 'Connect With Other Applicants', desc: 'You get to find other applicants, form accountabilty partner and navigate grad school process together. There is also a community page to connect at large. Offline meetup is also a possibility' },
-    ];
-    
-    const blogPosts = [
-        {
-            title: 'How to Write a Winning Statement of Purpose',
-            date: 'Aug 1, 2025',
-            image: 'https://blog.scholarden.com/wp-content/uploads/2022/01/Time-Management-on-the-GRE-1680-%C3%97-945-px-14-1536x864-1-1024x576.webp',
-            blurb: 'Your SOP is your story. Learn to craft a compelling narrative that stands out to admissions committees and secures your spot.',
-        },
-        {
-            title: 'The Ultimate Guide to Getting a Reference Letter',
-            date: 'Jul 25, 2025',
-            image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSY4M1XO1Ee4sH3gE5AqbKdbSMuje373qbUOfTMVLVimCIGCiDbPlMx4dwXhscsj7XAr3E&usqp=CAU',
-            blurb: 'A great reference letter can make all the difference. Find out how to approach professors and secure the best recommendations.',
-        },
-        {
-            title: 'Navigating Application Fee Waivers and Deadlines',
-            date: 'Jul 18, 2025',
-            image: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=800&q=80&auto=format&fit=crop',
-            blurb: 'Don’t let fees and deadlines stop you. We’ve compiled a list of schools that offer waivers and tips to keep your applications on track.',
-        },
-    ];
 
     return (
         <AnimatePresence>
@@ -278,28 +208,21 @@ export default function HomePage() {
                     {/* Floating actions (desktop) */}
                     <div className="hidden lg:flex fixed top-1/3 right-6 flex-col gap-4 z-50">
                         <motion.div {...floatBtn} className="rounded-full overflow-hidden">
-                            <Link to="/mentors">
-                                <button className="bg-white text-primary px-6 py-3 rounded-full shadow-md border border-primary font-semibold">Talk to Mentor</button>
-                            </Link>
+                            <Link to="/mentors" className="bg-white text-primary px-6 py-3 rounded-full shadow-md border border-primary font-semibold">Talk to Mentor</Link>
                         </motion.div>
                         <motion.div {...floatBtn} className="rounded-full overflow-hidden">
-                            <Link to="/programs">
-                                <button className="bg-gradient-to-r from-primary to-indigo-600 text-white px-6 py-3 rounded-full shadow-md font-semibold">Search Now</button>
-                            </Link>
+                            <Link to="/programs" className="bg-gradient-to-r from-primary to-indigo-600 text-white px-6 py-3 rounded-full shadow-md font-semibold">Search Now</Link>
                         </motion.div>
                     </div>
 
-                    {/* HERO (light premium gradient + frosted card + floating shapes) */}
+                    {/* HERO */}
                     <motion.section
                         initial="hidden"
                         animate="show"
                         variants={container}
                         className="relative overflow-hidden py-20 sm:py-28"
                     >
-                        {/* Pale gradient background for hero */}
                         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-100 z-0"></div>
-
-                        {/* Floating soft shapes */}
                         <motion.div
                             className="absolute z-0 w-72 h-72 bg-blue-200 rounded-full opacity-20 blur-3xl"
                             animate={{ y: [0, -30, 0], x: [0, 20, 0] }}
@@ -328,21 +251,12 @@ export default function HomePage() {
                                 <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center sm:items-start justify-center lg:justify-start">
                                     {!currentUser ? (
                                         <>
-                                            <Link to="/signup">
-                                                <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="px-7 py-4 rounded-full bg-blue-600 text-white font-bold shadow-2xl flex items-center gap-3">
-                                                    <FaGraduationCap /> Join Us Now
-                                                </motion.button>
-                                            </Link>
-                                            <Link to="/features">
-                                                <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="px-6 py-4 rounded-full border-2 border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition">
-                                                    Explore Features
-                                                </motion.button>
+                                            <Link to="/signup" className="px-8 py-4 rounded-full bg-white text-blue-700 font-bold shadow-2xl flex items-center gap-2">
+                                                <FaGraduationCap /> Join Us Now
                                             </Link>
                                         </>
                                     ) : (
-                                        <Link to="/dashboard">
-                                            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} className="px-8 py-4 rounded-full bg-white text-blue-700 font-bold shadow-2xl">Go to Dashboard</motion.button>
-                                        </Link>
+                                        <Link to="/dashboard" className="px-8 py-4 rounded-full bg-white text-blue-700 font-bold shadow-2xl">Go to Dashboard</Link>
                                     )}
                                 </div>
 
@@ -352,78 +266,81 @@ export default function HomePage() {
                                     <div className="flex items-center gap-3"><FaCheckCircle /><span>Mentors & document reviews</span></div>
                                 </div>
                             </motion.div>
-
                             <motion.div variants={item} className="flex-1 relative">
-                                {/* The animated image with a smooth bounce */}
                                 <motion.img
                                     src="https://img.freepik.com/premium-photo/handsome-young-latin-american-man-smart-student-watching-webinar-online-class-using-laptop_695242-1819.jpg?semt=ais_hybrid&w=740&q=80"
-                                    alt="Bouncing animated dashboard"
+                                    alt="Student using GradTrack web app"
                                     className="rounded-3xl shadow-2xl w-full h-auto object-cover"
-                                    animate={{ y: ["0%", "-5%", "0%"] }} // Bounces the image up and down
-                                    transition={{
-                                        duration: 3,
-                                        ease: "easeInOut",
-                                        repeat: Infinity,
-                                        repeatType: "loop",
-                                    }}
+                                    animate={{ y: ["0%", "-5%", "0%"] }}
+                                    transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatType: "loop" }}
                                 />
                             </motion.div>
                         </div>
                     </motion.section>
-
-                    {/* What GradTrack Offers (Updated to include local images) */}
+                    
+                    {/* What GradTrack Offers */}
                     <section className="container mx-auto px-6 py-14">
-    <motion.h2
-        className="text-3xl md:text-4xl font-bold text-center text-secondary"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-    >
-        What GradTrack Offers.
-    </motion.h2>
-    <motion.p className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark">
-        Everything from discovery to mentorship — built for applicants who want results and less stress.
-    </motion.p>
-
-    <motion.div
-        className="mt-10 grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
-    >
-        {platformFeatures.map((feat, i) => (
-            <motion.div
-                key={i}
-                variants={item}
-                className="relative p-8 bg-white rounded-2xl shadow-lg border border-transparent overflow-hidden
-                           transform hover:scale-105 transition-all duration-300 group
-                           hover:shadow-xl"
-            >
-                {/* Animated Border on Hover */}
-                <div className="absolute inset-0 border-2 border-primary rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
-
-                <div className="relative z-10 flex flex-col h-full">
-                    <div className="rounded-full w-14 h-14 flex items-center justify-center bg-blue-100 text-primary mb-6">
-                        {feat.icon}
-                    </div>
-                    {/* The fix is here: Added h-12 and flex items-start */}
-                    <h4 className="font-bold text-lg text-secondary pb-16 h-12 flex items-start">{feat.title}</h4> 
-                    <div className="rounded-lg w-full h-48 flex-grow-0 flex-shrink-0 flex items-center justify-center mb-4 overflow-hidden relative">
-                        <img src={feat.src} alt={feat.title} className="w-full h-full object-cover rounded-lg" />
-                    </div>
-                    <p className="mt-auto text-sm text-neutral-dark flex-grow">{feat.desc}</p>
-                </div>
-            </motion.div>
-        ))}
-    </motion.div>
-</section>                  
+                        <motion.h2
+                            className="text-3xl md:text-4xl font-bold text-center text-secondary"
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true, amount: 0.2 }}
+                        >
+                            What GradTrack Offers.
+                        </motion.h2>
+                        <motion.p 
+                          className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark"
+                          initial={{ opacity: 0, y: 16 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, amount: 0.2 }}
+                          transition={{ delay: 0.1 }}
+                        >
+                            Everything from discovery to mentorship — built for applicants who want results and less stress.
+                        </motion.p>
+                        <motion.div
+                            className="mt-10 grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                            variants={container}
+                            initial="hidden"
+                            whileInView="show"
+                            viewport={{ once: true, amount: 0.2 }}
+                        >
+                            {platformFeatures.map((feat, i) => (
+                                <motion.div
+                                    key={i}
+                                    variants={item}
+                                    className="relative p-8 bg-white rounded-2xl shadow-lg border border-transparent overflow-hidden
+                                               transform hover:scale-105 transition-all duration-300 group
+                                               hover:shadow-xl"
+                                >
+                                    <div className="absolute inset-0 border-2 border-primary rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
+                                    <div className="relative z-10 flex flex-col h-full">
+                                        <div className="rounded-full w-14 h-14 flex items-center justify-center bg-blue-100 text-primary mb-6">
+                                            {feat.icon}
+                                        </div>
+                                        <h4 className="font-bold text-lg text-secondary pb-16 h-12 flex items-start">{feat.title}</h4>
+                                        <div className="rounded-lg w-full h-48 flex-grow-0 flex-shrink-0 flex items-center justify-center mb-4 overflow-hidden relative">
+                                            <img src={feat.src} alt={feat.title} className="w-full h-full object-cover rounded-lg" />
+                                        </div>
+                                        <p className="mt-auto text-sm text-neutral-dark flex-grow">{feat.desc}</p>
+                                        
+                                        {/* Added "See More" button here */}
+                                        <button
+                                            onClick={() => setModalFeature(feat)}
+                                            className="mt-4 self-start text-sm text-primary font-semibold hover:underline transition"
+                                        >
+                                            See More
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </motion.div>
+                    </section>
 
                     {/* How it Works (Steps with images) */}
                     <section className="bg-gradient-to-r from-blue-50 to-white py-14">
                         <div className="container mx-auto px-6">
                             <h3 className="text-3xl font-bold text-center text-secondary">How it works — 4 simple steps</h3>
                             <p className="text-center max-w-2xl mx-auto mt-3 text-neutral-dark">From discovery to acceptance. Designed for clarity and speed.</p>
-
                             <div className="mt-10 grid md:grid-cols-2 gap-8">
                                 {steps.map((s, i) => (
                                     <motion.div key={i} className="flex gap-6 items-center bg-white rounded-2xl p-6 shadow" variants={item}>
@@ -445,7 +362,6 @@ export default function HomePage() {
                             <h3 className="text-2xl font-bold text-secondary">Featured Scholarships & Funding</h3>
                             <Link to="/programs" className="text-primary font-semibold">Browse all</Link>
                         </div>
-
                         <motion.div className="grid md:grid-cols-3 gap-6" variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
                             {featuredScholarships.map((s, i) => <ScholarshipCard key={i} school={s} />)}
                         </motion.div>
@@ -456,7 +372,6 @@ export default function HomePage() {
                         <div className="container mx-auto px-6 text-center">
                             <h3 className="text-3xl font-bold text-secondary">See Grad Tracker in action</h3>
                             <p className="max-w-2xl mx-auto mt-3 text-neutral-dark">Watch this short walkthrough to see how quickly you can find fully-funded programs and manage applications.</p>
-
                             <div className="mt-8 max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl aspect-video">
                                 <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Demo" allowFullScreen className="w-full h-full"></iframe>
                             </div>
@@ -467,7 +382,6 @@ export default function HomePage() {
                     <section className="container mx-auto px-6 py-14">
                         <h3 className="text-3xl font-bold text-secondary text-center">Success stories</h3>
                         <p className="text-center max-w-2xl mx-auto mt-3 text-neutral-dark">Real people. Real offers. Real change.</p>
-
                         <div className="mt-8 grid md:grid-cols-3 gap-6">
                             <motion.div variants={item} className="col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-8 shadow-lg">
                                 <div className="flex items-center gap-6">
@@ -478,7 +392,6 @@ export default function HomePage() {
                                     </div>
                                 </div>
                                 <blockquote className="mt-6 italic">"{testimonials[0].quote}"</blockquote>
-
                                 <div className="mt-6 flex gap-3">
                                     <Link to="/stories" className="underline">Read full story</Link>
                                     <div className="ml-auto flex items-center gap-2">
@@ -486,7 +399,6 @@ export default function HomePage() {
                                     </div>
                                 </div>
                             </motion.div>
-
                             <motion.div variants={item} className="bg-white rounded-2xl p-6 shadow">
                                 <div className="flex items-center gap-4">
                                     <img src={testimonials[1].image} alt={testimonials[1].name} className="w-16 h-16 rounded-lg object-cover" />
@@ -509,7 +421,6 @@ export default function HomePage() {
                             <h3 className="text-3xl font-bold text-secondary">GradTrack Blog</h3>
                             <Link to="/blog" className="text-primary font-semibold hover:underline">Read all articles</Link>
                         </div>
-
                         <motion.div className="grid md:grid-cols-3 gap-6" variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
                             {blogPosts.map((post, i) => (
                                 <motion.div key={i} variants={item} className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1">
@@ -531,14 +442,9 @@ export default function HomePage() {
 
                     {/* Community and impact counters */}
                     <section className="relative py-16 overflow-hidden">
-                        {/* Animated gradient background */}
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 animate-gradient bg-[length:400%_400%]"></div>
-
-                        {/* Soft glowing animated orbs */}
                         <div className="absolute top-0 left-0 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
                         <div className="absolute bottom-0 right-0 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
-
-                        {/* Content */}
                         <div className="relative container mx-auto px-8 flex flex-wrap items-center justify-center gap-28 text-white text-center">
                             <div className="hover:scale-110 transition-transform duration-500">
                                 <div className="font-bold text-4xl drop-shadow-lg">
@@ -559,7 +465,6 @@ export default function HomePage() {
                                 <div className="opacity-90 text-lg">Success rate</div>
                             </div>
                         </div>
-
                         <style>{`
                             @keyframes gradientAnimation {
                                 0% { background-position: 0% 50%; }
@@ -571,7 +476,6 @@ export default function HomePage() {
                             }
                         `}</style>
                     </section>
-
 
                     {/* FAQs */}
                     <section className="container mx-auto px-6 py-14">
@@ -592,13 +496,10 @@ export default function HomePage() {
                         </div>
                     </section>
 
-                    {/* FINAL CTA (light gradient + frosted card + floating shapes) */}
+                    {/* FINAL CTA */}
                     {!currentUser && (
                         <section className="relative overflow-hidden py-16">
-                            {/* CTA background gradient */}
                             <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 via-white to-blue-100 z-0"></div>
-
-                            {/* floating shapes */}
                             <motion.div
                                 className="absolute z-0 w-80 h-80 bg-blue-200 rounded-full opacity-16 blur-3xl"
                                 animate={{ y: [0, -20, 0] }}
@@ -611,7 +512,6 @@ export default function HomePage() {
                                 transition={{ repeat: Infinity, duration: 11 }}
                                 style={{ bottom: '6%', right: '-10%' }}
                             />
-
                             <div className="container mx-auto px-6 relative z-10 text-center">
                                 <div className="max-w-3xl mx-auto bg-white/50 backdrop-blur-lg p-10 rounded-3xl shadow-lg border border-white/50">
                                     <h3 className="text-3xl font-bold text-blue-800">Ready to find your funded path?</h3>
@@ -624,6 +524,10 @@ export default function HomePage() {
                             </div>
                         </section>
                     )}
+
+                    <AnimatePresence>
+                        {modalFeature && <FeatureModal feature={modalFeature} onClose={() => setModalFeature(null)} />}
+                    </AnimatePresence>
                 </motion.div>
             )}
         </AnimatePresence>

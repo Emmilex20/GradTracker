@@ -50,8 +50,8 @@ const Navbar: React.FC = () => {
         <>
             <NavLink to="/" label="Home" setIsMenuOpen={setIsMenuOpen} />
             {adminLink}
-            <NavLink to="/features" label="Features" setIsMenuOpen={setIsMenuOpen} />
             <NavLink to="/about" label="About" setIsMenuOpen={setIsMenuOpen} />
+            <NavLink to="/features" label="Features" setIsMenuOpen={setIsMenuOpen} />            
             <NavLink to="/blog" label="Blog" setIsMenuOpen={setIsMenuOpen} />
             <NavLink to="/contact" label="Contact" setIsMenuOpen={setIsMenuOpen} />
         </>
@@ -105,8 +105,8 @@ const Navbar: React.FC = () => {
             {userProfile?.role === 'admin' && (
                 <Link to="/admin" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Admin Dashboard</Link>
             )}
-            <Link to="/features" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Features</Link>
             <Link to="/about" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>About</Link>
+            <Link to="/features" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Features</Link>            
             <Link to="/blog" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Blog</Link>
             <Link to="/contact" className="w-full px-4 py-3 rounded-xl text-secondary font-semibold bg-neutral-50 hover:bg-neutral-100 transition" onClick={() => setIsMenuOpen(false)}>Contact</Link>
         </>
