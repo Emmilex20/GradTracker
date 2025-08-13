@@ -197,7 +197,7 @@ export default function HomePage() {
                 <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-10">
                     <motion.div variants={item} className="flex-1 text-center lg:text-left">
                         <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-blue-900">
-                            Find Funded Schools, Track Applications, and Land The Scholarship That Changes Everything.
+                            Grad School Application Can Be Overwhelming And That Is Why We Exist.
                         </h1>
                         <p className="mt-5 text-lg text-gray-700 max-w-2xl">
                             Stop hopping between sites. Grad Tracker aggregates funded programs, zero-fee applications, and deadlines — plus mentorship and document reviews — all in one place.
