@@ -12,6 +12,7 @@ const AboutPage = lazy(() => import('./pages/AboutPage'));
 const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
+const MentorsPage = lazy(() => import('./pages/MentorsPage')); // Add the MentorsPage
 
 // Authentication components
 const Signup = lazy(() => import('./components/Signup'));
@@ -50,6 +51,7 @@ const App: React.FC = () => {
                     <Route path="/programs" element={<ProgramList />} />
                     <Route path="/search" element={<ProgramSearch />} />
                     <Route path="/blog" element={<BlogPage />} />
+                    <Route path="/mentors" element={<MentorsPage />} /> {/* Add the new route here */}
 
                     {/* Authenticated Routes (for all logged-in users) */}
                     <Route element={<ProtectedRoute />}>
