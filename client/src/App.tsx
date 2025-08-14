@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 // Import essential, small components directly for the initial load
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
+import ProfileSetupModal from './components/ProfileSetupModal';
 
 // Lazily import the larger page components to be loaded on demand
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -63,6 +64,7 @@ const App: React.FC = () => {
                         <Route path="/admin" element={<AdminDashboard />} />
                     </Route>
                 </Routes>
+                <ProfileSetupModal />
             </Suspense>
         </Layout>
     );
