@@ -24,20 +24,17 @@ import admin from 'firebase-admin';
 import verifyToken from './middleware/auth.js';
 
 try {
-  const serviceAccountPath = './config/grad-tracker-app-firebase-adminsdk.json'; 
-  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-    console.log('Firebase Admin SDK initialized successfully.');
-  } else {
-    console.log('Firebase Admin SDK already initialized.');
-  }
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+    });
+    console.log('Firebase Admin SDK initialized successfully using application default credentials.');
+  } else {
+    console.log('Firebase Admin SDK already initialized.');
+  }
 } catch (error) {
-  console.error('Failed to initialize Firebase Admin SDK. Check your service account key file.');
-  console.error(error);
+  console.error('Failed to initialize Firebase Admin SDK. Ensure GOOGLE_APPLICATION_CREDENTIALS is set correctly.');
+  console.error(error);
 }
 
 const app = express();

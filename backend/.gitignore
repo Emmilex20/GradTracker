@@ -1,5 +1,6 @@
 # Firebase Admin SDK credentials
 backend/config/grad-tracker-app-firebase-adminsdk.json
+grad-tracker-app-firebase-adminsdk.json
 
 # Logs and dependency management files
 logs
