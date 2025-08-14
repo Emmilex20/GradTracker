@@ -1,8 +1,8 @@
-/** @jsxImportSource react */
-import React from 'react';
+import React, { useState } from 'react';
 import type { Application } from '../../types/Application';
 import ApplicationStatusChart from '../ApplicationStatusChart';
 import { FaSpinner, FaChartPie, FaCheckCircle, FaTimesCircle, FaPaperPlane, FaHourglassHalf, FaLightbulb } from 'react-icons/fa';
+import ApplicationListModal from '../ApplicationListModal'; // New component
 
 interface ApplicationStatsProps {
     applications: Application[];
@@ -11,7 +11,6 @@ interface ApplicationStatsProps {
     loading: boolean;
 }
 
-// Changed type from `JSX.Element` to `React.ReactNode`
 const statusIconMap: Record<string, React.ReactNode> = {
     'Interested': <FaLightbulb className="text-yellow-500" />,
     'Applying': <FaHourglassHalf className="text-blue-500" />,
@@ -22,6 +21,10 @@ const statusIconMap: Record<string, React.ReactNode> = {
 
 const ApplicationStats: React.FC<ApplicationStatsProps> = ({ applications, applicationsByStatus, statusColumns, loading }) => {
     const totalApplications = applications.length;
+    
+    // State to manage the modal
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
     const getStatusCounts = () => {
         return statusColumns.map(status => ({
@@ -30,9 +33,21 @@ const ApplicationStats: React.FC<ApplicationStatsProps> = ({ applications, appli
         }));
     };
 
+    const handleCardClick = (status: string) => {
+        if (applicationsByStatus[status]?.length > 0) {
+            setSelectedStatus(status);
+            setIsModalOpen(true);
+        }
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedStatus(null);
+    };
+
     return (
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:mt-6 sm:gap-6 mb-6 sm:mb-10 animate-fade-in">
-            {/* Main chart section */}
+            {/* Main chart section (no changes) */}
             <div className="col-span-1 md:col-span-2 lg:col-span-2 bg-white rounded-2xl shadow-lg p-4 sm:p-6 py-8 sm:py-12 flex flex-col justify-between">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 flex items-center">
                     <FaChartPie className="mr-2 text-blue-500" />
@@ -61,7 +76,11 @@ const ApplicationStats: React.FC<ApplicationStatsProps> = ({ applications, appli
                 <div className="flex-1 grid grid-cols-2 gap-4 mt-2">
                     {/* Render individual status cards */}
                     {statusColumns.map(status => (
-                        <div key={status} className="bg-gray-50 rounded-xl p-3 flex flex-col items-center justify-center shadow-sm">
+                        <div 
+                            key={status} 
+                            className="bg-gray-50 rounded-xl p-3 flex flex-col items-center justify-center shadow-sm cursor-pointer hover:bg-gray-100 transition-colors"
+                            onClick={() => handleCardClick(status)} // Add onClick handler
+                        >
                             <div className="text-xl mb-1">
                                 {statusIconMap[status]}
                             </div>
@@ -78,6 +97,16 @@ const ApplicationStats: React.FC<ApplicationStatsProps> = ({ applications, appli
                     </div>
                 </div>
             </div>
+
+            {/* Conditionally render the modal */}
+            {isModalOpen && selectedStatus && (
+                <ApplicationListModal 
+                    isOpen={isModalOpen} 
+                    onClose={closeModal} 
+                    applications={applicationsByStatus[selectedStatus] || []}
+                    status={selectedStatus}
+                />
+            )}
         </section>
     );
 };
