@@ -1,57 +1,73 @@
 // src/components/ProgramList.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import type { Program } from '../types/Program';
 import { useAuth } from '../context/AuthContext';
 import { FaPlus, FaSpinner, FaSearch, FaFilter } from 'react-icons/fa';
 import api from '../utils/api';
 
+// Simple debounce hook with generic types to fix implicit any error
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 const ProgramList: React.FC = () => {
   const { currentUser } = useAuth();
-  const [allPrograms, setAllPrograms] = useState<Program[]>([]);
-  const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [fundingFilter, setFundingFilter] = useState('');
 
-  useEffect(() => {
-    const fetchPrograms = async () => {
-      try {
-        const response = await api.get('/programs');
-        setAllPrograms(response.data);
-        setFilteredPrograms(response.data);
-      } catch (error) {
-        console.error('Failed to fetch programs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-    if (currentUser) {
-      fetchPrograms();
-    } else {
+  const fetchPrograms = useCallback(async () => {
+    if (!currentUser) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      let url = '/programs';
+      const params = new URLSearchParams();
+
+      if (debouncedSearchQuery) {
+        params.append('search', debouncedSearchQuery);
+      }
+      if (fundingFilter) {
+        params.append('funding', fundingFilter);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const response = await api.get(url);
+      setPrograms(response.data);
+    } catch (error) {
+      console.error('Failed to fetch programs:', error);
+    } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, debouncedSearchQuery, fundingFilter]);
 
   useEffect(() => {
-    let results = allPrograms;
-    if (searchQuery) {
-      results = results.filter(
-        (program) =>
-          program.university.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          program.department.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    if (fundingFilter) {
-      results = results.filter(
-        (program) => program.funding.toLowerCase() === fundingFilter.toLowerCase()
-      );
-    }
-    setFilteredPrograms(results);
-  }, [searchQuery, fundingFilter, allPrograms]);
+    fetchPrograms();
+  }, [fetchPrograms]);
 
   const handleAddToInterested = async (program: Program) => {
     if (!currentUser) {
@@ -148,8 +164,8 @@ const ProgramList: React.FC = () => {
 
       {/* Programs Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-        {filteredPrograms.length > 0 ? (
-          filteredPrograms.map((program) => (
+        {programs.length > 0 ? (
+          programs.map((program) => (
             <article
               key={program._id}
               className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 flex flex-col justify-between"

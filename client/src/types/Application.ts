@@ -25,6 +25,7 @@ export interface Application {
   userId: string;
   userEmail: string;
   schoolName: string;
+  position: string;
   programName: string;
   funding: string;
   fundingAmount: string;

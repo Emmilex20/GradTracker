@@ -1,27 +1,32 @@
 // src/components/Dashboard.tsx
-import React, { useEffect, useState, useRef } from 'react';
+
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
-import AddApplicationForm from './AddApplicationForm';
-import ApplicationDetail from './ApplicationDetail';
-import EditApplicationForm from './EditApplicationForm';
 import type { Application } from '../types/Application';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
-import FeedbackForm from './FeedbackForm';
 import ApplicationCard from './ApplicationCard';
-import ApplicationStatusChart from './ApplicationStatusChart';
-import { FaPlus, FaSearch, FaSpinner, FaChartPie, FaUserCircle, FaCalendarPlus, FaBell, FaCommentAlt, FaTimes, FaEnvelope, FaPaperclip, FaUserGraduate } from 'react-icons/fa'; // ADDED FaUserGraduate
-import type { UserProfile } from '../types/UserProfile';
 import EmailTracker from './EmailTracker';
 import DocumentReview from './DocumentReview';
+import type { UserProfile } from '../types/UserProfile';
+import { FaPlus, FaTimes, FaEnvelope, FaPaperclip } from 'react-icons/fa';
+
+import DashboardHeader from './Dashboard/DashboardHeader';
+import ApplicationStats from './Dashboard/ApplicationStats';
+import UpcomingDeadlines from './Dashboard/UpcomingDeadlines';
+import MentorConnectionCard from './Dashboard/MentorConnectionCard';
+import DashboardSkeleton from './Dashboard/DashboardSkeleton';
+import ApplicationDetail from './ApplicationDetail';
+import AddApplicationForm from './AddApplicationForm';
+import EditApplicationForm from './EditApplicationForm';
+import FeedbackForm from './FeedbackForm';
+import ApplicationSearch from './ApplicationSearch';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Dashboard: React.FC = () => {
     const { currentUser, userProfile, token } = useAuth();
     const typedUserProfile = userProfile as UserProfile | null;
-
     const [applications, setApplications] = useState<Application[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -29,36 +34,25 @@ const Dashboard: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
-
     const [receiveNotifications, setReceiveNotifications] = useState<boolean | null>(null);
-
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
-    
     const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
-    
-    // NEW STATE: Manage mentor connection status
     const [mentorConnectionStatus, setMentorConnectionStatus] = useState<'idle' | 'connecting' | 'success' | 'error'>('idle');
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
-
     const statusColumns = ['Interested', 'Applying', 'Submitted', 'Accepted', 'Rejected'];
 
-    const fetchApplications = async () => {
-        if (!currentUser || !token) { 
+    const fetchApplications = useCallback(async () => {
+        if (!currentUser || !token) {
             setLoading(false);
             return;
         }
         setLoading(true);
         setFetchError(null);
         try {
-            const response = await axios.get<Application[]>(
-                `${API_URL}/applications/${currentUser.uid}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
+            const response = await axios.get<Application[]>(`${API_URL}/applications/${currentUser.uid}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             setApplications(response.data);
             if (response.data.length > 0) {
                 setSelectedApplicationForTabs(response.data[0]);
@@ -71,14 +65,13 @@ const Dashboard: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentUser, token]);
 
     useEffect(() => {
         if (currentUser && token) {
             fetchApplications();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentUser, token]);
+    }, [currentUser, token, fetchApplications]);
 
     useEffect(() => {
         const today = new Date();
@@ -86,11 +79,11 @@ const Dashboard: React.FC = () => {
         sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
         const upcoming = applications
-            .filter(app => 
+            .filter(app =>
                 app.deadline && new Date(app.deadline) > today && new Date(app.deadline) <= sevenDaysFromNow
             )
             .sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
-        
+
         setUpcomingDeadlines(upcoming);
     }, [applications]);
 
@@ -105,7 +98,7 @@ const Dashboard: React.FC = () => {
         setSelectedApplication(null);
         setIsEditing(false);
     };
-    
+
     const handleApplicationDeleted = (id: string) => {
         setApplications(applications.filter(app => app._id !== id));
         setSelectedApplication(null);
@@ -113,29 +106,20 @@ const Dashboard: React.FC = () => {
 
     const onDragEnd = async (result: DropResult) => {
         const { destination, source, draggableId } = result;
-
         if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
             return;
         }
-
         const updatedApplication = applications.find(app => app._id === draggableId);
         if (!updatedApplication || !token) return;
-
         const newStatus = destination.droppableId as Application['status'];
-
-        const newApplications = applications.map(app => 
+        const newApplications = applications.map(app =>
             app._id === draggableId ? { ...app, status: newStatus } : app
         );
         setApplications(newApplications);
-
         try {
-            await axios.put(`${API_URL}/applications/${draggableId}`, 
+            await axios.put(`${API_URL}/applications/${draggableId}`,
                 { status: newStatus },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
+                { headers: { Authorization: `Bearer ${token}` } }
             );
         } catch (err) {
             console.error('Failed to update application status:', err);
@@ -149,36 +133,17 @@ const Dashboard: React.FC = () => {
         return acc;
     }, {} as Record<string, Application[]>);
 
-    const DashboardSkeleton = () => (
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 animate-pulse">
-            {statusColumns.map((status) => (
-                <div key={status} className="bg-neutral-200 rounded-2xl p-4 shadow-sm">
-                    <div className="h-6 w-3/4 bg-neutral-300 rounded-md mb-4"></div>
-                    {[...Array(3)].map((_, i) => (
-                        <div key={i} className="bg-white p-4 rounded-xl shadow-sm mb-4 h-28"></div>
-                    ))}
-                </div>
-            ))}
-        </div>
-    );
-
     const displayName = typedUserProfile?.firstName || currentUser?.email?.split('@')[0] || 'User';
 
     const handleToggleNotifications = async () => {
         if (!currentUser || !token) return;
-
         const newSetting = !receiveNotifications;
         setReceiveNotifications(newSetting);
-
         try {
             await axios.put(
                 `${API_URL}/users/${currentUser.uid}/notifications`,
                 { receiveNotifications: newSetting },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
+                { headers: { Authorization: `Bearer ${token}` } }
             );
             console.log('Notification settings updated.');
         } catch (error) {
@@ -187,52 +152,43 @@ const Dashboard: React.FC = () => {
             alert('Failed to update settings. Please try again.');
         }
     };
-    
+
     const handleCalendarSync = () => {
         if (!currentUser) return;
         const icalUrl = `${API_URL}/applications/${currentUser.uid}/calendar`;
-        
         alert(`Copy this URL to subscribe to your calendar feed:\n\n${icalUrl}\n\n1. Go to your Google/Outlook Calendar.\n2. Find the "Add Calendar" or "Subscribe from URL" option.\n3. Paste the URL. Changes will sync automatically.`);
     };
 
-    // NEW FUNCTION: Handle mentor connection
     const handleConnectWithMentor = async () => {
-      if (!currentUser || !token) {
-        alert("You must be logged in to connect with a mentor.");
-        return;
-      }
-
-      setMentorConnectionStatus('connecting');
-
-      try {
-        const response = await axios.post(
-          `${API_URL}/mentors/connect`,
-          { userId: currentUser.uid },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
-
-        if (response.status === 200) {
-          setMentorConnectionStatus('success');
-          alert('You have been successfully connected with a mentor! They will reach out to you shortly.');
-        } else {
-          setMentorConnectionStatus('error');
-          alert('Failed to connect with a mentor. Please try again later.');
+        if (!currentUser || !token) {
+            alert("You must be logged in to connect with a mentor.");
+            return;
         }
-      } catch (error) {
-        console.error('Error connecting with a mentor:', error);
-        setMentorConnectionStatus('error');
-        alert('An error occurred. Please try again.');
-      }
+        setMentorConnectionStatus('connecting');
+        try {
+            const response = await axios.post(
+                `${API_URL}/mentors/connect`,
+                { userId: currentUser.uid },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (response.status === 200) {
+                setMentorConnectionStatus('success');
+                alert('You have been successfully connected with a mentor! They will reach out to you shortly.');
+            } else {
+                setMentorConnectionStatus('error');
+                alert('Failed to connect with a mentor. Please try again later.');
+            }
+        } catch (error) {
+            console.error('Error connecting with a mentor:', error);
+            setMentorConnectionStatus('error');
+            alert('An error occurred. Please try again.');
+        }
     };
 
     if (!currentUser) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <p className="text-lg text-gray-600">Please log in to view your dashboard.</p>
+            <div className="flex items-center justify-center min-h-screen bg-neutral-light">
+                <p className="text-lg text-secondary">Please log in to view your dashboard.</p>
             </div>
         );
     }
@@ -241,7 +197,7 @@ const Dashboard: React.FC = () => {
         const deadlineDate = new Date(deadline);
         const today = new Date();
         const diffTime = deadlineDate.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays;
     };
 
@@ -259,106 +215,32 @@ const Dashboard: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans text-gray-800">
-            
-            {/* Header */}
-            <header className="sticky top-0 bg-white shadow-md z-20 py-20 pb-2">
-                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <div className="flex items-center space-x-2 sm:space-x-4">
-                        <h1 className="text-xl sm:text-2xl font-extrabold text-blue-600 whitespace-nowrap">
-                            Grad Tracker
-                        </h1>
-                        <span className="hidden md:block text-gray-500 font-medium text-lg">
-                            Hello, {displayName}! 👋
-                        </span>
-                    </div>
-
-                    <div className="flex items-center space-x-2 sm:space-x-3">
-                        <a
-                            href={`${API_URL}/auth/google`}
-                            className="bg-blue-500 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-blue-600 transition-colors duration-200 text-sm sm:text-base flex items-center justify-center whitespace-nowrap"
-                        >
-                            <span className="hidden sm:inline">Connect Gmail</span>
-                            <span className="sm:hidden">Gmail</span>
-                        </a>
-                        <button
-                            onClick={handleCalendarSync}
-                            className="bg-green-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-green-700 transition-colors duration-200 flex items-center space-x-1 text-sm sm:text-base whitespace-nowrap"
-                            title="Sync to Calendar"
-                        >
-                            <FaCalendarPlus />
-                            <span className="hidden sm:inline">Sync</span>
-                        </button>
-
-                        <Link to="/programs">
-                            <button className="bg-gray-100 text-gray-700 font-semibold py-2 px-3 sm:px-4 rounded-xl hover:bg-gray-200 transition-colors duration-200 text-sm sm:text-base flex items-center space-x-1 whitespace-nowrap">
-                                <span className="sm:hidden">
-                                    <FaSearch />
-                                </span>
-                                <span className="hidden sm:inline">Browse Programs</span>
-                            </button>
-                        </Link>
-
-                        <button
-                            onClick={() => setIsFeedbackOpen(true)}
-                            className="bg-purple-600 text-white font-semibold py-2 px-3 sm:px-4 rounded-xl shadow-md hover:bg-purple-700 transition-colors duration-200 text-sm sm:text-base flex items-center space-x-1 whitespace-nowrap"
-                        >
-                            <span className="sm:hidden">
-                                <FaCommentAlt />
-                            </span>
-                            <span className="hidden sm:inline">Feedback</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
-            
-            <main className="container mx-auto px-4 sm:px-6 py-10 sm:py-40">
+        <div className="min-h-screen bg-neutral-light font-sans text-secondary">
+            {/* The main Navbar component is implicitly here */}
+            <main className="container mx-auto px-4 sm:px-6 py-10 pt-32">
+                {/* DashboardHeader is now at the very top of the content */}
+                <DashboardHeader
+                    displayName={displayName}
+                    handleCalendarSync={handleCalendarSync}
+                    setIsFeedbackOpen={setIsFeedbackOpen}
+                />
                 
-                {/* Analytics Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-10 py-2">
-                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Application Progress</h2>
-                            <FaChartPie size={24} className="text-blue-500" />
-                        </div>
-                        {loading ? (
-                            <div className="flex items-center justify-center h-60 sm:h-80">
-                                <FaSpinner className="animate-spin text-4xl text-blue-500" />
-                            </div>
-                        ) : (
-                            <ApplicationStatusChart applications={applications} />
-                        )}
-                    </div>
-
-                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">My Stats</h2>
-                            <FaUserCircle size={24} className="text-blue-500" />
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-4 text-center">
-                            {statusColumns.map(status => (
-                                <div key={status} className="p-4 bg-gray-100 rounded-lg transition-shadow duration-200 hover:shadow-md">
-                                    <p className="text-sm font-medium text-gray-500 truncate">{status}</p>
-                                    <p className="text-2xl sm:text-3xl font-extrabold text-blue-600 mt-2">
-                                        {applicationsByStatus[status]?.length || 0}
-                                    </p>
-                                </div>
-                            ))}
-                            <div className="p-4 bg-blue-600 text-white rounded-lg transition-shadow duration-200 hover:shadow-lg col-span-2 sm:col-span-1 md:col-span-1 lg:col-span-1">
-                                <p className="text-sm font-medium">Total</p>
-                                <p className="text-2xl sm:text-3xl font-extrabold mt-2">
-                                    {applications.length}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                {/* The ApplicationSearch component is now correctly placed */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6">
+                    <ApplicationSearch />
                 </div>
-
-                {/* Notification Settings Toggle */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-10 flex justify-between items-center animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
-                    <div>
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-800">Email Notifications</h3>
-                        <p className="text-gray-500 mt-1 text-sm sm:text-base">Receive email reminders for upcoming deadlines.</p>
+                
+                <ApplicationStats
+                    applications={applications}
+                    applicationsByStatus={applicationsByStatus}
+                    statusColumns={statusColumns}
+                    loading={loading}
+                />
+                
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-10 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
+                    <div className="text-center sm:text-left mb-4 sm:mb-0">
+                        <h3 className="text-lg sm:text-xl font-bold text-secondary">Email Notifications</h3>
+                        <p className="text-neutral-dark mt-1 text-sm sm:text-base">Receive email reminders for upcoming deadlines.</p>
                     </div>
                     <label className="flex items-center cursor-pointer">
                         <div className="relative">
@@ -368,84 +250,31 @@ const Dashboard: React.FC = () => {
                                 checked={!!receiveNotifications}
                                 onChange={handleToggleNotifications}
                             />
-                            <div className="block bg-gray-300 w-12 sm:w-14 h-7 sm:h-8 rounded-full"></div>
+                            <div className="block bg-neutral-dark w-12 sm:w-14 h-7 sm:h-8 rounded-full"></div>
                             <div
                                 className={`dot absolute left-1 top-1 bg-white w-5 sm:w-6 h-5 sm:h-6 rounded-full transition-transform duration-300 ${
-                                    receiveNotifications ? 'transform translate-x-5 sm:translate-x-6 bg-blue-600' : ''
+                                    receiveNotifications ? 'transform translate-x-5 sm:translate-x-6 bg-primary' : ''
                                 }`}
                             ></div>
                         </div>
                     </label>
                 </div>
-            
-                {/* Upcoming Deadlines Section */}
+                
                 {upcomingDeadlines.length > 0 && (
-                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-10 animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
-                        <div className="flex items-center justify-between mb-4 sm:mb-6">
-                            <h2 className="text-xl sm:text-2xl font-bold text-red-600">
-                                Upcoming Deadlines <FaBell className="inline ml-2 animate-bounce-slow" />
-                            </h2>
-                        </div>
-                        <ul className="space-y-4">
-                            {upcomingDeadlines.map(app => (
-                                <li key={app._id} className="bg-red-50 border-l-4 border-red-400 rounded-lg p-4 transition-shadow duration-200 hover:shadow-md">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <p className="font-bold text-gray-800">{app.schoolName}</p>
-                                            <p className="text-sm text-gray-600 truncate">{app.programName}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-sm text-gray-500">
-                                                Due in <span className="font-bold text-lg text-red-600">{getDaysUntil(app.deadline)}</span> days
-                                            </p>
-                                        </div>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    <UpcomingDeadlines upcomingDeadlines={upcomingDeadlines} getDaysUntil={getDaysUntil} />
                 )}
                 
-                {/* NEW SECTION: Mentor Connection */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-10 flex flex-col md:flex-row justify-between md:items-center animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
-                    <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                        <FaUserGraduate size={40} className="text-blue-500" />
-                        <div>
-                            <h3 className="text-lg sm:text-xl font-bold text-gray-800">Connect with a Scholar Mentor</h3>
-                            <p className="text-gray-500 mt-1 text-sm sm:text-base">Get personalized guidance from an expert in your field.</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={handleConnectWithMentor}
-                        className={`py-3 px-6 rounded-full shadow-lg text-white font-semibold flex items-center space-x-2 transition-all duration-300 ${
-                            mentorConnectionStatus === 'connecting'
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : mentorConnectionStatus === 'success'
-                                ? 'bg-green-600 hover:bg-green-700'
-                                : 'bg-blue-600 hover:bg-blue-700'
-                        }`}
-                        disabled={mentorConnectionStatus === 'connecting' || mentorConnectionStatus === 'success'}
-                    >
-                        {mentorConnectionStatus === 'connecting' && <FaSpinner className="animate-spin" />}
-                        {mentorConnectionStatus === 'connecting' && <span>Connecting...</span>}
-                        {mentorConnectionStatus === 'success' && <span>Connected!</span>}
-                        {mentorConnectionStatus === 'error' && <span>Try Again</span>}
-                        {mentorConnectionStatus === 'idle' && (
-                            <>
-                                <FaPlus />
-                                <span>Find a Mentor</span>
-                            </>
-                        )}
-                    </button>
-                </div>
+                <MentorConnectionCard
+                    mentorConnectionStatus={mentorConnectionStatus}
+                    handleConnectWithMentor={handleConnectWithMentor}
+                />
                 
-                {/* Kanban Board Section */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 animate-fade-in">
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 sm:mb-6">
-                        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 sm:mb-0">My Applications</h2>
+                        <h2 className="text-xl sm:text-2xl font-bold text-secondary mb-2 sm:mb-0">My Applications</h2>
                         <button
                             onClick={() => setIsFormOpen(true)}
-                            className="bg-blue-600 text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-blue-700 transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
+                            className="bg-primary text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
                         >
                             <FaPlus />
                             <span>Add New</span>
@@ -462,18 +291,18 @@ const Dashboard: React.FC = () => {
                         <DashboardSkeleton />
                     ) : (
                         <DragDropContext onDragEnd={onDragEnd}>
-                            <section className="flex flex-col md:flex-row md:space-x-6 overflow-x-auto pb-4 gap-6">
+                            <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 overflow-x-auto pb-4">
                                 {statusColumns.map(status => (
                                     <Droppable key={status} droppableId={status}>
                                         {(provided) => (
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.droppableProps}
-                                                className="flex-shrink-0 w-full md:w-80 bg-gray-100 rounded-2xl p-4 shadow-inner min-h-[250px] transition-all duration-200"
+                                                className="flex-shrink-0 w-full bg-neutral-light rounded-2xl p-4 shadow-inner min-h-[250px] transition-all duration-200"
                                             >
-                                                <h2 className="text-lg font-bold text-gray-700 mb-4 flex justify-between items-center">
+                                                <h2 className="text-lg font-bold text-secondary mb-4 flex justify-between items-center">
                                                     <span>{status}</span>
-                                                    <span className="text-sm font-medium text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                                                    <span className="text-sm font-medium text-neutral-dark bg-neutral-200 px-2 py-1 rounded-full">
                                                         {applicationsByStatus[status].length}
                                                     </span>
                                                 </h2>
@@ -494,7 +323,7 @@ const Dashboard: React.FC = () => {
                                                         </Draggable>
                                                     ))
                                                 ) : (
-                                                    <div className="bg-white p-6 rounded-xl text-center text-gray-400 italic shadow-sm border border-gray-200">
+                                                    <div className="bg-white p-6 rounded-xl text-center text-neutral-dark italic shadow-sm border border-neutral-300">
                                                         <p className="mb-2">No applications here yet.</p>
                                                         <p>Drag and drop or add a new one.</p>
                                                     </div>
@@ -509,51 +338,50 @@ const Dashboard: React.FC = () => {
                     )}
                 </div>
 
-                {/* Email and Documents Sections */}
-                <div ref={detailsSectionRef} className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 sm:mt-10 animate-fade-in">
+                <div ref={detailsSectionRef} className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 sm:mt-10">
                     {applications.length > 0 ? (
                         <>
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
-                                    Application Details: <span className="text-blue-600">{selectedApplicationForTabs?.schoolName}</span>
+                                <h2 className="text-xl sm:text-2xl font-bold text-secondary">
+                                    Application Details: <span className="text-primary">{selectedApplicationForTabs?.schoolName}</span>
                                 </h2>
                                 <button
                                     onClick={() => setSelectedApplicationForTabs(null)}
-                                    className="text-gray-500 hover:text-red-500 transition-colors text-2xl p-2 rounded-full hover:bg-gray-100"
+                                    className="text-neutral-dark hover:text-red-500 transition-colors text-2xl p-2 rounded-full hover:bg-neutral-100"
                                     title="Close Details"
                                 >
                                     <FaTimes />
                                 </button>
                             </div>
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                                <div className="bg-gray-50 rounded-xl p-4 sm:p-6 shadow-inner">
-                                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                                        <FaEnvelope className="mr-2 text-blue-500" />
+                                <div className="bg-neutral-light rounded-xl p-4 sm:p-6 shadow-inner">
+                                    <h3 className="text-lg font-bold text-secondary mb-4 flex items-center">
+                                        <FaEnvelope className="mr-2 text-primary" />
                                         Email Tracker
                                     </h3>
                                     {selectedApplicationForTabs ? (
-                                        <EmailTracker 
-                                            application={selectedApplicationForTabs} 
-                                            onEmailAdded={fetchApplications} 
+                                        <EmailTracker
+                                            application={selectedApplicationForTabs}
+                                            onEmailAdded={fetchApplications}
                                         />
                                     ) : (
-                                        <div className="flex items-center justify-center h-48 text-gray-500 italic">
+                                        <div className="flex items-center justify-center h-48 text-neutral-dark italic">
                                             Select an application above to view its details.
                                         </div>
                                     )}
                                 </div>
-                                <div className="bg-gray-50 rounded-xl p-4 sm:p-6 shadow-inner">
-                                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                                        <FaPaperclip className="mr-2 text-blue-500" />
+                                <div className="bg-neutral-light rounded-xl p-4 sm:p-6 shadow-inner">
+                                    <h3 className="text-lg font-bold text-secondary mb-4 flex items-center">
+                                        <FaPaperclip className="mr-2 text-primary" />
                                         Document Checklist
                                     </h3>
                                     {selectedApplicationForTabs ? (
-                                        <DocumentReview 
-                                            application={selectedApplicationForTabs} 
-                                            onDocumentUpdated={fetchApplications} 
+                                        <DocumentReview
+                                            application={selectedApplicationForTabs}
+                                            onDocumentUpdated={fetchApplications}
                                         />
                                     ) : (
-                                        <div className="flex items-center justify-center h-48 text-gray-500 italic">
+                                        <div className="flex items-center justify-center h-48 text-neutral-dark italic">
                                             Select an application above to view its details.
                                         </div>
                                     )}
@@ -561,7 +389,7 @@ const Dashboard: React.FC = () => {
                             </div>
                         </>
                     ) : (
-                        <div className="text-center p-8 text-gray-500 animate-fade-in">
+                        <div className="text-center p-8 text-neutral-dark">
                             <h3 className="text-xl font-bold mb-2">No Applications Added Yet</h3>
                             <p className="mb-4">Add your first application using the "Add New" button above to get started!</p>
                         </div>
@@ -569,44 +397,52 @@ const Dashboard: React.FC = () => {
                 </div>
             </main>
             
-            {/* Modals */}
+            {/* ... (modals) ... */}
             {isFormOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 animate-fade-in">
-                    <AddApplicationForm
-                        onApplicationAdded={handleApplicationUpdated}
-                        onClose={() => setIsFormOpen(false)}
-                    />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in">
+                        <AddApplicationForm
+                            onApplicationAdded={handleApplicationUpdated}
+                            onClose={() => setIsFormOpen(false)}
+                        />
+                    </div>
                 </div>
             )}
             {isFeedbackOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 animate-fade-in">
-                    <FeedbackForm
-                        onClose={() => setIsFeedbackOpen(false)}
-                        onFeedbackSubmitted={() => setIsFeedbackOpen(false)}
-                    />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="relative w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in">
+                        <FeedbackForm
+                            onClose={() => setIsFeedbackOpen(false)}
+                            onFeedbackSubmitted={() => setIsFeedbackOpen(false)}
+                        />
+                    </div>
                 </div>
             )}
             {selectedApplication && !isEditing && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 animate-fade-in">
-                    <ApplicationDetail
-                        application={selectedApplication}
-                        onClose={() => setSelectedApplication(null)}
-                        onDelete={handleApplicationDeleted}
-                        onEdit={() => setIsEditing(true)}
-                        onApplicationUpdated={handleApplicationUpdated}
-                    />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in">
+                        <ApplicationDetail
+                            application={selectedApplication}
+                            onClose={() => setSelectedApplication(null)}
+                            onDelete={handleApplicationDeleted}
+                            onEdit={() => setIsEditing(true)}
+                            onApplicationUpdated={handleApplicationUpdated}
+                        />
+                    </div>
                 </div>
             )}
             {selectedApplication && isEditing && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4 animate-fade-in">
-                    <EditApplicationForm
-                        application={selectedApplication}
-                        onApplicationUpdated={handleApplicationUpdated}
-                        onClose={() => {
-                            setIsEditing(false);
-                            setSelectedApplication(null);
-                        }}
-                    />
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in">
+                        <EditApplicationForm
+                            application={selectedApplication}
+                            onApplicationUpdated={handleApplicationUpdated}
+                            onClose={() => {
+                                setIsEditing(false);
+                                setSelectedApplication(null);
+                            }}
+                        />
+                    </div>
                 </div>
             )}
         </div>
