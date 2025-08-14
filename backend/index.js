@@ -5,6 +5,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import session from 'express-session';
 import passport from './auth/googleAuth.js';
+import MongoStore from 'connect-mongo'; // Import MongoStore
 
 // Routes
 import applicationRoutes from './routes/applicationRoutes.js';
@@ -31,10 +32,38 @@ import { admin } from './config/firebase-config.js';
 
 const app = express();
 
+// Database connection
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB connected successfully');
+    startCronJob();
+  })
+  .catch(err => console.error('MongoDB connection error:', err));
+
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(session({ secret: 'keyboard cat', resave: false, saveUninitialized: true }));
+
+// === Express Session Configuration ===
+// Replaced MemoryStore with MongoStore for production-readiness
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'a-very-long-and-secure-random-string', 
+  resave: false,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI, // Use your MongoDB URI
+    collectionName: 'sessions', 
+    ttl: 14 * 24 * 60 * 60,
+    autoRemove: 'native'
+  }),
+  cookie: {
+    maxAge: 14 * 24 * 60 * 60 * 1000,
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+  }
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -199,14 +228,7 @@ app.use('/api/programs', verifyToken, programRoutes);
 app.use('/api/users', verifyToken, userRoutes);
 app.use('/api/emails', verifyToken, emailRoutes);
 app.use('/api/admin', verifyToken, adminRoutes);
-
-// Database connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log('MongoDB connected successfully');
-    startCronJob();
-  })
-  .catch(err => console.error('MongoDB connection error:', err));
+app.use('/api/auth', authRoutes); // Ensure authRoutes are public and not protected by verifyToken
 
 // Root route
 app.get('/', (req, res) => {
