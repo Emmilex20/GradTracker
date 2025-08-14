@@ -96,7 +96,8 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
                 appLink: '',
                 contactEmail: '',
                 userId: currentUser.uid,
-                userEmail: currentUser.email, // TypeScript now knows this is a string
+                userEmail: currentUser.email,
+                 position: 'N/A',
             };
 
             await axios.post(`${API_URL}/applications`, {

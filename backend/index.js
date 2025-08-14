@@ -24,7 +24,7 @@ import admin from 'firebase-admin';
 import verifyToken from './middleware/auth.js';
 
 try {
-  const serviceAccountPath = './config/grad-tracker-app-firebase-adminsdk.json';
+  const serviceAccountPath = './config/grad-tracker-app-firebase-adminsdk.json'; 
   const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
 
   if (!admin.apps.length) {
