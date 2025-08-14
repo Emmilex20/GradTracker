@@ -1,20 +1,30 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import Signup from './components/Signup';
-import Login from './components/Login';
-import ForgotPassword from './components/ForgotPassword';
-import Dashboard from './components/Dashboard';
-import ProgramList from './components/ProgramList';
-import Layout from './components/Layout';
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage';
-import FeaturesPage from './pages/FeaturesPage';
-import ContactPage from './pages/ContactPage';
-import BlogPage from './pages/BlogPage';
-import ProgramSearch from './components/ProgramSearch';
+
+// Import essential, small components directly for the initial load
 import ScrollToTop from './components/ScrollToTop';
-import AdminDashboard from './components/AdminDashboard'; // Import the new dashboard
+import Layout from './components/Layout';
+
+// Lazily import the larger page components to be loaded on demand
+const HomePage = lazy(() => import('./pages/HomePage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+
+// Authentication components
+const Signup = lazy(() => import('./components/Signup'));
+const Login = lazy(() => import('./components/Login'));
+const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
+
+// Application-specific components
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const ProgramList = lazy(() => import('./components/ProgramList'));
+const ProgramSearch = lazy(() => import('./components/ProgramSearch'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+
+// Protected Routes
 import AdminProtectedRoute from './components/AdminProtectedRoute';
 
 // A simple protected route that checks for authentication
@@ -27,31 +37,31 @@ const App: React.FC = () => {
     return (
         <Layout>
             <ScrollToTop />
-            <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/features" element={<FeaturesPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/programs" element={<ProgramList />} />
-                <Route path="/search" element={<ProgramSearch />} />
-                <Route path="/blog" element={<BlogPage />} />
+            <Suspense fallback={<div>Loading...</div>}>
+                <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/about" element={<AboutPage />} />
+                    <Route path="/features" element={<FeaturesPage />} />
+                    <Route path="/contact" element={<ContactPage />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/programs" element={<ProgramList />} />
+                    <Route path="/search" element={<ProgramSearch />} />
+                    <Route path="/blog" element={<BlogPage />} />
 
+                    {/* Authenticated Routes (for all logged-in users) */}
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                    </Route>
 
-                {/* Authenticated Routes (for all logged-in users) */}
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                </Route>
-
-                {/* Admin-Only Route */}
-                <Route element={<AdminProtectedRoute />}>
-                    {/* The single route for the Admin Dashboard */}
-                    <Route path="/admin" element={<AdminDashboard />} />
-                </Route>
-            </Routes>
+                    {/* Admin-Only Route */}
+                    <Route element={<AdminProtectedRoute />}>
+                        <Route path="/admin" element={<AdminDashboard />} />
+                    </Route>
+                </Routes>
+            </Suspense>
         </Layout>
     );
 };
