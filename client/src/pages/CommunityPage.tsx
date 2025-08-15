@@ -203,36 +203,37 @@ const fetchData = async () => {
         </h1>
         
         {/* Tab Navigation */}
-        <div className="flex border-b border-white/20 mb-6 sticky top-0 bg-white/10 backdrop-blur-lg z-20 rounded-t-2xl">
-          <button
-            className={`flex-1 py-4 text-center font-medium transition duration-500 ease-in-out transform hover:scale-105 ${activeTab === 'connections' ? 'text-blue-300 border-b-2 border-blue-300 scale-100' : 'text-gray-300 hover:text-white'}`}
-            onClick={() => setActiveTab('connections')}
-          >
-            <IoIosChatbubbles className="inline-block mr-2" /> Connections
-          </button>
-          <button
-            className={`flex-1 py-4 text-center font-medium transition duration-500 ease-in-out transform hover:scale-105 ${activeTab === 'groups' ? 'text-blue-300 border-b-2 border-blue-300 scale-100' : 'text-gray-300 hover:text-white'}`}
-            onClick={() => setActiveTab('groups')}
-          >
-            <FaUsers className="inline-block mr-2" /> Groups
-          </button>
-          <button
-            className={`flex-1 py-4 text-center font-medium transition duration-500 ease-in-out transform hover:scale-105 ${activeTab === 'findUsers' ? 'text-blue-300 border-b-2 border-blue-300 scale-100' : 'text-gray-300 hover:text-white'}`}
-            onClick={() => setActiveTab('findUsers')}
-          >
-            <FaUserPlus className="inline-block mr-2" /> Find Users
-          </button>
-          <button
-            className={`relative flex-1 py-4 text-center font-medium transition duration-500 ease-in-out transform hover:scale-105 ${activeTab === 'requests' ? 'text-blue-300 border-b-2 border-blue-300 scale-100' : 'text-gray-300 hover:text-white'}`}
-            onClick={() => setActiveTab('requests')}
-          >
-            Requests
-            {pendingRequests.length > 0 && (
-              <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-ping-once">
-                {pendingRequests.length}
-              </span>
-            )}
-          </button>
+        <div className="flex overflow-x-auto md:overflow-x-visible md:flex-row md:justify-center md:space-x-2 border-b border-white/20 mb-6 sticky top-0 bg-white/10 backdrop-blur-lg z-20 rounded-t-2xl custom-scrollbar-hidden">
+            {/* Tab Navigation buttons */}
+            <button
+                className={`flex-none md:flex-1 py-4 px-4 md:px-0 text-center font-medium transition duration-500 ease-in-out transform hover:scale-105 ${activeTab === 'connections' ? 'text-blue-300 border-b-2 border-blue-300 scale-100' : 'text-gray-300 hover:text-white'}`}
+                onClick={() => setActiveTab('connections')}
+            >
+                <IoIosChatbubbles className="inline-block mr-2" /> Connections
+            </button>
+            <button
+                className={`flex-none md:flex-1 py-4 px-4 md:px-0 text-center font-medium transition duration-500 ease-in-out transform hover:scale-105 ${activeTab === 'groups' ? 'text-blue-300 border-b-2 border-blue-300 scale-100' : 'text-gray-300 hover:text-white'}`}
+                onClick={() => setActiveTab('groups')}
+            >
+                <FaUsers className="inline-block mr-2" /> Groups
+            </button>
+            <button
+                className={`flex-none md:flex-1 py-4 px-4 md:px-0 text-center font-medium transition duration-500 ease-in-out transform hover:scale-105 ${activeTab === 'findUsers' ? 'text-blue-300 border-b-2 border-blue-300 scale-100' : 'text-gray-300 hover:text-white'}`}
+                onClick={() => setActiveTab('findUsers')}
+            >
+                <FaUserPlus className="inline-block mr-2" /> Find Users
+            </button>
+            <button
+                className={`flex-none md:flex-1 relative py-4 px-4 md:px-0 text-center font-medium transition duration-500 ease-in-out transform hover:scale-105 ${activeTab === 'requests' ? 'text-blue-300 border-b-2 border-blue-300 scale-100' : 'text-gray-300 hover:text-white'}`}
+                onClick={() => setActiveTab('requests')}
+            >
+                Requests
+                {pendingRequests.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 w-4 flex items-center justify-center animate-ping-once">
+                        {pendingRequests.length}
+                    </span>
+                )}
+            </button>
         </div>
 
         {/* Content Section with Scroll */}
