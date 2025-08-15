@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useRef, useEffect } from 'react';
 import type { Application } from '../types/Application';
-import { FaGraduationCap, FaCheckCircle, FaTimesCircle, FaPaperPlane, FaHourglassHalf, FaDollarSign, FaCalendarAlt } from 'react-icons/fa';
+import { FaGraduationCap, FaCheckCircle, FaTimesCircle, FaPaperPlane, FaDollarSign, FaCalendarAlt } from 'react-icons/fa';
 
 interface ApplicationCardProps {
     application: Application;
@@ -19,8 +19,6 @@ const getStatusBgClass = (status: string) => {
             return 'bg-red-100 text-red-700';
         case 'Submitted':
             return 'bg-blue-100 text-blue-700';
-        case 'Applying':
-            return 'bg-yellow-100 text-yellow-700';
         default:
             return 'bg-gray-100 text-gray-700';
     }
@@ -34,8 +32,6 @@ const getStatusBorderClass = (status: string) => {
             return 'border-red-500';
         case 'Submitted':
             return 'border-blue-500';
-        case 'Applying':
-            return 'border-yellow-500';
         default:
             return 'border-gray-500';
     }
@@ -49,8 +45,6 @@ const getStatusIcon = (status: string) => {
             return <FaTimesCircle className="text-red-500" />;
         case 'Submitted':
             return <FaPaperPlane className="text-blue-500" />;
-        case 'Applying':
-            return <FaHourglassHalf className="text-yellow-500 animate-pulse" />;
         default:
             return <FaGraduationCap className="text-gray-500" />;
     }

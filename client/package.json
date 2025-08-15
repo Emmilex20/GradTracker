@@ -12,6 +12,7 @@
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "@tippyjs/react": "^4.2.6",
+    "agora-rtc-sdk-ng": "^4.24.0",
     "axios": "^1.11.0",
     "chart.js": "^4.5.0",
     "firebase": "^12.0.0",
@@ -27,6 +28,7 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.7.1",
     "react-spinners": "^0.17.0",
+    "socket.io-client": "^4.8.1",
     "tippy.js": "^6.3.7"
   },
   "devDependencies": {

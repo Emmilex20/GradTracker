@@ -37,21 +37,30 @@ if (!firebaseConfig.apiKey) {
 
 export type UserRole = 'user' | 'mentor' | 'admin';
 
-interface UserProfile {
+// --- UPDATED: UserProfile interface to match Firestore schema ---
+export interface UserProfile {
     firstName: string;
     lastName: string;
     email: string;
     role: UserRole;
-    receiveNotifications: boolean; // New property
+    mentorId: string | null;
+    isConnectedToMentor: boolean;
+    notificationSettings: {
+        email: boolean;
+        push: boolean;
+    };
 }
 
-// Define the type for the data being passed to the profile update function
+// --- UPDATED: UserProfileUpdate type for the `saveUserProfile` function ---
 export type UserProfileUpdate = {
     firstName: string;
     lastName: string;
     role: UserRole;
     email: string;
-    receiveNotifications: boolean;
+    notificationSettings: {
+        email: boolean;
+        push: boolean;
+    };
 };
 
 interface AuthContextType {
@@ -64,8 +73,9 @@ interface AuthContextType {
     signup: (email: string, password: string) => Promise<any>;
     logout: () => Promise<void>;
     loginWithGoogle: () => Promise<any>;
-    saveUserData: (uid: string, data: Omit<UserProfile, 'role'>) => Promise<void>;
-    saveUserProfile: (uid: string, data: UserProfileUpdate) => Promise<void>; // Corrected function signature
+    // --- UPDATED: `saveUserData` now accepts the new notificationSettings object
+    saveUserData: (uid: string, data: Omit<UserProfile, 'role' | 'mentorId' | 'isConnectedToMentor'>) => Promise<void>;
+    saveUserProfile: (uid: string, data: UserProfileUpdate) => Promise<void>;
     sendPasswordResetEmail: (email: string) => Promise<void>;
     setShowProfileModal: (show: boolean) => void;
 }
@@ -118,27 +128,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setToken(null);
     };
 
-    const saveUserData = async (uid: string, data: Omit<UserProfile, 'role'>) => {
+    // --- UPDATED: saveUserData function to handle new schema
+    const saveUserData = async (uid: string, data: Omit<UserProfile, 'role' | 'mentorId' | 'isConnectedToMentor'>) => {
         try {
             if (db) {
-                const userDataWithRole = { ...data, role: 'user' as const };
-                await setDoc(doc(db, 'users', uid), userDataWithRole);
-                setUserProfile(userDataWithRole as UserProfile);
+                const userDataWithDefaults = {
+                    ...data,
+                    role: 'user' as const,
+                    mentorId: null,
+                    isConnectedToMentor: false,
+                };
+                await setDoc(doc(db, 'users', uid), userDataWithDefaults);
+                setUserProfile(userDataWithDefaults as UserProfile);
             }
         } catch (error) {
             console.error("Error writing document: ", error);
         }
     };
     
-    // Corrected function signature to accept all required fields
+    // --- UPDATED: saveUserProfile function to handle new schema
     const saveUserProfile = async (uid: string, data: UserProfileUpdate) => {
         try {
             if (db) {
                 const userDocRef = doc(db, 'users', uid);
-                // Use `merge: true` to combine new data with existing data, such as `email` from Auth
+                // The `data` object now includes notificationSettings, role, etc.
                 await setDoc(userDocRef, data, { merge: true });
                 
-                // Get the updated profile to reflect changes immediately
                 const userDocSnap = await getDoc(userDocRef);
                 if (userDocSnap.exists()) {
                     setUserProfile(userDocSnap.data() as UserProfile);
@@ -209,4 +224,4 @@ export const useAuth = (): AuthContextType => {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
-};
+}; 

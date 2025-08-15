@@ -15,8 +15,9 @@ const Signup: React.FC = () => {
     const [password, setPassword] = useState<string>('');
     const [firstName, setFirstName] = useState<string>('');
     const [lastName, setLastName] = useState<string>('');
-    // New state for notifications, defaults to true
-    const [receiveNotifications, setReceiveNotifications] = useState<boolean>(true);
+    const [receiveEmailNotifications, setReceiveEmailNotifications] = useState<boolean>(true);
+    // New state for push notifications, defaults to false
+    const [receivePushNotifications, setReceivePushNotifications] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [showPassword, setShowPassword] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
@@ -35,12 +36,14 @@ const Signup: React.FC = () => {
         setLoading(true);
         try {
             const userCredential = await signup(email, password);
-            // Pass all required fields, including the new `receiveNotifications`
             await saveUserData(userCredential.user.uid, {
                 firstName,
                 lastName,
                 email,
-                receiveNotifications,
+                notificationSettings: {
+                    email: receiveEmailNotifications,
+                    push: receivePushNotifications, // Use the new state variable
+                },
             });
             navigate('/');
         } catch (err: any) {
@@ -71,7 +74,7 @@ const Signup: React.FC = () => {
                     className="absolute inset-0 z-0 bg-cover bg-center transition-opacity duration-700 ease-in-out opacity-25 rounded-l-3xl"
                     style={{
                         backgroundImage:
-                            'url(https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D)',
+                            'url(https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8fHw%3D)',
                     }}
                 />
                 <div className="relative z-10 text-white max-w-lg space-y-6 text-left">
@@ -197,18 +200,33 @@ const Signup: React.FC = () => {
                             </button>
                         </div>
                         
-                        {/* New checkbox for notifications */}
+                        {/* Checkbox for email notifications */}
                         <div className="flex items-center">
                             <input
                                 type="checkbox"
-                                id="receiveNotifications"
-                                checked={receiveNotifications}
-                                onChange={(e) => setReceiveNotifications(e.target.checked)}
+                                id="receiveEmailNotifications"
+                                checked={receiveEmailNotifications}
+                                onChange={(e) => setReceiveEmailNotifications(e.target.checked)}
                                 className="mr-2"
                                 disabled={loading || googleLoading}
                             />
-                            <label htmlFor="receiveNotifications" className="text-sm font-medium text-neutral-600">
+                            <label htmlFor="receiveEmailNotifications" className="text-sm font-medium text-neutral-600">
                                 I would like to receive email notifications.
+                            </label>
+                        </div>
+                        
+                        {/* New checkbox for push notifications */}
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                id="receivePushNotifications"
+                                checked={receivePushNotifications}
+                                onChange={(e) => setReceivePushNotifications(e.target.checked)}
+                                className="mr-2"
+                                disabled={loading || googleLoading}
+                            />
+                            <label htmlFor="receivePushNotifications" className="text-sm font-medium text-neutral-600">
+                                I would like to receive push notifications.
                             </label>
                         </div>
 

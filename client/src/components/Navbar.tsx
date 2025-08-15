@@ -24,8 +24,14 @@ const Navbar: React.FC = () => {
     { to: "/contact", label: "Contact" },
   ];
 
+  // Conditionally add links based on user role
   if (userProfile?.role === "admin") {
     mainLinks.splice(1, 0, { to: "/admin", label: "Admin Dashboard" });
+    mainLinks.splice(2, 0, { to: "/admin/mentorship-connections", label: "Admin Connections" });
+  }
+  
+  if (userProfile?.role === "mentor") {
+    mainLinks.splice(1, 0, { to: "/mentor/connections", label: "My Connections" });
   }
 
   // Define variants with explicit type annotations for clarity
@@ -42,7 +48,7 @@ const Navbar: React.FC = () => {
       opacity: 1,
       scale: 1,
       transition: {
-        type: "spring", // Use the literal "spring"
+        type: "spring",
         stiffness: 60,
         damping: 14,
       },
@@ -58,7 +64,7 @@ const Navbar: React.FC = () => {
       transition: {
         delay: 0.15 + i * 0.07,
         duration: 0.4,
-        ease: "easeInOut", // Use the literal "easeInOut"
+        ease: "easeInOut",
       },
     }),
     exit: { x: 20, opacity: 0, transition: { duration: 0.15 } },

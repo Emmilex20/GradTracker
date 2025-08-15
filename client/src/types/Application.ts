@@ -30,7 +30,7 @@ export interface Application {
   funding: string;
   fundingAmount: string;
   deadline: string;
-  status: 'Interested' | 'Applying' | 'Submitted' | 'Accepted' | 'Rejected';
+  status: 'Interested' | 'Submitted' | 'Accepted' | 'Rejected';
   notes: string;
   emails: Email[];
   greWaiver: string;

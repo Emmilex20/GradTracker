@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import ProfileSetupModal from './components/ProfileSetupModal';
+import ConnectionsPage from './pages/ConnectionsPage.tsx';
 
 // Lazily import the larger page components to be loaded on demand
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -13,7 +14,8 @@ const AboutPage = lazy(() => import('./pages/AboutPage'));
 const FeaturesPage = lazy(() => import('./pages/FeaturesPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
-const MentorsPage = lazy(() => import('./pages/MentorsPage')); // Add the MentorsPage
+const MentorsPage = lazy(() => import('./pages/MentorsPage'));
+const MentorshipConnectionsPage = lazy(() => import('./pages/MentorshipConnectionsPage'));
 
 // Authentication components
 const Signup = lazy(() => import('./components/Signup'));
@@ -28,6 +30,8 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 
 // Protected Routes
 import AdminProtectedRoute from './components/AdminProtectedRoute';
+import MentorProtectedRoute from './components/MentorProtectedRoute'; // NEW: Add this import
+import ChatPage from './pages/ChatPage.tsx';
 
 // A simple protected route that checks for authentication
 const ProtectedRoute: React.FC = () => {
@@ -52,17 +56,26 @@ const App: React.FC = () => {
                     <Route path="/programs" element={<ProgramList />} />
                     <Route path="/search" element={<ProgramSearch />} />
                     <Route path="/blog" element={<BlogPage />} />
-                    <Route path="/mentors" element={<MentorsPage />} /> {/* Add the new route here */}
+                    <Route path="/mentors" element={<MentorsPage />} />
 
                     {/* Authenticated Routes (for all logged-in users) */}
                     <Route element={<ProtectedRoute />}>
                         <Route path="/dashboard" element={<Dashboard />} />
                     </Route>
 
-                    {/* Admin-Only Route */}
+                    {/* Admin-Only Routes */}
                     <Route element={<AdminProtectedRoute />}>
                         <Route path="/admin" element={<AdminDashboard />} />
+                        <Route path="/admin/mentorship-connections" element={<MentorshipConnectionsPage />} /> {/* NEW Admin Route */}
                     </Route>
+                    
+                    {/* Mentor-Only Routes */}
+                    <Route element={<MentorProtectedRoute />}>
+                        <Route path="/mentor/connections" element={<MentorshipConnectionsPage />} /> {/* NEW Mentor Route */}
+                    </Route>
+
+                    <Route path="/connections" element={<ConnectionsPage />} />
+                    <Route path="/chat/:recipientId" element={<ChatPage />} />
                 </Routes>
                 <ProfileSetupModal />
             </Suspense>

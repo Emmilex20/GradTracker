@@ -241,8 +241,8 @@ export default function HomePage() {
 
                         <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-10">
                             <motion.div variants={item} className="flex-1 text-center lg:text-left">
-                                <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-blue-900">
-                                    Grad School Application Can Be Overwhelming!
+                                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight text-blue-900">
+                                    If Grad School Applications Feel Like a Second Job... You're Not Alone.
                                 </h1>
                                 <p className="mt-5 text-lg text-gray-700 max-w-2xl">
                                     From program search to writing tons of SOPs/CVs unto managing cold emails, reference letters, waivers, and deadlines - It is a full time job.

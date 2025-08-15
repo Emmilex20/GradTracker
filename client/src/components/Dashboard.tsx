@@ -1,5 +1,3 @@
-// src/components/Dashboard.tsx
-
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -9,7 +7,7 @@ import ApplicationCard from './ApplicationCard';
 import EmailTracker from './EmailTracker';
 import DocumentReview from './DocumentReview';
 import type { UserProfile } from '../types/UserProfile';
-import { FaPlus, FaTimes, FaEnvelope, FaPaperclip } from 'react-icons/fa';
+import { FaPlus, FaTimes, FaEnvelope, FaPaperclip, FaBell, FaGraduationCap, FaLink, FaComments } from 'react-icons/fa';
 
 import DashboardHeader from './Dashboard/DashboardHeader';
 import ApplicationStats from './Dashboard/ApplicationStats';
@@ -24,6 +22,14 @@ import ApplicationSearch from './ApplicationSearch';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+interface MentorRequest {
+    id: string;
+    mentorId: string;
+    mentorName: string;
+    status: 'pending' | 'accepted' | 'declined';
+    createdAt: string;
+}
+
 const Dashboard: React.FC = () => {
     const { currentUser, userProfile, token } = useAuth();
     const typedUserProfile = userProfile as UserProfile | null;
@@ -34,13 +40,17 @@ const Dashboard: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
-    const [receiveNotifications, setReceiveNotifications] = useState<boolean | null>(null);
+    const [receiveEmailNotifications, setReceiveEmailNotifications] = useState<boolean>(true);
+    const [receivePushNotifications, setReceivePushNotifications] = useState<boolean>(false);
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
     const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
-    const [mentorConnectionStatus, setMentorConnectionStatus] = useState<'idle' | 'connecting' | 'success' | 'error'>('idle');
+    
+    // NEW: State for mentor requests
+    const [mentorRequests, setMentorRequests] = useState<MentorRequest[]>([]);
+    const [loadingMentorRequests, setLoadingMentorRequests] = useState(true);
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
-    const statusColumns = ['Interested', 'Applying', 'Submitted', 'Accepted', 'Rejected'];
+    const statusColumns = ['Interested', 'Submitted', 'Accepted', 'Rejected'];
 
     const fetchApplications = useCallback(async () => {
         if (!currentUser || !token) {
@@ -67,11 +77,27 @@ const Dashboard: React.FC = () => {
         }
     }, [currentUser, token]);
 
+    const fetchMentorRequests = useCallback(async () => {
+        if (!token) return;
+        setLoadingMentorRequests(true);
+        try {
+            const response = await axios.get<MentorRequest[]>(`${API_URL}/mentee/requests`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setMentorRequests(response.data);
+        } catch (error) {
+            console.error('Error fetching mentee requests:', error);
+        } finally {
+            setLoadingMentorRequests(false);
+        }
+    }, [token]);
+
     useEffect(() => {
         if (currentUser && token) {
             fetchApplications();
+            fetchMentorRequests();
         }
-    }, [currentUser, token, fetchApplications]);
+    }, [currentUser, token, fetchApplications, fetchMentorRequests]);
 
     useEffect(() => {
         const today = new Date();
@@ -88,10 +114,11 @@ const Dashboard: React.FC = () => {
     }, [applications]);
 
     useEffect(() => {
-        if (typedUserProfile && receiveNotifications === null) {
-            setReceiveNotifications(typedUserProfile.receiveNotifications);
+        if (typedUserProfile && typedUserProfile.notificationSettings) {
+            setReceiveEmailNotifications(typedUserProfile.notificationSettings.email);
+            setReceivePushNotifications(typedUserProfile.notificationSettings.push);
         }
-    }, [typedUserProfile, receiveNotifications]);
+    }, [typedUserProfile]);
 
     const handleApplicationUpdated = () => {
         fetchApplications();
@@ -135,21 +162,39 @@ const Dashboard: React.FC = () => {
 
     const displayName = typedUserProfile?.firstName || currentUser?.email?.split('@')[0] || 'User';
 
-    const handleToggleNotifications = async () => {
+    const handleToggleEmailNotifications = async () => {
         if (!currentUser || !token) return;
-        const newSetting = !receiveNotifications;
-        setReceiveNotifications(newSetting);
+        const newSetting = !receiveEmailNotifications;
+        setReceiveEmailNotifications(newSetting);
         try {
             await axios.put(
                 `${API_URL}/users/${currentUser.uid}/notifications`,
-                { receiveNotifications: newSetting },
+                { notificationSettings: { email: newSetting, push: receivePushNotifications } },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            console.log('Notification settings updated.');
+            console.log('Email notification settings updated.');
         } catch (error) {
-            console.error('Failed to update notification settings:', error);
-            setReceiveNotifications(!newSetting);
-            alert('Failed to update settings. Please try again.');
+            console.error('Failed to update email notification settings:', error);
+            setReceiveEmailNotifications(!newSetting);
+            alert('Failed to update email settings. Please try again.');
+        }
+    };
+
+    const handleTogglePushNotifications = async () => {
+        if (!currentUser || !token) return;
+        const newSetting = !receivePushNotifications;
+        setReceivePushNotifications(newSetting);
+        try {
+            await axios.put(
+                `${API_URL}/users/${currentUser.uid}/notifications`,
+                { notificationSettings: { email: receiveEmailNotifications, push: newSetting } },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            console.log('Push notification settings updated.');
+        } catch (error) {
+            console.error('Failed to update push notification settings:', error);
+            setReceivePushNotifications(!newSetting);
+            alert('Failed to update push settings. Please try again.');
         }
     };
 
@@ -159,29 +204,17 @@ const Dashboard: React.FC = () => {
         alert(`Copy this URL to subscribe to your calendar feed:\n\n${icalUrl}\n\n1. Go to your Google/Outlook Calendar.\n2. Find the "Add Calendar" or "Subscribe from URL" option.\n3. Paste the URL. Changes will sync automatically.`);
     };
 
-    const handleConnectWithMentor = async () => {
-        if (!currentUser || !token) {
-            alert("You must be logged in to connect with a mentor.");
-            return;
-        }
-        setMentorConnectionStatus('connecting');
+    const handleSendMentorRequest = async (mentorId: string) => {
+        if (!token) return;
         try {
-            const response = await axios.post(
-                `${API_URL}/mentors/connect`,
-                { userId: currentUser.uid },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            if (response.status === 200) {
-                setMentorConnectionStatus('success');
-                alert('You have been successfully connected with a mentor! They will reach out to you shortly.');
-            } else {
-                setMentorConnectionStatus('error');
-                alert('Failed to connect with a mentor. Please try again later.');
-            }
+            await axios.post(`${API_URL}/mentors/request`, { mentorId }, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            // Re-fetch the requests to update the UI immediately
+            await fetchMentorRequests(); 
         } catch (error) {
-            console.error('Error connecting with a mentor:', error);
-            setMentorConnectionStatus('error');
-            alert('An error occurred. Please try again.');
+            console.error('Error sending mentor request:', error);
+            alert('An error occurred while sending the request.');
         }
     };
 
@@ -216,16 +249,13 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-neutral-light font-sans text-secondary">
-            {/* The main Navbar component is implicitly here */}
             <main className="container mx-auto px-4 sm:px-6 py-10 pt-32">
-                {/* DashboardHeader is now at the very top of the content */}
                 <DashboardHeader
                     displayName={displayName}
                     handleCalendarSync={handleCalendarSync}
                     setIsFeedbackOpen={setIsFeedbackOpen}
                 />
                 
-                {/* The ApplicationSearch component is now correctly placed */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6">
                     <ApplicationSearch />
                 </div>
@@ -236,39 +266,7 @@ const Dashboard: React.FC = () => {
                     statusColumns={statusColumns}
                     loading={loading}
                 />
-                
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-10 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
-                    <div className="text-center sm:text-left mb-4 sm:mb-0">
-                        <h3 className="text-lg sm:text-xl font-bold text-secondary">Email Notifications</h3>
-                        <p className="text-neutral-dark mt-1 text-sm sm:text-base">Receive email reminders for upcoming deadlines.</p>
-                    </div>
-                    <label className="flex items-center cursor-pointer">
-                        <div className="relative">
-                            <input
-                                type="checkbox"
-                                className="sr-only"
-                                checked={!!receiveNotifications}
-                                onChange={handleToggleNotifications}
-                            />
-                            <div className="block bg-neutral-dark w-12 sm:w-14 h-7 sm:h-8 rounded-full"></div>
-                            <div
-                                className={`dot absolute left-1 top-1 bg-white w-5 sm:w-6 h-5 sm:h-6 rounded-full transition-transform duration-300 ${
-                                    receiveNotifications ? 'transform translate-x-5 sm:translate-x-6 bg-primary' : ''
-                                }`}
-                            ></div>
-                        </div>
-                    </label>
-                </div>
-                
-                {upcomingDeadlines.length > 0 && (
-                    <UpcomingDeadlines upcomingDeadlines={upcomingDeadlines} getDaysUntil={getDaysUntil} />
-                )}
-                
-                <MentorConnectionCard
-                    mentorConnectionStatus={mentorConnectionStatus}
-                    handleConnectWithMentor={handleConnectWithMentor}
-                />
-                
+
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
                     <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 sm:mb-6">
                         <h2 className="text-xl sm:text-2xl font-bold text-secondary mb-2 sm:mb-0">My Applications</h2>
@@ -291,7 +289,7 @@ const Dashboard: React.FC = () => {
                         <DashboardSkeleton />
                     ) : (
                         <DragDropContext onDragEnd={onDragEnd}>
-                            <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 overflow-x-auto pb-4">
+                            <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto pb-4">
                                 {statusColumns.map(status => (
                                     <Droppable key={status} droppableId={status}>
                                         {(provided) => (
@@ -373,7 +371,7 @@ const Dashboard: React.FC = () => {
                                 <div className="bg-neutral-light rounded-xl p-4 sm:p-6 shadow-inner">
                                     <h3 className="text-lg font-bold text-secondary mb-4 flex items-center">
                                         <FaPaperclip className="mr-2 text-primary" />
-                                        Document Checklist
+                                        Document Storage and Reviews
                                     </h3>
                                     {selectedApplicationForTabs ? (
                                         <DocumentReview
@@ -395,6 +393,108 @@ const Dashboard: React.FC = () => {
                         </div>
                     )}
                 </div>
+
+                
+                <div className="grid grid-cols-1 mt-6 md:grid-cols-2 gap-6 mb-6 sm:mb-10">
+                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
+                        <div className="text-center sm:text-left mb-4 sm:mb-0">
+                            <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
+                                <FaEnvelope className="mr-2 text-primary" /> Email Notifications
+                            </h3>
+                            <p className="text-neutral-dark mt-1 text-sm sm:text-base">Receive email reminders for upcoming deadlines.</p>
+                        </div>
+                        <label className="flex items-center cursor-pointer">
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only"
+                                    checked={receiveEmailNotifications}
+                                    onChange={handleToggleEmailNotifications}
+                                />
+                                <div className="block bg-neutral-dark w-12 sm:w-14 h-7 sm:h-8 rounded-full"></div>
+                                <div
+                                    className={`dot absolute left-1 top-1 bg-white w-5 sm:w-6 h-5 sm:h-6 rounded-full transition-transform duration-300 ${
+                                        receiveEmailNotifications ? 'transform translate-x-5 sm:translate-x-6 bg-primary' : ''
+                                    }`}
+                                ></div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
+                        <div className="text-center sm:text-left mb-4 sm:mb-0">
+                            <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
+                                <FaBell className="mr-2 text-primary" /> Push Notifications
+                            </h3>
+                            <p className="text-neutral-dark mt-1 text-sm sm:text-base">Receive on-site alerts and browser push notifications.</p>
+                        </div>
+                        <label className="flex items-center cursor-pointer">
+                            <div className="relative">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only"
+                                    checked={receivePushNotifications}
+                                    onChange={handleTogglePushNotifications}
+                                />
+                                <div className="block bg-neutral-dark w-12 sm:w-14 h-7 sm:h-8 rounded-full"></div>
+                                <div
+                                    className={`dot absolute left-1 top-1 bg-white w-5 sm:w-6 h-5 sm:h-6 rounded-full transition-transform duration-300 ${
+                                        receivePushNotifications ? 'transform translate-x-5 sm:translate-x-6 bg-primary' : ''
+                                    }`}
+                                ></div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                {upcomingDeadlines.length > 0 && (
+                    <UpcomingDeadlines upcomingDeadlines={upcomingDeadlines} getDaysUntil={getDaysUntil} />
+                )}
+                
+                <MentorConnectionCard
+                    currentRequests={mentorRequests}
+                    loadingRequests={loadingMentorRequests}
+                    onSendRequest={handleSendMentorRequest}
+                />
+
+                {/* NEW: Application Resources and Blog Card */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
+                    <div className="text-center sm:text-left mb-4 sm:mb-0">
+                        <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
+                            <FaLink className="mr-2 text-primary" /> Application Resources & Blog
+                        </h3>
+                        <p className="text-neutral-dark mt-1 text-sm sm:text-base">
+                            Access guides, tips, and articles to help you ace your applications.
+                        </p>
+                    </div>
+                    <a
+                        href="/resources"
+                        className="bg-primary text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
+                    >
+                        <span>Explore Resources</span>
+                        <FaGraduationCap />
+                    </a>
+                </div>
+
+                {/* NEW: Connect With Other Applicants Card */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
+                    <div className="text-center sm:text-left mb-4 sm:mb-0">
+                        <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
+                            <FaComments className="mr-2 text-primary" /> Connect With Other Applicants
+                        </h3>
+                        <p className="text-neutral-dark mt-1 text-sm sm:text-base">
+                            Join forums and groups to share experiences and get support from peers.
+                        </p>
+                    </div>
+                    <a
+                        href="/community"
+                        className="bg-primary text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
+                    >
+                        <span>Join the Community</span>
+                        <FaComments />
+                    </a>
+                </div>
+
             </main>
             
             {/* ... (modals) ... */}

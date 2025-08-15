@@ -8,8 +8,11 @@ const ProfileSetupModal: React.FC = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
-    const [receiveNotifications, setReceiveNotifications] = useState(true);
-    const role: UserRole = 'user'; 
+    // State for email notifications, defaults to true
+    const [receiveEmailNotifications, setReceiveEmailNotifications] = useState(true);
+    // NEW: State for push notifications, defaults to false
+    const [receivePushNotifications, setReceivePushNotifications] = useState(false);
+    const role: UserRole = 'user';
     const [loading, setLoading] = useState(false);
 
     // Pre-populate the email field from the current user's data
@@ -33,9 +36,12 @@ const ProfileSetupModal: React.FC = () => {
                 lastName,
                 email,
                 role,
-                receiveNotifications,
+                notificationSettings: {
+                    email: receiveEmailNotifications,
+                    push: receivePushNotifications, // Use the new state
+                },
             });
-            setShowProfileModal(false); // Close modal on success
+            setShowProfileModal(false);
         } catch (error) {
             console.error('Failed to save user profile:', error);
             alert('Failed to save your profile. Please try again.');
@@ -81,7 +87,7 @@ const ProfileSetupModal: React.FC = () => {
                         <input
                             type="email"
                             value={email}
-                            readOnly // Email is read-only for Google sign-ups
+                            readOnly
                             className="w-full p-2 border rounded-md bg-gray-100 cursor-not-allowed"
                             required
                             disabled={loading}
@@ -90,14 +96,28 @@ const ProfileSetupModal: React.FC = () => {
                     <div className="mb-4 flex items-center">
                         <input
                             type="checkbox"
-                            id="receiveNotifications"
-                            checked={receiveNotifications}
-                            onChange={(e) => setReceiveNotifications(e.target.checked)}
+                            id="receiveEmailNotifications"
+                            checked={receiveEmailNotifications}
+                            onChange={(e) => setReceiveEmailNotifications(e.target.checked)}
                             className="mr-2"
                             disabled={loading}
                         />
-                        <label htmlFor="receiveNotifications" className="text-sm font-medium">
+                        <label htmlFor="receiveEmailNotifications" className="text-sm font-medium">
                             I would like to receive email notifications.
+                        </label>
+                    </div>
+                    {/* NEW: Checkbox for push notifications */}
+                    <div className="mb-4 flex items-center">
+                        <input
+                            type="checkbox"
+                            id="receivePushNotifications"
+                            checked={receivePushNotifications}
+                            onChange={(e) => setReceivePushNotifications(e.target.checked)}
+                            className="mr-2"
+                            disabled={loading}
+                        />
+                        <label htmlFor="receivePushNotifications" className="text-sm font-medium">
+                            I would like to receive push notifications.
                         </label>
                     </div>
                     <button

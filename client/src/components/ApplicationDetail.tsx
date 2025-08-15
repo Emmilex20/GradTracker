@@ -1,6 +1,7 @@
 import React from 'react';
 import axios from 'axios';
 import type { Application } from '../types/Application';
+import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
 import { FaTimes, FaEdit, FaTrashAlt, FaGraduationCap, FaLink, FaCalendarAlt, FaDollarSign, FaUserGraduate, FaFileAlt } from 'react-icons/fa';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -29,15 +30,26 @@ const getStatusBgClass = (status: string) => {
 };
 
 const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onClose, onDelete, onEdit }) => {
+    // CORRECTED: Get the authentication token from the AuthContext
+    const { token } = useAuth();
 
     const handleDelete = async () => {
         if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
             try {
-                await axios.delete(`${API_URL}/applications/${application._id}`);
+                // CORRECTED: Include the Authorization header with the token
+                await axios.delete(
+                    `${API_URL}/applications/${application._id}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
                 onDelete(application._id);
                 onClose();
             } catch (err) {
                 console.error('Failed to delete application:', err);
+                // You might want to add a user-facing error message here
             }
         }
     };
