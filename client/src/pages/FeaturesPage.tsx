@@ -63,13 +63,13 @@ const features = [
 const testimonials = [
   {
     quote:
-      "Grad Tracker was a game-changer for my application process. I've never felt more organized and in control. The kanban board is incredibly intuitive!",
+      "Grad Manager was a game-changer for my application process. I've never felt more organized and in control. The kanban board is incredibly intuitive!",
     name: "Alex P.",
     school: "UCLA, Accepted PhD Program",
   },
   {
     quote:
-      "I used to track everything in a messy spreadsheet. Grad Tracker's centralized hub for notes and communications saved me countless hours.",
+      "I used to track everything in a messy spreadsheet. Grad Manager's centralized hub for notes and communications saved me countless hours.",
     name: "Maria L.",
     school: "Stanford, Accepted Master's Program",
   },
@@ -82,7 +82,7 @@ const testimonials = [
 ];
 
 const howItWorksSteps = [
-  { step: 1, title: "Create Your Account", description: "Sign up in minutes to create your personalized Grad Tracker dashboard." },
+  { step: 1, title: "Create Your Account", description: "Sign up in minutes to create your personalized Grad Manager dashboard." },
   { step: 2, title: "Add Applications", description: "Easily add graduate programs and scholarships you are interested in. Fill in key details like deadlines and requirements." },
   { step: 3, title: "Track Your Progress", description: "Use our visual kanban board to move applications through different stages. Add notes, documents, and reminders along the way." },
   { step: 4, title: "Succeed & Celebrate!", description: "Stay on top of every deadline and requirement. When the acceptances roll in, you'll be ready to make an informed decision." },
@@ -118,7 +118,7 @@ export default function FeaturesPage() {
             transition={{ duration: 0.8 }}
             className="text-4xl text-blue-900 md:text-5xl font-extrabold"
           >
-            Unlock Your Graduate School Dreams with <span className="text-primary">Grad Tracker</span>
+            Unlock Your Graduate School Dreams with <span className="text-primary">Grad Manager</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 30 }}

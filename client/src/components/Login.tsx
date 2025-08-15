@@ -72,7 +72,7 @@ const Login: React.FC = () => {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-10 bg-white animate-fade-in rounded-r-3xl shadow-xl">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center animate-slide-up">
-            <h2 className="text-4xl font-extrabold text-secondary tracking-wide">Grad Tracker</h2>
+            <h2 className="text-4xl font-extrabold text-secondary tracking-wide">Grad Manager</h2>
             <p className="mt-2 text-neutral-600 font-medium">Log in to your account</p>
           </div>
 

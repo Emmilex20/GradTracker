@@ -261,6 +261,7 @@ app.get('/', (req, res) => {
 
 
 // === Socket.IO Connection Handling ===
+// === Socket.IO Connection Handling ===
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
 
@@ -286,11 +287,15 @@ io.on('connection', (socket) => {
       const messageDoc = await messageRef.get();
       const messageData = messageDoc.data();
 
+      // Ensure a valid createdAt string is always present
+      const createdAt = messageData.createdAt ? messageData.createdAt.toDate().toISOString() : new Date().toISOString();
+
       // Emit the message to all clients in the chat room
       io.to(chatId).emit('receive_message', {
         id: messageDoc.id,
-        ...messageData,
-        createdAt: messageData.createdAt?.toDate().toISOString() // Convert Timestamp to string
+        senderId: messageData.senderId,
+        text: messageData.text,
+        createdAt,
       });
     } catch (error) {
       console.error('Error saving message to Firestore:', error);

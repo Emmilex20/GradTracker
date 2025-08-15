@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaPaperPlane } from 'react-icons/fa';
+import { FaPaperPlane, FaArrowDown, FaUserCircle } from 'react-icons/fa';
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
+import { IoIosChatbubbles } from 'react-icons/io';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -18,6 +19,7 @@ interface User {
   id: string;
   firstName: string;
   lastName: string;
+  avatar?: string;
 }
 
 const ChatPage: React.FC = () => {
@@ -27,12 +29,22 @@ const ChatPage: React.FC = () => {
   const [newMessageText, setNewMessageText] = useState('');
   const [recipient, setRecipient] = useState<User | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const socketRef = useRef<Socket | null>(null);
+  const [isAtBottom, setIsAtBottom] = useState(true);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isScrollAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 50;
+      setIsAtBottom(isScrollAtBottom);
+    }
   };
 
   useEffect(() => {
@@ -42,19 +54,15 @@ const ChatPage: React.FC = () => {
       return;
     }
 
-    // Generate a unique, consistent chatId for one-on-one chat
     const chatId = [currentUser.uid, recipientId].sort().join('_');
 
-    // Fetch initial messages and recipient data from the backend API
     const fetchChatData = async () => {
       try {
-        // Fetch recipient's user data
         const userResponse = await axios.get(`${API_URL}/users/${recipientId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setRecipient(userResponse.data);
 
-        // Fetch initial messages for the chat
         const messagesResponse = await axios.get(`${API_URL}/messages/${chatId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -69,17 +77,24 @@ const ChatPage: React.FC = () => {
 
     fetchChatData();
 
-    // Set up Socket.IO for real-time updates
     const socket = io(API_URL);
     socketRef.current = socket;
 
     socket.emit('join_chat', chatId);
 
     socket.on('receive_message', (message: Message) => {
-      setMessages(prevMessages => [...prevMessages, message]);
+      setMessages(prevMessages => {
+        const isOptimistic = prevMessages.find(msg => 
+          msg.id.startsWith('temp-') && msg.text === message.text && msg.senderId === message.senderId
+        );
+        if (isOptimistic) {
+          return prevMessages.map(msg => msg.id === isOptimistic.id ? message : msg);
+        } else {
+          return [...prevMessages, message];
+        }
+      });
     });
 
-    // Cleanup on component unmount
     return () => {
       socket.disconnect();
     };
@@ -91,77 +106,129 @@ const ChatPage: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessageText.trim() === '' || !currentUser?.uid || !recipientId) return;
+    const messageText = newMessageText.trim();
+    if (messageText === '' || !currentUser?.uid || !recipientId) return;
 
-    // Generate the consistent chatId again for the message data
     const chatId = [currentUser.uid, recipientId].sort().join('_');
-
-    const messageData = {
-      chatId,
+    const tempId = `temp-${Date.now()}`;
+    const tempMessage: Message = {
+      id: tempId,
       senderId: currentUser.uid,
-      text: newMessageText,
+      text: messageText,
+      createdAt: new Date().toISOString(),
     };
 
+    setMessages(prevMessages => [...prevMessages, tempMessage]);
+    setNewMessageText('');
+
     try {
-      // Send message to the backend via Socket.IO
-      socketRef.current?.emit('send_message', messageData);
-      setNewMessageText('');
+      socketRef.current?.emit('send_message', {
+        chatId,
+        senderId: currentUser.uid,
+        text: messageText,
+      });
     } catch (err) {
       console.error('Failed to send message:', err);
+      setMessages(prevMessages => prevMessages.filter(msg => msg.id !== tempId));
     }
   };
 
-
-
-  if (loading) return <div className="text-center mt-24">Loading chat...</div>;
+  if (loading) return (
+    <div className="fixed inset-0 flex items-center justify-center bg-slate-950 text-white z-50">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-fuchsia-500"></div>
+    </div>
+  );
   if (error) return <div className="text-center mt-24 text-red-500">{error}</div>;
 
-  const chatTitle = recipient ? `Chat with ${recipient.firstName} ${recipient.lastName}` : 'Chat';
+  const chatTitle = recipient ? `${recipient.firstName} ${recipient.lastName}` : 'Chat';
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8 mt-24 h-[calc(100vh-10rem)] flex flex-col">
-      <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-t-lg">
-        <h1 className="text-xl font-bold text-gray-800">{chatTitle}</h1>
-        {/* Video call link */}
+    <div className="min-h-screen w-full bg-slate-950 text-white flex justify-center items-center py-16 px-4 relative overflow-hidden">
+      {/* Background Blobs */}
+      <div className="absolute inset-0 z-0 opacity-40">
+        <div className="absolute top-0 left-0 w-80 h-80 bg-fuchsia-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-0 left-20 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {messages.length > 0 ? (
-          messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`p-3 rounded-lg max-w-xs md:max-w-md lg:max-w-lg ${
-                  msg.senderId === currentUser?.uid ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
-                }`}
-              >
-                {msg.text}
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="p-8 text-center text-gray-500">
-            Start the conversation!
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-200 flex rounded-b-lg">
-        <input
-          type="text"
-          value={newMessageText}
-          onChange={(e) => setNewMessageText(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 p-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          type="submit"
-          className="ml-2 p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+      
+      {/* Main Glassmorphism Container */}
+      <div className="relative z-10 w-full max-w-2xl mx-auto backdrop-blur-3xl bg-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[80vh] md:h-[90vh]">
+        
+        {/* Chat Header */}
+        <div className="p-4 md:p-6 bg-white/5 border-b border-white/10 flex items-center space-x-4 animate-fade-in-down">
+          {recipient?.avatar ? (
+            <img src={recipient.avatar} alt={`${recipient.firstName}`} className="w-12 h-12 rounded-full object-cover border-2 border-fuchsia-300" />
+          ) : (
+            <FaUserCircle size={48} className="text-gray-400" />
+          )}
+          <h1 className="text-xl md:text-2xl font-bold text-white tracking-wide">{chatTitle}</h1>
+        </div>
+        
+        {/* Messages Container */}
+        <div 
+          className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 custom-scrollbar" 
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
         >
-          <FaPaperPlane />
-        </button>
-      </form>
+          {messages.length > 0 ? (
+            messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`flex animate-message-enter ${msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`p-4 rounded-3xl max-w-[80%] md:max-w-[70%] text-sm md:text-base backdrop-blur-sm transition-all duration-300 transform hover:scale-[1.02] ${
+                    msg.senderId === currentUser?.uid 
+                      ? 'bg-blue-600/60 text-white shadow-lg' 
+                      : 'bg-gray-700/60 text-gray-200 shadow-md'
+                  }`}
+                >
+                  {msg.text}
+                  <span className={`block mt-1 text-[10px] opacity-70 ${msg.senderId === currentUser?.uid ? 'text-right' : 'text-left'}`}>
+                    {new Date(msg.createdAt).toLocaleTimeString()}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-gray-500 animate-fade-in">
+              <IoIosChatbubbles size={64} className="mx-auto mb-4 text-gray-600" />
+              <p className="text-lg">Start the conversation!</p>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+        
+        {/* Scroll to Bottom Button */}
+        {!isAtBottom && (
+          <button
+            onClick={scrollToBottom}
+            className="absolute bottom-24 right-8 p-3 rounded-full bg-fuchsia-500 text-white shadow-xl hover:bg-fuchsia-600 transition-all duration-300 transform hover:scale-110 animate-bounce-faded"
+            aria-label="Scroll to bottom"
+          >
+            <FaArrowDown />
+          </button>
+        )}
+
+        {/* Message Input Form */}
+        <form onSubmit={handleSendMessage} className="p-4 md:p-6 bg-white/5 border-t border-white/10 flex space-x-3 items-center">
+          <input
+            type="text"
+            value={newMessageText}
+            onChange={(e) => setNewMessageText(e.target.value)}
+            placeholder="Type your message..."
+            className="flex-1 p-3 bg-gray-800/80 rounded-full focus:outline-none focus:ring-2 focus:ring-fuchsia-500 placeholder-gray-400 text-white transition-all duration-300"
+          />
+          <button
+            type="submit"
+            disabled={!newMessageText.trim()}
+            className="p-3 bg-gradient-to-r from-blue-500 to-fuchsia-600 text-white rounded-full hover:from-blue-600 hover:to-fuchsia-700 transition-all duration-300 transform hover:scale-110 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+            aria-label="Send message"
+          >
+            <FaPaperPlane />
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

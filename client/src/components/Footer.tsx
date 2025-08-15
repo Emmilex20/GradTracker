@@ -19,7 +19,7 @@ const Footer: React.FC = () => {
           {/* Brand Info */}
           <div className="col-span-2 md:col-span-1 text-center md:text-left">
             <Link to="/" className="text-3xl font-extrabold text-white mb-2 inline-block transform hover:scale-105 transition-all duration-300">
-              Grad Tracker 🎓
+              Grad Manager 🎓
             </Link>
             <p className="text-sm mt-4 opacity-80 max-w-[250px] mx-auto md:mx-0">
               Your all-in-one platform for managing the graduate school application process.
@@ -82,7 +82,7 @@ const Footer: React.FC = () => {
 
         {/* Bottom Section */}
         <div className="text-center mt-8 text-sm opacity-80 animate-fade-in-up">
-          &copy; {currentYear} Grad Tracker. All rights reserved.
+          &copy; {currentYear} Grad Manager. All rights reserved.
         </div>
       </div>
 

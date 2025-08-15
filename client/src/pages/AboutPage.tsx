@@ -13,19 +13,19 @@ const teamMembers = [
   {
     name: 'Jane Doe',
     title: 'Co-Founder & CEO',
-    bio: "Jane is an expert in student success platforms with a background in education technology and a Master's degree from Stanford University. She built the first version of Grad Tracker on her kitchen table, driven by a passion for helping students achieve their academic goals without the stress she experienced. She leads our vision, ensuring every feature is truly student-first.",
+    bio: "Jane is an expert in student success platforms with a background in education technology and a Master's degree from Stanford University. She built the first version of Grad Manager on her kitchen table, driven by a passion for helping students achieve their academic goals without the stress she experienced. She leads our vision, ensuring every feature is truly student-first.",
     image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2861&auto=format&fit=crop&ixlib=rb-4.0.3',
   },
   {
     name: 'John Smith',
     title: 'Co-Founder & CTO',
-    bio: 'A brilliant software engineer and problem-solver, John holds a Computer Science degree from the Massachusetts Institute of Technology. He specializes in building scalable and intuitive web applications. John is the technical backbone of Grad Tracker, responsible for the robust data pipeline and seamless user experience that makes the platform so powerful and reliable.',
+    bio: 'A brilliant software engineer and problem-solver, John holds a Computer Science degree from the Massachusetts Institute of Technology. He specializes in building scalable and intuitive web applications. John is the technical backbone of Grad Manager, responsible for the robust data pipeline and seamless user experience that makes the platform so powerful and reliable.',
     image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=2848&auto=format&fit=crop&ixlib=rb-4.0.3',
   },
   {
     name: 'Emily Chen',
     title: 'Head of Product',
-    bio: 'Emily is a dedicated product leader with a sharp eye for user experience and design. With a background in market research and a deep understanding of student needs, she shapes the features and roadmap of Grad Tracker. She’s the voice of our users, ensuring that the platform is not only powerful but also intuitive and delightful to use.',
+    bio: 'Emily is a dedicated product leader with a sharp eye for user experience and design. With a background in market research and a deep understanding of student needs, she shapes the features and roadmap of Grad Manager. She’s the voice of our users, ensuring that the platform is not only powerful but also intuitive and delightful to use.',
     image: 'https://www.sharepointeurope.com/wp-content/uploads/2024/06/Emily_Chen.jpg',
   },
 ];
@@ -105,7 +105,7 @@ export default function AboutPage() {
           <motion.div variants={item} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <h2 className="text-3xl font-bold text-blue-900 mb-4">The Problem: A World of Chaos</h2>
             <p className="text-neutral-dark leading-relaxed mb-4">The graduate school application process is overwhelming. We experienced it ourselves — juggling portals, deadlines, and emails — and realized there had to be a better way.</p>
-            <p className="text-neutral-dark leading-relaxed">Grad Tracker was born to bring order to the chaos, letting students focus on building powerful applications that reflect their potential.</p>
+            <p className="text-neutral-dark leading-relaxed">Grad Manager was born to bring order to the chaos, letting students focus on building powerful applications that reflect their potential.</p>
           </motion.div>
           <motion.div variants={item} initial="hidden" whileInView="show" viewport={{ once: true }}>
             <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3" alt="Students collaborating" className="rounded-2xl shadow-lg" />
@@ -158,7 +158,7 @@ export default function AboutPage() {
             transition={{ duration: 0.6 }}
             className="text-xl italic text-neutral-dark mb-6"
           >
-            "Grad Tracker transformed my application process into a clear, manageable journey. I landed my dream program thanks to this platform."
+            "Grad Manager transformed my application process into a clear, manageable journey. I landed my dream program thanks to this platform."
           </motion.p>
           <p className="font-semibold text-blue-900">- Alex M., MIT Graduate Student</p>
         </div>

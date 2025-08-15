@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Grad Tracker Helper",
+  "name": "Grad Manager Helper",
   "version": "1.0",
   "description": "A browser extension to quickly capture grad school application data for your dashboard.",
   "permissions": ["activeTab", "scripting"],

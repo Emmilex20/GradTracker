@@ -151,7 +151,7 @@ export const testimonials = [
     {
         name: 'Amina Yusuf',
         role: 'Fulbright Scholar 2024',
-        quote: 'Grad Tracker turned hours of research into one dashboard. I found funded programs and connected with a mentor who reviewed my SOP — I got in! ',
+        quote: 'Grad Manager turned hours of research into one dashboard. I found funded programs and connected with a mentor who reviewed my SOP — I got in! ',
         image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80&auto=format&fit=crop',
     },
     {

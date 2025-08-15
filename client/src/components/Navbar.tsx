@@ -78,7 +78,7 @@ const Navbar: React.FC = () => {
           to="/"
           className="text-2xl font-extrabold text-blue-600 tracking-tight hover:text-blue-700 transition-colors"
         >
-          Grad Tracker 🎓
+          Grad Manager 🎓
         </Link>
 
         {/* Desktop Menu */}

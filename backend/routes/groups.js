@@ -27,6 +27,29 @@ router.get('/', verifyToken, async (req, res) => {
     }
 });
 
+// New Endpoint to get a single group by its ID
+router.get('/:groupId', verifyToken, async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const groupRef = db.collection('groups').doc(groupId);
+        const doc = await groupRef.get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ message: 'Group not found.' });
+        }
+
+        const groupData = {
+            id: doc.id,
+            ...doc.data(),
+        };
+
+        res.status(200).json(groupData);
+    } catch (error) {
+        console.error('Error fetching group by ID:', error);
+        res.status(500).json({ message: 'Server error.' });
+    }
+});
+
 // Endpoint to create a new group
 router.post('/create', verifyToken, async (req, res) => {
     try {

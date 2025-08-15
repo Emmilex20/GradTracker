@@ -52,12 +52,12 @@ const sendReminderEmail = async (application) => {
         }
         
         const deadlineDate = new Date(application.deadline).toLocaleDateString();
-        const subject = `[Grad Tracker] Deadline Approaching for ${application.schoolName}`;
+        const subject = `[Grad Manager] Deadline Approaching for ${application.schoolName}`;
         const body = `<p>Hello,</p>
             <p>This is a friendly reminder that the deadline for your application to <b>${application.programName}</b> at <b>${application.schoolName}</b> is on <b>${deadlineDate}</b>.</p>
             <p>Don't miss out! You can check your progress here:</p>
             <a href="http://localhost:3000/dashboard">Go to Dashboard</a>
-            <p>Best regards,<br/>The Grad Tracker Team</p>`;
+            <p>Best regards,<br/>The Grad Manager Team</p>`;
         
         const mailOptions = {
             from: 'aginaemmanuel6@gmail.com', // Replace with your verified SendGrid sender email
