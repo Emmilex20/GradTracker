@@ -140,7 +140,7 @@ export default function BlogPage() {
             {/* Header Section */}
             <section className="bg-gradient-to-br from-blue-50 via-white to-blue-100 py-16">
                 <div className="container mx-auto px-6 text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold text-blue-900">GradTrack Blog</h1>
+                    <h1 className="text-4xl md:text-5xl font-bold text-blue-900">GradManager Blog</h1>
                     <p className="max-w-3xl mx-auto mt-4 text-lg text-gray-700">
                         Your go-to resource for tips, guides, and inspiration on your graduate school application journey.
                     </p>

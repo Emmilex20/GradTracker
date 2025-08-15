@@ -80,7 +80,7 @@ export const platformFeatures: Feature[] = [
         src: calendarImage, 
         title: 'Application Tracker', 
         desc: "Allows you to add programs to your dashboard. Track those you have applied to, and those in progress. You can also track professors you've contacted and those you haven't.",
-        fullDesc: 'The GradTrack dashboard is your central hub for all applications. It features a customisable kanban board and a calendar view, allowing you to track each program from "Researching" to "Accepted." You can upload documents, add notes, set reminders, and manage your to-do lists all in one place, ensuring you never miss a critical step.',
+        fullDesc: 'The GradManager dashboard is your central hub for all applications. It features a customisable kanban board and a calendar view, allowing you to track each program from "Researching" to "Accepted." You can upload documents, add notes, set reminders, and manage your to-do lists all in one place, ensuring you never miss a critical step.',
         fullImage: calendarImage2,
     },
     { 
@@ -96,7 +96,7 @@ export const platformFeatures: Feature[] = [
         src: mentorImage, 
         title: 'Find a Mentor and Alumni', 
         desc: 'This allows you to find a scholarship mentor and/or alumni of a specific scholarship or specific school.',
-        fullDesc: 'Once you get that interview invitation, GradTrack offers comprehensive resources to help you prepare. Practice with mock interviews, get feedback on your responses, and learn the common questions and strategies for your specific program. Our mentors will help you build the confidence and skills needed to impress the admissions committee.',
+        fullDesc: 'Once you get that interview invitation, GradManager offers comprehensive resources to help you prepare. Practice with mock interviews, get feedback on your responses, and learn the common questions and strategies for your specific program. Our mentors will help you build the confidence and skills needed to impress the admissions committee.',
         fullImage: mentorImage,
     },
     { 

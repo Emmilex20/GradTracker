@@ -32,7 +32,7 @@ const ApplicationSearch: React.FC = () => {
 
             {/* Popular Categories Section */}
             <div className="text-center">
-                <h3 className="text-lg font-bold text-neutral-dark mb-4">GradTrack Categories</h3>
+                <h3 className="text-lg font-bold text-neutral-dark mb-4">GradManager Categories</h3>
                 <div className="flex flex-wrap justify-center gap-4">
                     {categories.map((category, index) => (
                         <Link

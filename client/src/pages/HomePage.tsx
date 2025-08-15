@@ -248,7 +248,7 @@ export default function HomePage() {
                                     From program search to writing tons of SOPs/CVs unto managing cold emails, reference letters, waivers, and deadlines - It is a full time job.
                                 </p>
                                 <p className="mt-5 text-lg text-gray-700 max-w-2xl">
-                                    This is why we built GradTrack - A personalised WebApp that makes the process less overwhelming. It allows you to manage the entire process with a single dashboard.
+                                    This is why we built GradManager - A personalised WebApp that makes the process less overwhelming. It allows you to manage the entire process with a single dashboard.
                                 </p>
 
                                 <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center sm:items-start justify-center lg:justify-start">
@@ -272,7 +272,7 @@ export default function HomePage() {
                             <motion.div variants={item} className="flex-1 relative">
                                 <motion.img
                                     src="https://img.freepik.com/premium-photo/handsome-young-latin-american-man-smart-student-watching-webinar-online-class-using-laptop_695242-1819.jpg?semt=ais_hybrid&w=740&q=80"
-                                    alt="Student using GradTrack web app"
+                                    alt="Student using GradManager web app"
                                     className="rounded-3xl shadow-2xl w-full h-auto object-cover"
                                     animate={{ y: ["0%", "-5%", "0%"] }}
                                     transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatType: "loop" }}
@@ -281,7 +281,7 @@ export default function HomePage() {
                         </div>
                     </motion.section>
                     
-                    {/* What GradTrack Offers */}
+                    {/* What GradManager Offers */}
                     <section className="container mx-auto px-6 py-14">
                         <motion.h2
                             className="text-3xl md:text-4xl font-bold text-center text-secondary"
@@ -289,7 +289,7 @@ export default function HomePage() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, amount: 0.2 }}
                         >
-                            What GradTrack Offers.
+                            What GradManager Offers.
                         </motion.h2>
                         <motion.p 
                           className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark"
@@ -421,7 +421,7 @@ export default function HomePage() {
                     {/* Blog Section */}
                     <section className="container mx-auto px-6 py-14">
                         <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-3xl font-bold text-secondary">GradTrack Blog</h3>
+                            <h3 className="text-3xl font-bold text-secondary">GradManager Blog</h3>
                             <Link to="/blog" className="text-primary font-semibold hover:underline">Read all articles</Link>
                         </div>
                         <motion.div className="grid md:grid-cols-3 gap-6" variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>

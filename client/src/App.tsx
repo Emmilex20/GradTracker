@@ -16,6 +16,9 @@ const BlogPage = lazy(() => import('./pages/BlogPage'));
 const MentorsPage = lazy(() => import('./pages/MentorsPage'));
 const MentorshipConnectionsPage = lazy(() => import('./pages/MentorshipConnectionsPage'));
 const CommunityPage = lazy(() => import('./pages/CommunityPage'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
+const SupportPage = lazy(() => import('./components/Support'));
+const FAQsPage = lazy(() => import('./components/FAQs'));
 
 // Authentication components
 const Signup = lazy(() => import('./components/Signup'));
@@ -63,7 +66,10 @@ const App: React.FC = () => {
                     <Route path="/search" element={<ProgramSearch />} />
                     <Route path="/blog" element={<BlogPage />} />
                     <Route path="/mentors" element={<MentorsPage />} />
-
+                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                    <Route path="/support" element={<SupportPage />} />
+                    <Route path="/faqs" element={<FAQsPage />} />
+                    
                     {/* Authenticated Routes (for all logged-in users) */}
                     <Route element={<ProtectedRoute />}>
                         <Route path="/dashboard" element={<Dashboard />} />
