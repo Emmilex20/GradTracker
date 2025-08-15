@@ -1,10 +1,57 @@
+// backend/routes/connections.js
+
 import express from 'express';
 import admin from 'firebase-admin';
 import verifyToken from '../middleware/auth.js';
-import checkRole from '../middleware/checkRole.js'; // Assuming you have a checkRole middleware
 
 const router = express.Router();
 const db = admin.firestore();
+
+// Endpoint to get all connections and pending requests for the logged-in user
+// This is your main GET endpoint, fetching all relevant connection data for the user.
+router.get('/', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user.uid;
+
+        // Get accepted connections
+        const userDoc = await db.collection('users').doc(userId).get();
+        const connectionsIds = userDoc.data()?.connections || [];
+
+        let acceptedConnections = [];
+        if (connectionsIds.length > 0) {
+            const usersSnapshot = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', connectionsIds).get();
+            acceptedConnections = usersSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        }
+
+        // Get pending requests sent to the user
+        const pendingRequests = await db.collection('connectionRequests')
+            .where('recipientId', '==', userId)
+            .where('status', '==', 'pending')
+            .get();
+
+        const pendingRequestsData = await Promise.all(pendingRequests.docs.map(async (doc) => {
+            const data = doc.data();
+            const senderDoc = await db.collection('users').doc(data.senderId).get();
+            return {
+                requestId: doc.id,
+                sender: {
+                    id: senderDoc.id,
+                    ...senderDoc.data()
+                },
+                status: data.status,
+                createdAt: data.createdAt?.toDate().toISOString(),
+            };
+        }));
+        
+        res.status(200).json({ acceptedConnections, pendingRequests: pendingRequestsData });
+    } catch (error) {
+        console.error('Error fetching connections:', error);
+        res.status(500).json({ message: 'Server error.' });
+    }
+});
 
 // Endpoint to send a connection request
 router.post('/request/:recipientId', verifyToken, async (req, res) => {
@@ -20,10 +67,18 @@ router.post('/request/:recipientId', verifyToken, async (req, res) => {
         const existingRequest = await db.collection('connectionRequests')
             .where('senderId', '==', senderId)
             .where('recipientId', '==', recipientId)
+            .where('status', '==', 'pending') // Only check for pending requests
             .get();
 
         if (!existingRequest.empty) {
-            return res.status(409).json({ message: 'A connection request already exists.' });
+            return res.status(409).json({ message: 'A pending connection request already exists.' });
+        }
+        
+        // Also check if they are already connected
+        const senderDoc = await db.collection('users').doc(senderId).get();
+        const senderConnections = senderDoc.data()?.connections || [];
+        if (senderConnections.includes(recipientId)) {
+            return res.status(409).json({ message: 'You are already connected with this user.' });
         }
 
         const newRequest = {
@@ -94,40 +149,6 @@ router.put('/decline/:requestId', verifyToken, async (req, res) => {
     } catch (error) {
         console.error('Error declining connection:', error);
         res.status(500).json({ message: 'Server error' });
-    }
-});
-
-// Endpoint to get all connections and pending requests for the logged-in user
-router.get('/', verifyToken, async (req, res) => {
-    try {
-        const userId = req.user.uid;
-
-        // Get accepted connections
-        const userDoc = await db.collection('users').doc(userId).get();
-        const acceptedConnections = userDoc.data()?.connections || [];
-
-        // Get pending requests sent to the user
-        const pendingRequests = await db.collection('connectionRequests')
-            .where('recipientId', '==', userId)
-            .where('status', '==', 'pending')
-            .get();
-
-        const pendingRequestsData = await Promise.all(pendingRequests.docs.map(async (doc) => {
-            const data = doc.data();
-            const senderDoc = await db.collection('users').doc(data.senderId).get();
-            return {
-                id: doc.id,
-                sender: senderDoc.data()?.firstName + ' ' + senderDoc.data()?.lastName,
-                senderId: data.senderId,
-                status: data.status,
-                createdAt: data.createdAt?.toDate().toISOString(),
-            };
-        }));
-        
-        res.status(200).json({ acceptedConnections, pendingRequests: pendingRequestsData });
-    } catch (error) {
-        console.error('Error fetching connections:', error);
-        res.status(500).json({ message: 'Server error.' });
     }
 });
 

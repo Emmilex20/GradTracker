@@ -1,31 +1,28 @@
+// client/src/pages/GroupChatPage.tsx
+
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaPaperPlane, FaVideo } from 'react-icons/fa';
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
+// Define the API URL for your backend server
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
+// Define the message interface to match the data from your backend
 interface Message {
   id: string;
   text: string;
   senderId: string;
-  createdAt: string;
+  createdAt: string; // The backend now sends a string ISO date
 }
 
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-}
-
-const ChatPage: React.FC = () => {
-  const { recipientId } = useParams<{ recipientId: string }>();
-  const { currentUser, token } = useAuth();
+const GroupChatPage: React.FC = () => {
+  const { groupId } = useParams<{ groupId: string }>();
+  const { currentUser } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessageText, setNewMessageText] = useState('');
-  const [recipient, setRecipient] = useState<User | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,45 +33,32 @@ const ChatPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!currentUser?.uid || !recipientId || !token) {
+    if (!groupId || !currentUser?.uid) {
       setLoading(false);
-      setError('Authentication, token, or recipient ID missing.');
+      setError('Authentication or group ID missing.');
       return;
     }
 
-    // Generate a unique, consistent chatId for one-on-one chat
-    const chatId = [currentUser.uid, recipientId].sort().join('_');
-
-    // Fetch initial messages and recipient data from the backend API
-    const fetchChatData = async () => {
+    // 1. Fetch initial messages from the backend API
+    const fetchMessages = async () => {
       try {
-        // Fetch recipient's user data
-        const userResponse = await axios.get(`${API_URL}/users/${recipientId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setRecipient(userResponse.data);
-
-        // Fetch initial messages for the chat
-        const messagesResponse = await axios.get(`${API_URL}/messages/${chatId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setMessages(messagesResponse.data);
+        const response = await axios.get(`${API_URL}/messages/${groupId}`);
+        setMessages(response.data);
       } catch (err) {
-        console.error('Failed to fetch chat data:', err);
-        setError('Failed to load chat data.');
+        console.error('Failed to fetch messages:', err);
+        setError('Failed to load messages.');
       } finally {
         setLoading(false);
       }
     };
+    fetchMessages();
 
-    fetchChatData();
-
-    // Set up Socket.IO for real-time updates
+    // 2. Set up Socket.IO for real-time updates
     const socket = io(API_URL);
     socketRef.current = socket;
 
-    socket.emit('join_chat', chatId);
-
+    socket.emit('join_chat', groupId); // Use 'join_chat' as defined in your backend
+    
     socket.on('receive_message', (message: Message) => {
       setMessages(prevMessages => [...prevMessages, message]);
     });
@@ -83,7 +67,7 @@ const ChatPage: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, [currentUser, recipientId, token]);
+  }, [groupId, currentUser]);
 
   useEffect(() => {
     scrollToBottom();
@@ -91,56 +75,35 @@ const ChatPage: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newMessageText.trim() === '' || !currentUser?.uid || !recipientId) return;
-
-    // Generate the consistent chatId again for the message data
-    const chatId = [currentUser.uid, recipientId].sort().join('_');
+    if (newMessageText.trim() === '' || !currentUser?.uid) return;
 
     const messageData = {
-      chatId,
+      chatId: groupId,
       senderId: currentUser.uid,
       text: newMessageText,
     };
 
     try {
-      // Send message to the backend via Socket.IO
+      // 3. Send message to the backend via Socket.IO
       socketRef.current?.emit('send_message', messageData);
       setNewMessageText('');
     } catch (err) {
       console.error('Failed to send message:', err);
+      // You could handle this error more gracefully, e.g., show a toast notification
     }
   };
-  
-  // Video call functionality
-  const handleVideoCall = () => {
-    if (!currentUser?.uid || !recipientId) {
-      alert("Authentication is required to start a video call.");
-      return;
-    }
-    const meetingId = [currentUser.uid, recipientId].sort().join('_');
-    // For this example, we will navigate to a new route. 
-    // You would replace this with a call to your video conferencing service (e.g., Agora.io, Twilio).
-    window.open(`/video-call/${meetingId}`, '_blank');
-  };
 
-
-  if (loading) return <div className="text-center mt-24">Loading chat...</div>;
+  if (loading) return <div className="text-center mt-24">Loading messages...</div>;
   if (error) return <div className="text-center mt-24 text-red-500">{error}</div>;
-
-  const chatTitle = recipient ? `Chat with ${recipient.firstName} ${recipient.lastName}` : 'Chat';
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 mt-24 h-[calc(100vh-10rem)] flex flex-col">
       <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-t-lg">
-        <h1 className="text-xl font-bold text-gray-800">{chatTitle}</h1>
-        {/* Video call link */}
-        <button
-          onClick={handleVideoCall}
-          className="p-2 text-white bg-green-500 rounded-full hover:bg-green-600 transition"
-          title="Start video call"
-        >
-          <FaVideo size={20} />
-        </button>
+        <h1 className="text-xl font-bold text-gray-800">Group Chat: {groupId}</h1>
+        <Link to={`/group-call/${groupId}`} className="bg-green-500 text-white px-4 py-2 rounded-full flex items-center space-x-2 hover:bg-green-600 transition">
+          <FaVideo />
+          <span>Join Call</span>
+        </Link>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.length > 0 ? (
@@ -184,4 +147,4 @@ const ChatPage: React.FC = () => {
   );
 };
 
-export default ChatPage;
+export default GroupChatPage;

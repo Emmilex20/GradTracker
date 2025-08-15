@@ -1,149 +1,84 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { FaUserPlus, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
+import { FaUserCircle } from 'react-icons/fa';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-interface ConnectionRequest {
-    id: string;
-    sender: string;
-    senderId: string;
-    status: 'pending';
-    createdAt: string;
+interface Connection {
+  id: string;
+  name: string;
+  avatar?: string;
 }
 
 const ConnectionsPage: React.FC = () => {
-    const { token } = useAuth();
-    const [pendingRequests, setPendingRequests] = useState<ConnectionRequest[]>([]);
-    const [acceptedConnections, setAcceptedConnections] = useState<string[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  const { currentUser, token } = useAuth();
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-    // Wrap fetchConnections in useCallback to memoize the function
-    const fetchConnections = useCallback(async () => {
-        if (!token) return;
-        setLoading(true);
-        try {
-            const response = await axios.get(`${API_URL}/connections`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setAcceptedConnections(response.data.acceptedConnections);
-            setPendingRequests(response.data.pendingRequests);
-        } catch (err) {
-            console.error('Failed to fetch connections:', err);
-            setError('Failed to load connections.');
-        } finally {
-            setLoading(false);
-        }
-    }, [token]); // The dependency is 'token' because `fetchConnections` uses it.
-
-    useEffect(() => {
-        fetchConnections();
-    }, [fetchConnections]); // Now we only need `fetchConnections` in the dependency array.
-
-    const handleAcceptRequest = async (requestId: string) => {
-        if (!token) return;
-        try {
-            await axios.put(`${API_URL}/connections/accept/${requestId}`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            alert('Request accepted!');
-            fetchConnections();
-        } catch (err) {
-            console.error('Failed to accept request:', err);
-            alert('Failed to accept request.');
-        }
-    };
-
-    const handleDeclineRequest = async (requestId: string) => {
-        if (!token) return;
-        try {
-            await axios.put(`${API_URL}/connections/decline/${requestId}`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            alert('Request declined.');
-            fetchConnections();
-        } catch (err) {
-            console.error('Failed to decline request:', err);
-            alert('Failed to decline request.');
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="container mx-auto p-8 text-center mt-24">
-                <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto" />
-            </div>
-        );
+  useEffect(() => {
+    if (!currentUser?.uid || !token) {
+      setLoading(false);
+      setError('User not authenticated or token is missing.');
+      return;
     }
 
-    if (error) {
-        return <p className="text-center text-red-500 mt-24">{error}</p>;
-    }
+    const fetchConnections = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/connections`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Check if the received data is an array before setting state
+        if (Array.isArray(response.data)) {
+          setConnections(response.data);
+        } else {
+          // If the data is not an array, log the issue and set state to an empty array
+          console.error('API response was not an array:', response.data);
+          setConnections([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch connections:', err);
+        setError('Failed to load connections.');
+        setConnections([]); // Important: Reset state to an empty array on error
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return (
-        <div className="container mx-auto p-4 sm:p-6 lg:p-8 mt-24">
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">Your Connections</h1>
+    fetchConnections();
+  }, [currentUser, token]);
 
-            {/* Pending Requests */}
-            <h2 className="text-2xl font-semibold mt-8 mb-4">Pending Requests</h2>
-            <div className="bg-white shadow-xl rounded-2xl overflow-hidden mb-8">
-                <ul className="divide-y divide-gray-200">
-                    {pendingRequests.length > 0 ? (
-                        pendingRequests.map(request => (
-                            <li key={request.id} className="p-4 flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <FaUserPlus className="text-gray-500 text-xl" />
-                                    <div>
-                                        <p className="font-semibold text-gray-800">{request.sender}</p>
-                                        <p className="text-sm text-gray-500">Sent on: {new Date(request.createdAt).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={() => handleAcceptRequest(request.id)}
-                                        className="p-2 text-green-600 hover:text-green-800 transition-colors duration-200 rounded-full"
-                                        aria-label="Accept connection"
-                                    >
-                                        <FaCheck />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeclineRequest(request.id)}
-                                        className="p-2 text-red-600 hover:text-red-800 transition-colors duration-200 rounded-full"
-                                        aria-label="Decline connection"
-                                    >
-                                        <FaTimes />
-                                    </button>
-                                </div>
-                            </li>
-                        ))
-                    ) : (
-                        <div className="p-8 text-center text-gray-500">No pending requests.</div>
-                    )}
-                </ul>
-            </div>
+  if (loading) return <div className="text-center mt-24">Loading connections...</div>;
+  if (error) return <div className="text-center mt-24 text-red-500">{error}</div>;
 
-            {/* Accepted Connections */}
-            <h2 className="text-2xl font-semibold mt-8 mb-4">Accepted Connections</h2>
-            <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
-                <ul className="divide-y divide-gray-200">
-                    {acceptedConnections.length > 0 ? (
-                        acceptedConnections.map(connId => (
-                            <li key={connId} className="p-4 flex items-center justify-between">
-                                <div className="flex items-center space-x-4">
-                                    <FaUserPlus className="text-blue-600 text-xl" />
-                                    <p className="font-semibold text-gray-800">Connection with User ID: {connId}</p>
-                                </div>
-                            </li>
-                        ))
-                    ) : (
-                        <div className="p-8 text-center text-gray-500">No accepted connections.</div>
-                    )}
-                </ul>
-            </div>
-        </div>
-    );
+  return (
+    <div className="container mx-auto p-4 mt-24">
+      <h1 className="text-3xl font-bold text-center mb-8">My Connections</h1>
+      <div className="max-w-lg mx-auto bg-white rounded-lg shadow-md p-6">
+        {connections.length === 0 ? (
+          <p className="text-center text-gray-500">You have no connections yet.</p>
+        ) : (
+          connections.map((connection) => (
+            <Link 
+              key={connection.id}
+              to={`/chat/${connection.id}`}
+              className="flex items-center space-x-4 p-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 transition rounded-lg"
+            >
+              {connection.avatar ? (
+                <img src={connection.avatar} alt={connection.name} className="w-12 h-12 rounded-full object-cover" />
+              ) : (
+                <FaUserCircle size={48} className="text-gray-400" />
+              )}
+              <span className="text-lg font-medium">{connection.name}</span>
+            </Link>
+          ))
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default ConnectionsPage;

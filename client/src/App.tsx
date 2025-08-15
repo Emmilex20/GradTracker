@@ -6,7 +6,6 @@ import { useAuth } from './context/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import ProfileSetupModal from './components/ProfileSetupModal';
-import ConnectionsPage from './pages/ConnectionsPage.tsx';
 
 // Lazily import the larger page components to be loaded on demand
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -16,6 +15,7 @@ const ContactPage = lazy(() => import('./pages/ContactPage'));
 const BlogPage = lazy(() => import('./pages/BlogPage'));
 const MentorsPage = lazy(() => import('./pages/MentorsPage'));
 const MentorshipConnectionsPage = lazy(() => import('./pages/MentorshipConnectionsPage'));
+const CommunityPage = lazy(() => import('./pages/CommunityPage'));
 
 // Authentication components
 const Signup = lazy(() => import('./components/Signup'));
@@ -28,10 +28,16 @@ const ProgramList = lazy(() => import('./components/ProgramList'));
 const ProgramSearch = lazy(() => import('./components/ProgramSearch'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 
+// Social Communication components
+const ConnectionsPage = lazy(() => import('./pages/ConnectionsPage'));
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const GroupsPage = lazy(() => import('./pages/GroupsPage'));
+const GroupChatPage = lazy(() => import('./pages/GroupChatPage'));
+const GroupCallComponent = lazy(() => import('./components/GroupCallComponent'));
+
 // Protected Routes
 import AdminProtectedRoute from './components/AdminProtectedRoute';
-import MentorProtectedRoute from './components/MentorProtectedRoute'; // NEW: Add this import
-import ChatPage from './pages/ChatPage.tsx';
+import MentorProtectedRoute from './components/MentorProtectedRoute';
 
 // A simple protected route that checks for authentication
 const ProtectedRoute: React.FC = () => {
@@ -61,21 +67,24 @@ const App: React.FC = () => {
                     {/* Authenticated Routes (for all logged-in users) */}
                     <Route element={<ProtectedRoute />}>
                         <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/connections" element={<ConnectionsPage />} />
+                        <Route path="/chat/:recipientId" element={<ChatPage />} />
+                        <Route path="/groups" element={<GroupsPage />} />
+                        <Route path="/group-chat/:groupId" element={<GroupChatPage />} />
+                        <Route path="/group-call/:groupId" element={<GroupCallComponent />} />
+                        <Route path="/community" element={<CommunityPage />} />
                     </Route>
 
                     {/* Admin-Only Routes */}
                     <Route element={<AdminProtectedRoute />}>
                         <Route path="/admin" element={<AdminDashboard />} />
-                        <Route path="/admin/mentorship-connections" element={<MentorshipConnectionsPage />} /> {/* NEW Admin Route */}
-                    </Route>
-                    
-                    {/* Mentor-Only Routes */}
-                    <Route element={<MentorProtectedRoute />}>
-                        <Route path="/mentor/connections" element={<MentorshipConnectionsPage />} /> {/* NEW Mentor Route */}
+                        <Route path="/admin/mentorship-connections" element={<MentorshipConnectionsPage />} />
                     </Route>
 
-                    <Route path="/connections" element={<ConnectionsPage />} />
-                    <Route path="/chat/:recipientId" element={<ChatPage />} />
+                    {/* Mentor-Only Routes */}
+                    <Route element={<MentorProtectedRoute />}>
+                        <Route path="/mentor/connections" element={<MentorshipConnectionsPage />} />
+                    </Route>
                 </Routes>
                 <ProfileSetupModal />
             </Suspense>
