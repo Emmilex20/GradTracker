@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaPaperPlane, FaVideo } from 'react-icons/fa';
+import { FaPaperPlane } from 'react-icons/fa';
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
@@ -110,18 +110,7 @@ const ChatPage: React.FC = () => {
       console.error('Failed to send message:', err);
     }
   };
-  
-  // Video call functionality
-  const handleVideoCall = () => {
-    if (!currentUser?.uid || !recipientId) {
-      alert("Authentication is required to start a video call.");
-      return;
-    }
-    const meetingId = [currentUser.uid, recipientId].sort().join('_');
-    // For this example, we will navigate to a new route. 
-    // You would replace this with a call to your video conferencing service (e.g., Agora.io, Twilio).
-    window.open(`/video-call/${meetingId}`, '_blank');
-  };
+
 
 
   if (loading) return <div className="text-center mt-24">Loading chat...</div>;
@@ -134,13 +123,6 @@ const ChatPage: React.FC = () => {
       <div className="flex justify-between items-center bg-white shadow-md p-4 rounded-t-lg">
         <h1 className="text-xl font-bold text-gray-800">{chatTitle}</h1>
         {/* Video call link */}
-        <button
-          onClick={handleVideoCall}
-          className="p-2 text-white bg-green-500 rounded-full hover:bg-green-600 transition"
-          title="Start video call"
-        >
-          <FaVideo size={20} />
-        </button>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.length > 0 ? (
