@@ -1,5 +1,3 @@
-// setAdminRole.js
-
 import 'dotenv/config';
 import admin from 'firebase-admin';
 
@@ -10,7 +8,6 @@ try {
     throw new Error('FIREBASE_ADMIN_SERVICE_ACCOUNT is not set in environment variables');
   }
 
-  // Parse the JSON string and replace escaped newline characters
   const serviceAccount = JSON.parse(firebaseServiceAccountString);
   serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
@@ -25,29 +22,26 @@ try {
   process.exit(1);
 }
 
-// Get a Firestore instance
 const db = admin.firestore();
 
 // --- Configuration ---
-// The email of the user you want to make an admin
-const userEmail = 'test@gmail.com'; 
-const newRole = 'admin';
+const userEmail = 'test@gmail.com';
+const newRole = 'mentor';
 
 const setCustomRole = async () => {
   try {
-    // 1. Find the user in Firebase Authentication
     const user = await admin.auth().getUserByEmail(userEmail);
-
-    // 2. Set the custom claim on the Firebase Auth user
     await admin.auth().setCustomUserClaims(user.uid, { role: newRole });
     console.log(`✅ Successfully set custom claim 'role: ${newRole}' for user: ${userEmail}`);
 
-    // 3. Update the 'role' field in the Firestore document
     const userDocRef = db.collection('users').doc(user.uid);
-    await userDocRef.update({ role: newRole });
-    console.log(`✅ Successfully updated Firestore document with 'role: ${newRole}' for user: ${userEmail}`);
+    // Use an update operation to ensure the document exists and is not overwritten
+    await userDocRef.update({ 
+      role: newRole,
+      isAvailable: true // <-- ADD THIS LINE
+    });
+    console.log(`✅ Successfully updated Firestore document with 'role: ${newRole}' and 'isAvailable: true' for user: ${userEmail}`);
     
-    // Optional: Log the final user data to verify
     const updatedUserDoc = await userDocRef.get();
     console.log('Updated Firestore user data:', updatedUserDoc.data());
 
@@ -55,7 +49,6 @@ const setCustomRole = async () => {
   } catch (error) {
     console.error('❌ Error setting custom claim or updating Firestore:', error);
   } finally {
-    // Exit the script once complete
     process.exit(0);
   }
 };

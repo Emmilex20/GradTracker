@@ -23,6 +23,7 @@ const verifyToken = async (req, res, next) => {
         // Attach the user information, including the role, to the request object.
         req.user = { 
             uid: decodedToken.uid, 
+            firebaseUid: decodedToken.uid,
             email: decodedToken.email, 
             role: role 
         };

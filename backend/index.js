@@ -5,7 +5,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import session from 'express-session';
 import passport from './auth/googleAuth.js';
-import MongoStore from 'connect-mongo'; // Import MongoStore
+import MongoStore from 'connect-mongo';
 
 // Routes
 import applicationRoutes from './routes/applicationRoutes.js';
@@ -15,6 +15,9 @@ import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import emailRoutes from './routes/emailRoutes.js';
 import adminRoutes from './routes/admin.js';
+import mentorsRouter from './routes/mentorRoutes.js';
+import menteeRoutes from './routes/menteeRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 // Services & Models
 import startCronJob from './services/cron-job.js';
@@ -45,13 +48,12 @@ app.use(cors());
 app.use(express.json());
 
 // === Express Session Configuration ===
-// Replaced MemoryStore with MongoStore for production-readiness
 app.use(session({
   secret: process.env.SESSION_SECRET || 'a-very-long-and-secure-random-string', 
   resave: false,
   saveUninitialized: false,
   store: MongoStore.create({
-    mongoUrl: process.env.MONGO_URI, // Use your MongoDB URI
+    mongoUrl: process.env.MONGO_URI,
     collectionName: 'sessions', 
     ttl: 14 * 24 * 60 * 60,
     autoRemove: 'native'
@@ -228,11 +230,14 @@ app.use('/api/programs', verifyToken, programRoutes);
 app.use('/api/users', verifyToken, userRoutes);
 app.use('/api/emails', verifyToken, emailRoutes);
 app.use('/api/admin', verifyToken, adminRoutes);
-app.use('/api/auth', authRoutes); // Ensure authRoutes are public and not protected by verifyToken
+app.use('/api/auth', authRoutes);
+app.use('/api/mentors', mentorsRouter);
+app.use('/api/mentee', menteeRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Root route
 app.get('/', (req, res) => {
-  res.send('Grad School Application API is running!');
+  res.send('Grad School Application API is running!'); 
 });
 
 // Start server

@@ -1,25 +1,30 @@
+// This is an example, your file structure may be different.
+// The core logic is to correctly handle the new request body.
+
 import express from 'express';
 import { db } from '../config/firebase-config.js';
 
 const router = express.Router();
 
 // PUT /api/users/:uid/notifications
-// Updates a user's email notification preference in Firestore
+// Updates a user's notification preferences in Firestore
 router.put('/:uid/notifications', async (req, res) => {
     const { uid } = req.params;
-    const { receiveNotifications } = req.body;
+    
+    // CORRECTED: Destructure the new notificationSettings object from the request body
+    const { notificationSettings } = req.body;
 
-    if (typeof receiveNotifications !== 'boolean') {
-        return res.status(400).json({ error: 'Invalid input for notifications setting.' });
+    // Optional: Add validation for the new structure
+    if (!notificationSettings || typeof notificationSettings.email !== 'boolean' || typeof notificationSettings.push !== 'boolean') {
+        return res.status(400).json({ error: 'Invalid input for notification settings. Expected { email: boolean, push: boolean }.' });
     }
 
     try {
         const userRef = db.collection('users').doc(uid);
 
-        // Use set() with merge: true instead of update()
-        // This ensures the document is created if it doesn't exist
+        // CORRECTED: Use set() with the entire notificationSettings object
         await userRef.set({
-            receiveNotifications: receiveNotifications
+            notificationSettings: notificationSettings
         }, { merge: true });
 
         res.status(200).json({ message: 'Notification settings updated successfully.' });

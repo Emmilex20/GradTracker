@@ -39,7 +39,7 @@ const ApplicationSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['Interested', 'Applying', 'Submitted', 'Accepted', 'Rejected'],
+        enum: ['Interested', 'Submitted', 'Accepted', 'Rejected'],
         default: 'Interested',
     },
     notes: {
