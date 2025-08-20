@@ -119,7 +119,7 @@ const AdminSOPRequests: React.FC = () => {
     // Helper functions
     const getApplicationDetails = (applicationId: string) => `Application ID: ${applicationId}`;
     const getUserName = (userId: string) => userCache[userId] ? `${userCache[userId].firstName} ${userCache[userId].lastName}` : 'Loading...';
-    const getUserEmail = (userId: string) => userCache[userId] ? userCache[userId].email : 'Loading...';
+    const getUserEmail = (userId: string) => userCache[userId] ? userCache[userId].email : null; // Modified to return null if not found
 
     // Modal handlers
     const handleAcceptClick = (request: SOPRequest) => {
@@ -284,54 +284,61 @@ const AdminSOPRequests: React.FC = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {requests.map((request) => (
-                        <div key={request.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
-                            <div className="flex items-center space-x-3 mb-2">
-                                <FaFileAlt className="text-xl text-blue-500" />
-                                <h3 className="font-bold text-lg text-gray-800">SOP Request</h3>
-                            </div>
-                            <p className="text-gray-700"><FaGraduationCap className="inline mr-2 text-gray-500" /><strong>Application:</strong> {getApplicationDetails(request.applicationId)}</p>
-                            <p className="text-gray-700 mt-1"><FaUser className="inline mr-2 text-gray-500" /><strong>User:</strong> {getUserName(request.userId)}</p>
-                            <p className="text-gray-700 mt-1"><FaEnvelope className="inline mr-2 text-gray-500" /><strong>Email:</strong> {getUserEmail(request.userId)}</p>
-                            <p className="text-gray-700 mt-1"><FaClock className="inline mr-2 text-gray-500" /><strong>Requested On:</strong> {new Date(request.timestamp).toLocaleDateString()}</p>
-                            
-                            <div className="mt-4 flex items-center space-x-2">
-                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                                    request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                    request.status === 'accepted' ? 'bg-green-100 text-green-800' :
-                                    request.status === 'rescheduled' ? 'bg-blue-100 text-blue-800' :
-                                    request.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                                    'bg-red-100 text-red-800'
-                                }`}>
-                                    {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-                                </span>
-                                {request.status === 'pending' && (
-                                    <>
+                    {requests.map((request) => {
+                        const userEmail = getUserEmail(request.userId);
+                        return (
+                            <div key={request.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow">
+                                <div className="flex items-center space-x-3 mb-2">
+                                    <FaFileAlt className="text-xl text-blue-500" />
+                                    <h3 className="font-bold text-lg text-gray-800">SOP Request</h3>
+                                </div>
+                                <p className="text-gray-700"><FaGraduationCap className="inline mr-2 text-gray-500" /><strong>Application:</strong> {getApplicationDetails(request.applicationId)}</p>
+                                <p className="text-gray-700 mt-1"><FaUser className="inline mr-2 text-gray-500" /><strong>User:</strong> {getUserName(request.userId)}</p>
+                                <p className="text-gray-700 mt-1"><FaEnvelope className="inline mr-2 text-gray-500" /><strong>Email:</strong> {userEmail ? (
+                                    <a href={`mailto:${userEmail}`} className="text-blue-500 hover:underline">
+                                        {userEmail}
+                                    </a>
+                                ) : 'Loading...'}</p>
+                                <p className="text-gray-700 mt-1"><FaClock className="inline mr-2 text-gray-500" /><strong>Requested On:</strong> {new Date(request.timestamp).toLocaleDateString()}</p>
+                                
+                                <div className="mt-4 flex items-center space-x-2">
+                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                                        request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                        request.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                                        request.status === 'rescheduled' ? 'bg-blue-100 text-blue-800' :
+                                        request.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                                        'bg-red-100 text-red-800'
+                                    }`}>
+                                        {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                                    </span>
+                                    {request.status === 'pending' && (
+                                        <>
+                                            <button
+                                                className="px-3 py-1 text-xs font-semibold text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors"
+                                                onClick={() => handleAcceptClick(request)}
+                                            >
+                                                <FaCheckCircle className="inline mr-1" /> Accept
+                                            </button>
+                                            <button
+                                                className="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+                                                onClick={() => handleDeclineClick(request)}
+                                            >
+                                                <FaTimesCircle className="inline mr-1" /> Decline
+                                            </button>
+                                        </>
+                                    )}
+                                    {request.status === 'accepted' && (
                                         <button
-                                            className="px-3 py-1 text-xs font-semibold text-white bg-green-500 rounded-full hover:bg-green-600 transition-colors"
-                                            onClick={() => handleAcceptClick(request)}
+                                            className="px-3 py-1 text-xs font-semibold text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
+                                            onClick={() => handleManageSessionClick(request)}
                                         >
-                                            <FaCheckCircle className="inline mr-1" /> Accept
+                                            <FaFileAlt className="inline mr-1" /> Manage Session
                                         </button>
-                                        <button
-                                            className="px-3 py-1 text-xs font-semibold text-white bg-red-500 rounded-full hover:bg-red-600 transition-colors"
-                                            onClick={() => handleDeclineClick(request)}
-                                        >
-                                            <FaTimesCircle className="inline mr-1" /> Decline
-                                        </button>
-                                    </>
-                                )}
-                                {request.status === 'accepted' && (
-                                    <button
-                                        className="px-3 py-1 text-xs font-semibold text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
-                                        onClick={() => handleManageSessionClick(request)}
-                                    >
-                                        <FaFileAlt className="inline mr-1" /> Manage Session
-                                    </button>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
