@@ -7,7 +7,7 @@ import ApplicationCard from './ApplicationCard';
 import EmailTracker from './EmailTracker';
 import DocumentReview from './DocumentReview';
 import type { UserProfile } from '../types/UserProfile';
-import { FaPlus, FaTimes, FaEnvelope, FaPaperclip, FaGraduationCap, FaLink, FaComments } from 'react-icons/fa';
+import { FaPlus, FaTimes, FaEnvelope, FaPaperclip, FaGraduationCap, FaLink, FaComments, FaPenFancy } from 'react-icons/fa';
 
 import DashboardHeader from './Dashboard/DashboardHeader';
 import ApplicationStats from './Dashboard/ApplicationStats';
@@ -19,6 +19,10 @@ import AddApplicationForm from './AddApplicationForm';
 import EditApplicationForm from './EditApplicationForm';
 import FeedbackForm from './FeedbackForm';
 import ApplicationSearch from './ApplicationSearch';
+import SOPRequestCard from './Dashboard/SOPRequestCard';
+
+import { db } from '../firebase';
+import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -42,8 +46,9 @@ const Dashboard: React.FC = () => {
     const [fetchError, setFetchError] = useState<string | null>(null);
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
     const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
-    
-    // NEW: State for mentor requests
+
+    const [sopRequests, setSopRequests] = useState<string[]>([]);
+    const [loadingSopRequests, setLoadingSopRequests] = useState(true);
     const [mentorRequests, setMentorRequests] = useState<MentorRequest[]>([]);
     const [loadingMentorRequests, setLoadingMentorRequests] = useState(true);
 
@@ -90,12 +95,55 @@ const Dashboard: React.FC = () => {
         }
     }, [token]);
 
+    const fetchSOPRequests = useCallback(async () => {
+        if (!currentUser) {
+            setLoadingSopRequests(false);
+            return;
+        }
+        setLoadingSopRequests(true);
+        try {
+            const q = query(collection(db, "sop_requests"), where("userId", "==", currentUser.uid));
+            const querySnapshot = await getDocs(q);
+            const requestedAppIds: string[] = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                requestedAppIds.push(data.applicationId);
+            });
+            setSopRequests(requestedAppIds);
+        } catch (error) {
+            console.error("Error fetching SOP requests:", error);
+        } finally {
+            setLoadingSopRequests(false);
+        }
+    }, [currentUser]);
+
+    const handleRequestSOPWriting = async (applicationId: string) => {
+        if (!currentUser) return;
+        try {
+            await addDoc(collection(db, "sop_requests"), {
+                applicationId,
+                userId: currentUser.uid,
+                status: 'pending',
+                timestamp: new Date().toISOString()
+            });
+
+            setSopRequests(prev => [...prev, applicationId]);
+
+            alert('SOP Live Writing request has been sent! An admin will be notified.');
+
+        } catch (error) {
+            console.error('Error sending SOP request:', error);
+            alert('Failed to send SOP request. Please try again.');
+        }
+    };
+
     useEffect(() => {
         if (currentUser && token) {
             fetchApplications();
             fetchMentorRequests();
+            fetchSOPRequests();
         }
-    }, [currentUser, token, fetchApplications, fetchMentorRequests]);
+    }, [currentUser, token, fetchApplications, fetchMentorRequests, fetchSOPRequests]);
 
     useEffect(() => {
         const today = new Date();
@@ -165,7 +213,6 @@ const Dashboard: React.FC = () => {
             await axios.post(`${API_URL}/mentors/request`, { mentorId }, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            // Re-fetch the requests to update the UI immediately
             await fetchMentorRequests(); 
         } catch (error) {
             console.error('Error sending mentor request:', error);
@@ -348,6 +395,23 @@ const Dashboard: React.FC = () => {
                         </div>
                     )}
                 </div>
+
+                {/* New SOP Live Writing Section */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl sm:text-2xl font-bold text-secondary flex items-center">
+                            <FaPenFancy className="mr-2 text-primary" />
+                            SOP Live Writing Requests
+                        </h2>
+                    </div>
+                    {/* Pass data to the new component */}
+                    <SOPRequestCard
+                        applications={applications}
+                        sopRequests={sopRequests}
+                        onRequestSOPWriting={handleRequestSOPWriting}
+                        loading={loadingSopRequests}
+                    />
+                </div>
                 
                 {upcomingDeadlines.length > 0 && (
                     <UpcomingDeadlines upcomingDeadlines={upcomingDeadlines} getDaysUntil={getDaysUntil} />
@@ -359,7 +423,6 @@ const Dashboard: React.FC = () => {
                     onSendRequest={handleSendMentorRequest}
                 />
 
-                {/* NEW: Application Resources and Blog Card */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
                     <div className="text-center sm:text-left mb-4 sm:mb-0">
                         <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
@@ -378,7 +441,6 @@ const Dashboard: React.FC = () => {
                     </a>
                 </div>
 
-                {/* NEW: Connect With Other Applicants Card */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
                     <div className="text-center sm:text-left mb-4 sm:mb-0">
                         <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
@@ -399,7 +461,6 @@ const Dashboard: React.FC = () => {
 
             </main>
             
-            {/* ... (modals) ... */}
             {isFormOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
                     <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in">
