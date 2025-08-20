@@ -1,9 +1,27 @@
+// backend/routes/notificationRoutes.js
+
 import express from 'express';
 import { admin } from '../config/firebase-config.js';
 import verifyToken from '../middleware/auth.js';
 
 const router = express.Router();
 const db = admin.firestore();
+
+// Function to create a new notification
+export const createNotification = async (recipientId, senderId, message, type = 'general') => {
+    try {
+        await db.collection('notifications').add({
+            recipientId,
+            senderId,
+            message,
+            type,
+            read: false,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+    } catch (error) {
+        console.error('Error creating notification:', error);
+    }
+};
 
 // Route for admin to send a message to all users
 router.post('/admin', verifyToken, async (req, res) => {
@@ -42,7 +60,7 @@ router.post('/admin', verifyToken, async (req, res) => {
     }
 });
 
-// New: Route to fetch a user's notifications
+// Route to fetch a user's notifications
 router.get('/', verifyToken, async (req, res) => {
     try {
         const userId = req.user.uid;
@@ -67,7 +85,7 @@ router.get('/', verifyToken, async (req, res) => {
     }
 });
 
-// New: Route to mark all notifications as read
+// Route to mark all notifications as read
 router.put('/mark-as-read', verifyToken, async (req, res) => {
     try {
         const userId = req.user.uid;
@@ -89,5 +107,4 @@ router.put('/mark-as-read', verifyToken, async (req, res) => {
     }
 });
 
-
-export default router;
+export default router; 

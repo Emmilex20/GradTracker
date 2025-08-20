@@ -20,6 +20,8 @@ import EditApplicationForm from './EditApplicationForm';
 import FeedbackForm from './FeedbackForm';
 import ApplicationSearch from './ApplicationSearch';
 import SOPRequestCard from './Dashboard/SOPRequestCard';
+import ProjectsCard from './Dashboard/ProjectsCard';
+import JoinProjectsModal from './JoinProjectsModal';
 
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -49,6 +51,8 @@ const Dashboard: React.FC = () => {
 
     const [mentorRequests, setMentorRequests] = useState<MentorRequest[]>([]);
     const [loadingMentorRequests, setLoadingMentorRequests] = useState(true);
+
+    const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false); // New state for projects modal
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
     const statusColumns = ['Interested', 'Submitted', 'Accepted', 'Rejected'];
@@ -386,6 +390,9 @@ const Dashboard: React.FC = () => {
                     onSendRequest={handleSendMentorRequest}
                 />
 
+                {/* New: Join Ongoing Projects Card */}
+                <ProjectsCard onJoinProjects={() => setIsProjectsModalOpen(true)} />
+
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
                     <div className="text-center sm:text-left mb-4 sm:mb-0">
                         <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
@@ -470,6 +477,12 @@ const Dashboard: React.FC = () => {
                         />
                     </div>
                 </div>
+            )}
+            {/* New: Projects Modal */}
+            {isProjectsModalOpen && (
+                <JoinProjectsModal
+                    onClose={() => setIsProjectsModalOpen(false)}
+                />
             )}
         </div>
     );

@@ -36,6 +36,7 @@ import sopRequestsRoutes from './routes/sopRequestsRoutes.js';
 import connectionsRoutes from './routes/connections.js';
 import groupsRoutes from './routes/groups.js';
 import agoraRoutes from './routes/agoraRoutes.js';
+import projectRoutes from './routes/projectRoutes.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -280,6 +281,7 @@ app.use('/api/sopRequestsRoutes', sopRequestsRoutes);
 app.use('/api/connections', connectionsRoutes);
 app.use('/api/groups', groupsRoutes);
 app.use('/api/agora', agoraRoutes);
+app.use('/api/projects', verifyToken, projectRoutes);
 
 // === NEW GET Route for fetching historical messages ===
 app.get('/api/messages/:chatId', async (req, res) => {
