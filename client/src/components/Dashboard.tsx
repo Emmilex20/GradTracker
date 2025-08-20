@@ -7,7 +7,7 @@ import ApplicationCard from './ApplicationCard';
 import EmailTracker from './EmailTracker';
 import DocumentReview from './DocumentReview';
 import type { UserProfile } from '../types/UserProfile';
-import { FaPlus, FaTimes, FaEnvelope, FaPaperclip, FaBell, FaGraduationCap, FaLink, FaComments } from 'react-icons/fa';
+import { FaPlus, FaTimes, FaEnvelope, FaPaperclip, FaGraduationCap, FaLink, FaComments } from 'react-icons/fa';
 
 import DashboardHeader from './Dashboard/DashboardHeader';
 import ApplicationStats from './Dashboard/ApplicationStats';
@@ -40,8 +40,6 @@ const Dashboard: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
-    const [receiveEmailNotifications, setReceiveEmailNotifications] = useState<boolean>(true);
-    const [receivePushNotifications, setReceivePushNotifications] = useState<boolean>(false);
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
     const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
     
@@ -113,13 +111,6 @@ const Dashboard: React.FC = () => {
         setUpcomingDeadlines(upcoming);
     }, [applications]);
 
-    useEffect(() => {
-        if (typedUserProfile && typedUserProfile.notificationSettings) {
-            setReceiveEmailNotifications(typedUserProfile.notificationSettings.email);
-            setReceivePushNotifications(typedUserProfile.notificationSettings.push);
-        }
-    }, [typedUserProfile]);
-
     const handleApplicationUpdated = () => {
         fetchApplications();
         setSelectedApplication(null);
@@ -161,42 +152,6 @@ const Dashboard: React.FC = () => {
     }, {} as Record<string, Application[]>);
 
     const displayName = typedUserProfile?.firstName || currentUser?.email?.split('@')[0] || 'User';
-
-    const handleToggleEmailNotifications = async () => {
-        if (!currentUser || !token) return;
-        const newSetting = !receiveEmailNotifications;
-        setReceiveEmailNotifications(newSetting);
-        try {
-            await axios.put(
-                `${API_URL}/users/${currentUser.uid}/notifications`,
-                { notificationSettings: { email: newSetting, push: receivePushNotifications } },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            console.log('Email notification settings updated.');
-        } catch (error) {
-            console.error('Failed to update email notification settings:', error);
-            setReceiveEmailNotifications(!newSetting);
-            alert('Failed to update email settings. Please try again.');
-        }
-    };
-
-    const handleTogglePushNotifications = async () => {
-        if (!currentUser || !token) return;
-        const newSetting = !receivePushNotifications;
-        setReceivePushNotifications(newSetting);
-        try {
-            await axios.put(
-                `${API_URL}/users/${currentUser.uid}/notifications`,
-                { notificationSettings: { email: receiveEmailNotifications, push: newSetting } },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            console.log('Push notification settings updated.');
-        } catch (error) {
-            console.error('Failed to update push notification settings:', error);
-            setReceivePushNotifications(!newSetting);
-            alert('Failed to update push settings. Please try again.');
-        }
-    };
 
     const handleCalendarSync = () => {
         if (!currentUser) return;
@@ -387,64 +342,11 @@ const Dashboard: React.FC = () => {
                             </div>
                         </>
                     ) : (
-                        <div className="text-center p-8 text-neutral-dark">
+                        <div className="text-center p-8 mb-6 text-neutral-dark">
                             <h3 className="text-xl font-bold mb-2">No Applications Added Yet</h3>
                             <p className="mb-4">Add your first application using the "Add New" button above to get started!</p>
                         </div>
                     )}
-                </div>
-
-                
-                <div className="grid grid-cols-1 mt-6 md:grid-cols-2 gap-6 mb-6 sm:mb-10">
-                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
-                        <div className="text-center sm:text-left mb-4 sm:mb-0">
-                            <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
-                                <FaEnvelope className="mr-2 text-primary" /> Email Notifications
-                            </h3>
-                            <p className="text-neutral-dark mt-1 text-sm sm:text-base">Receive email reminders for upcoming deadlines.</p>
-                        </div>
-                        <label className="flex items-center cursor-pointer">
-                            <div className="relative">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only"
-                                    checked={receiveEmailNotifications}
-                                    onChange={handleToggleEmailNotifications}
-                                />
-                                <div className="block bg-neutral-dark w-12 sm:w-14 h-7 sm:h-8 rounded-full"></div>
-                                <div
-                                    className={`dot absolute left-1 top-1 bg-white w-5 sm:w-6 h-5 sm:h-6 rounded-full transition-transform duration-300 ${
-                                        receiveEmailNotifications ? 'transform translate-x-5 sm:translate-x-6 bg-primary' : ''
-                                    }`}
-                                ></div>
-                            </div>
-                        </label>
-                    </div>
-
-                    <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
-                        <div className="text-center sm:text-left mb-4 sm:mb-0">
-                            <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
-                                <FaBell className="mr-2 text-primary" /> Push Notifications
-                            </h3>
-                            <p className="text-neutral-dark mt-1 text-sm sm:text-base">Receive on-site alerts and browser push notifications.</p>
-                        </div>
-                        <label className="flex items-center cursor-pointer">
-                            <div className="relative">
-                                <input
-                                    type="checkbox"
-                                    className="sr-only"
-                                    checked={receivePushNotifications}
-                                    onChange={handleTogglePushNotifications}
-                                />
-                                <div className="block bg-neutral-dark w-12 sm:w-14 h-7 sm:h-8 rounded-full"></div>
-                                <div
-                                    className={`dot absolute left-1 top-1 bg-white w-5 sm:w-6 h-5 sm:h-6 rounded-full transition-transform duration-300 ${
-                                        receivePushNotifications ? 'transform translate-x-5 sm:translate-x-6 bg-primary' : ''
-                                    }`}
-                                ></div>
-                            </div>
-                        </label>
-                    </div>
                 </div>
                 
                 {upcomingDeadlines.length > 0 && (

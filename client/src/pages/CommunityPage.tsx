@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { FaUserCircle, FaUsers, FaPlusCircle, FaUserPlus, FaCheckCircle, FaTimesCircle, FaLink } from 'react-icons/fa';
 import { IoIosChatbubbles } from "react-icons/io";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface User {
   id: string;

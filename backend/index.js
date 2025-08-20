@@ -8,6 +8,18 @@ import passport from './auth/googleAuth.js';
 import MongoStore from 'connect-mongo';
 import http from 'http';
 import { Server } from 'socket.io';
+import multer from 'multer';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
+import path from 'path';
+
+// Services & Models
+import startCronJob from './services/cron-job.js';
+import Document from './models/Document.js';
+
+// Import Firebase Admin from a single source
+import { admin } from './config/firebase-config.js';
+import verifyToken from './middleware/auth.js';
 
 // Routes
 import applicationRoutes from './routes/applicationRoutes.js';
@@ -23,27 +35,15 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import connectionsRoutes from './routes/connections.js';
 import groupsRoutes from './routes/groups.js';
 import agoraRoutes from './routes/agoraRoutes.js';
-import messageRoutes from './routes/messageRoutes.js'; // Note: This route is for REST-based messaging. The real-time messaging is handled by Socket.IO.
-
-// Services & Models
-import startCronJob from './services/cron-job.js';
-import Document from './models/Document.js';
-
-// File uploads
-import multer from 'multer';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import { v2 as cloudinary } from 'cloudinary';
-import path from 'path';
-import verifyToken from './middleware/auth.js';
-
-// Import Firebase Admin from single source
-import { admin } from './config/firebase-config.js';
+// Removed redundant messageRoutes import, as Socket.IO handles this
+// import messageRoutes from './routes/messageRoutes.js'; 
 
 const app = express();
 const server = http.createServer(app);
 
 // Initialize Socket.IO server
 const io = new Server(server, {
+  path: '/api/socket.io', 
   cors: {
     origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PUT", "DELETE"]
@@ -252,18 +252,39 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/connections', connectionsRoutes);
 app.use('/api/groups', groupsRoutes);
 app.use('/api/agora', agoraRoutes);
-app.use('/api/messages', messageRoutes);
+// Removed redundant messageRoutes, as Socket.IO will handle messaging
+// app.use('/api/messages', messageRoutes); 
+
+// === NEW GET Route for fetching historical messages ===
+app.get('/api/messages/:chatId', async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    const messagesRef = admin.firestore().collection('chats').doc(chatId).collection('messages');
+    const snapshot = await messagesRef.orderBy('createdAt', 'asc').get();
+
+    const messages = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      createdAt: doc.data().createdAt?.toDate().toISOString() || null, 
+    }));
+
+    res.status(200).json(messages);
+  } catch (error) {
+    console.error('Error fetching historical messages:', error);
+    res.status(500).json({ message: 'Failed to fetch messages.' });
+  }
+});
+
 
 // Root route
 app.get('/', (req, res) => {
   res.send('Grad School Application API is running!');
 });
 
-
-// === Socket.IO Connection Handling ===
 // === Socket.IO Connection Handling ===
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
+  const db = admin.firestore();
 
   // Join a room for one-on-one chat or group chat
   socket.on('join_chat', (chatId) => {
@@ -274,7 +295,6 @@ io.on('connection', (socket) => {
   // Handle sending and receiving messages for both one-on-one and group chats
   socket.on('send_message', async (data) => {
     const { chatId, senderId, text } = data;
-    const db = admin.firestore();
 
     try {
       // Save message to Firestore

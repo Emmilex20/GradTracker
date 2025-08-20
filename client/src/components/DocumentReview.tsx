@@ -215,7 +215,7 @@ const DocumentReview: React.FC<DocumentReviewProps> = ({ application, onDocument
             {/* The "helping hand" text */}
             <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-lg text-blue-800">
                 <p className="font-bold text-lg">
-                    Keep all your important application documents in one secure place. Upload your Statement of Purpose, CV, and other files here so you can easily access and review them at any time, saving you the hassle of searching through emails and folders.
+                    Save and store all your application docs securely here.
                 </p>
             </div>
 

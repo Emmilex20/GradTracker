@@ -67,7 +67,7 @@ const MentorConnectionCard: React.FC<MentorConnectionCardProps> = ({ currentRequ
 
     return (
         <>
-            <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6 sm:mb-10 flex flex-col sm:flex-row items-center justify-between animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
+            <div className="bg-white rounded-2xl shadow-lg p-6 mt-10 sm:p-8 mb-6 sm:mb-10 flex flex-col sm:flex-row items-center justify-between animate-fade-in transition-all duration-300 transform hover:scale-[1.01]">
                 <div className="flex items-center space-x-4 mb-4 sm:mb-0">
                     <div className="bg-blue-100 p-3 sm:p-4 rounded-full">
                         <FaUserGraduate className="text-blue-600 h-6 w-6 sm:h-8 sm:w-8" />

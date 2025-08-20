@@ -6,7 +6,8 @@ import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 import { IoIosChatbubbles } from 'react-icons/io';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// The base API URL from your environment variables
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Message {
   id: string;
@@ -77,7 +78,11 @@ const ChatPage: React.FC = () => {
 
     fetchChatData();
 
-    const socket = io(API_URL);
+    // Corrected Socket.IO connection
+    const socket = io(API_URL, {
+      path: '/api/socket.io'
+    });
+    
     socketRef.current = socket;
 
     socket.emit('join_chat', chatId);

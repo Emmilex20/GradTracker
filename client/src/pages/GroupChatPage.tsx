@@ -5,7 +5,7 @@ import { FaPaperPlane, FaVideo, FaArrowDown, FaUsers } from 'react-icons/fa';
 import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Message {
   id: string;

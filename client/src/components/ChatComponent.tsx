@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import { FaPaperPlane } from 'react-icons/fa';
+import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const SOCKET_URL = API_URL;
@@ -9,39 +10,67 @@ const SOCKET_URL = API_URL;
 interface Message {
     id: string;
     senderId: string;
-    recipientId: string;
+    recipientId?: string; // Optional since backend only requires chatId and senderId
     text: string;
     createdAt: string;
 }
 
 const ChatComponent: React.FC<{ recipientId: string }> = ({ recipientId }) => {
-    const { currentUser } = useAuth(); // `currentUser` is now used for `uid`
+    const { currentUser, token } = useAuth();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const socketRef = useRef<Socket | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const chatId = [currentUser?.uid, recipientId].sort().join('_'); // Use currentUser for uid
+    const chatId = [currentUser?.uid, recipientId].sort().join('_');
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     useEffect(() => {
-        if (!currentUser?.uid) return; // Use `currentUser?.uid` for the user ID
+        if (!currentUser?.uid || !token) return;
+        console.log("Attempting to fetch historical messages...");
 
-        socketRef.current = io(SOCKET_URL);
+        // Fetch historical messages from the backend
+        const fetchHistoricalMessages = async () => {
+            try {
+                const response = await axios.get(`${API_URL}/messages/${chatId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setMessages(response.data);
+            } catch (error) {
+                console.error("Failed to fetch historical messages:", error);
+            }
+        };
+
+        fetchHistoricalMessages();
+        console.log("Attempting to connect to Socket.IO...");
+
+        // Connect to Socket.IO with the correct path
+        socketRef.current = io(SOCKET_URL, {
+            path: '/socket.io'
+        });
 
         socketRef.current.emit('join_chat', chatId);
 
         socketRef.current.on('receive_message', (message: Message) => {
-            setMessages(prevMessages => [...prevMessages, message]);
+            setMessages(prevMessages => {
+                const isOptimistic = prevMessages.find(msg =>
+                    msg.id.startsWith('temp-') && msg.text === message.text && msg.senderId === message.senderId
+                );
+                if (isOptimistic) {
+                    return prevMessages.map(msg => msg.id === isOptimistic.id ? message : msg);
+                } else {
+                    return [...prevMessages, message];
+                }
+            });
         });
 
         return () => {
             socketRef.current?.disconnect();
         };
-    }, [currentUser, chatId]);
+    }, [currentUser, chatId, token]); // Added `token` to dependencies
 
     useEffect(() => {
         scrollToBottom();
@@ -51,15 +80,25 @@ const ChatComponent: React.FC<{ recipientId: string }> = ({ recipientId }) => {
         e.preventDefault();
         if (newMessage.trim() === '' || !currentUser?.uid) return;
 
-        const messageData = {
-            chatId,
-            senderId: currentUser.uid, // Use `currentUser.uid`
-            recipientId,
+        // Create a temporary message for optimistic UI
+        const tempId = `temp-${Date.now()}`;
+        const tempMessage: Message = {
+            id: tempId,
+            senderId: currentUser.uid,
             text: newMessage,
+            createdAt: new Date().toISOString(),
         };
 
-        socketRef.current?.emit('send_message', messageData);
+        // Optimistically update the UI with the temporary message
+        setMessages(prevMessages => [...prevMessages, tempMessage]);
         setNewMessage('');
+
+        // Emit the message to the server
+        socketRef.current?.emit('send_message', {
+            chatId,
+            senderId: currentUser.uid,
+            text: tempMessage.text,
+        });
     };
 
     return (
@@ -68,7 +107,7 @@ const ChatComponent: React.FC<{ recipientId: string }> = ({ recipientId }) => {
                 {messages.map((msg) => (
                     <div
                         key={msg.id}
-                        className={`flex ${msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`} // Use `currentUser?.uid`
+                        className={`flex ${msg.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
                             className={`p-3 rounded-lg max-w-xs md:max-w-md lg:max-w-lg ${
