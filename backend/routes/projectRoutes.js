@@ -378,4 +378,78 @@ router.put('/:projectId/join-requests/decline', verifyToken, async (req, res) =>
     }
 });
 
+// Admin route to get all projects (pending and active)
+router.get('/all', verifyToken, async (req, res) => {
+    if (!await isAdmin(req.user.uid)) {
+        return res.status(403).json({ message: 'Forbidden: Only administrators can view all projects.' });
+    }
+
+    try {
+        const projectsSnapshot = await db.collection('projects')
+            .orderBy('createdAt', 'desc')
+            .get();
+
+        const projects = projectsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate(),
+        }));
+
+        res.status(200).json(projects);
+    } catch (error) {
+        console.error('Error fetching all projects:', error);
+        res.status(500).json({ message: 'An internal server error occurred.' });
+    }
+});
+
+// Admin route to remove a member from an active project
+router.put('/:projectId/remove-member', verifyToken, async (req, res) => {
+    if (!await isAdmin(req.user.uid)) {
+        return res.status(403).json({ message: 'Forbidden: Only administrators can remove project members.' });
+    }
+
+    const { projectId } = req.params;
+    const { memberId } = req.body;
+
+    if (!memberId) {
+        return res.status(400).json({ message: 'Member ID is required.' });
+    }
+
+    try {
+        const projectRef = db.collection('projects').doc(projectId);
+        await projectRef.update({
+            members: admin.firestore.FieldValue.arrayRemove(memberId)
+        });
+        res.status(200).json({ message: 'Member removed successfully.' });
+    } catch (error) {
+        console.error('Error removing project member:', error);
+        res.status(500).json({ message: 'An internal server error occurred.' });
+    }
+});
+
+// Route to get user details by a list of UIDs
+router.post('/users/get-by-ids', verifyToken, async (req, res) => {
+    const { uids } = req.body;
+    if (!uids || !Array.isArray(uids) || uids.length === 0) {
+        return res.status(400).json({ message: 'A non-empty array of user IDs is required.' });
+    }
+
+    try {
+        const users = [];
+        const usersSnapshot = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', uids).get();
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            users.push({
+                uid: doc.id,
+                firstName: userData.firstName,
+                lastName: userData.lastName
+            });
+        });
+        res.status(200).json(users);
+    } catch (error) {
+        console.error('Error fetching users by IDs:', error);
+        res.status(500).json({ message: 'An internal server error occurred.' });
+    }
+});
+
 export default router;

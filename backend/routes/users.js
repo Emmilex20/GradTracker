@@ -114,4 +114,33 @@ router.get('/:userId', verifyToken, async (req, res) => {
     }
 });
 
+// POST /api/users/get-by-ids - Fetches user profiles by a list of UIDs
+router.post('/get-by-ids', verifyToken, async (req, res) => {
+    const { uids } = req.body;
+
+    if (!uids || !Array.isArray(uids) || uids.length === 0) {
+        return res.status(400).json({ message: 'A non-empty array of user IDs is required.' });
+    }
+
+    try {
+        const users = [];
+        // Firestore 'in' query can fetch up to 10 UIDs at once
+        const usersSnapshot = await db.collection('users').where(admin.firestore.FieldPath.documentId(), 'in', uids).get();
+        
+        usersSnapshot.forEach(doc => {
+            const userData = doc.data();
+            users.push({
+                uid: doc.id,
+                firstName: userData.firstName,
+                lastName: userData.lastName
+            });
+        });
+        
+        res.status(200).json(users);
+    } catch (error) {
+        console.error('Error fetching users by IDs:', error);
+        res.status(500).json({ message: 'An internal server error occurred.' });
+    }
+});
+
 export default router;
