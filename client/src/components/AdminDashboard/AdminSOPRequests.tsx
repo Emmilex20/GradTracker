@@ -290,10 +290,10 @@ const AdminSOPRequests: React.FC = () => {
                                 <FaFileAlt className="text-xl text-blue-500" />
                                 <h3 className="font-bold text-lg text-gray-800">SOP Request</h3>
                             </div>
-                            <p className="text-gray-700"><FaGraduationCap className="inline mr-2 text-gray-500" />**Application:** {getApplicationDetails(request.applicationId)}</p>
-                            <p className="text-gray-700 mt-1"><FaUser className="inline mr-2 text-gray-500" />**User:** {getUserName(request.userId)}</p>
-                            <p className="text-gray-700 mt-1"><FaEnvelope className="inline mr-2 text-gray-500" />**Email:** {getUserEmail(request.userId)}</p>
-                            <p className="text-gray-700 mt-1"><FaClock className="inline mr-2 text-gray-500" />**Requested On:** {new Date(request.timestamp).toLocaleDateString()}</p>
+                            <p className="text-gray-700"><FaGraduationCap className="inline mr-2 text-gray-500" /><strong>Application:</strong> {getApplicationDetails(request.applicationId)}</p>
+                            <p className="text-gray-700 mt-1"><FaUser className="inline mr-2 text-gray-500" /><strong>User:</strong> {getUserName(request.userId)}</p>
+                            <p className="text-gray-700 mt-1"><FaEnvelope className="inline mr-2 text-gray-500" /><strong>Email:</strong> {getUserEmail(request.userId)}</p>
+                            <p className="text-gray-700 mt-1"><FaClock className="inline mr-2 text-gray-500" /><strong>Requested On:</strong> {new Date(request.timestamp).toLocaleDateString()}</p>
                             
                             <div className="mt-4 flex items-center space-x-2">
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${

@@ -86,7 +86,7 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 shadow-sm">
                         <h4 className="font-semibold text-yellow-800 flex items-center">
                             <FaClock className="text-yellow-500 mr-2" />
-                            Request Submitted for: **{app.schoolName}**
+                            Request Submitted for: <strong>{app.schoolName}</strong>
                         </h4>
                         <p className="text-yellow-700 mt-2">
                             Your request is currently being reviewed by an admin.
@@ -99,10 +99,10 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4 shadow-sm">
                         <h4 className="font-semibold text-green-800 flex items-center">
                             <FaCheckCircle className="text-green-500 mr-2" />
-                            Live Writing Session Confirmed for: **{app.schoolName}**
+                            Live Writing Session Confirmed for: <strong>{app.schoolName}</strong>
                         </h4>
-                        <p className="mt-2 text-green-700">**Date:** {request.acceptanceDetails.date}</p>
-                        <p className="text-green-700">**Time:** {request.acceptanceDetails.time}</p>
+                        <p className="mt-2 text-green-700"><strong>Date:</strong> {request.acceptanceDetails.date}</p>
+                        <p className="text-green-700"><strong>Time:</strong> {request.acceptanceDetails.time}</p>
                         <a
                             href={request.acceptanceDetails.zoomLink}
                             target="_blank"
@@ -119,12 +119,12 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 shadow-sm">
                         <h4 className="font-semibold text-blue-800 flex items-center">
                             <FaCalendarAlt className="text-blue-500 mr-2" />
-                            Session Rescheduled for: **{app.schoolName}**
+                            Session Rescheduled for: <strong>{app.schoolName}</strong>
                         </h4>
-                        <p className="mt-2 text-blue-700">**New Date:** {request.rescheduleDetails.newDate}</p>
-                        <p className="text-blue-700">**New Time:** {request.rescheduleDetails.newTime}</p>
+                        <p className="mt-2 text-blue-700"><strong>New Date:</strong> {request.rescheduleDetails.newDate}</p>
+                        <p className="text-blue-700"><strong>New Time:</strong> {request.rescheduleDetails.newTime}</p>
                         {request.rescheduleDetails.reason && (
-                            <p className="text-blue-700 mt-2 italic">**Reason:** {request.rescheduleDetails.reason}</p>
+                            <p className="text-blue-700 mt-2 italic"><strong>Reason:</strong> {request.rescheduleDetails.reason}</p>
                         )}
                         <p className="text-blue-700 mt-2">
                             Please check back on the new date for your session link.
@@ -137,10 +137,10 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 shadow-sm">
                         <h4 className="font-semibold text-red-800 flex items-center">
                             <FaTimesCircle className="text-red-500 mr-2" />
-                            Request for **{app.schoolName}** was {request.status === 'declined' ? 'declined' : 'not completed'}.
+                            Request for <strong>{app.schoolName}</strong> was {request.status === 'declined' ? 'declined' : 'not completed'}.
                         </h4>
                         {(request.declineReason || request.uncompletionReason) && (
-                            <p className="text-red-700 mt-2 italic">**Reason:** {request.declineReason || request.uncompletionReason}</p>
+                            <p className="text-red-700 mt-2 italic"><strong>Reason:</strong> {request.declineReason || request.uncompletionReason}</p>
                         )}
                         <p className="text-red-700 mt-2">
                             If you wish, you can submit a new request for this application.
@@ -152,7 +152,7 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
                         <h4 className="font-semibold text-gray-800 flex items-center">
                             <FaCheckCircle className="text-gray-500 mr-2" />
-                            Session for **{app.schoolName}** has been completed.
+                            Session for <strong>{app.schoolName}</strong> has been completed.
                         </h4>
                         <p className="text-gray-700 mt-2 italic">
                             You can now proceed with your application materials.
@@ -175,7 +175,10 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                 onClick={() => setShowHistoryModal(true)}
                 className="absolute top-6 right-6 flex items-center text-sm text-primary-dark font-semibold py-2 px-4 rounded-full bg-primary-light hover:bg-primary transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
             >
-                <FaHistory className="mr-2" /> View History
+                {/* Icon for all screen sizes */}
+                <FaHistory className="sm:mr-2" />
+                {/* Text visible only on screens larger than 'sm' */}
+                <span className="hidden sm:inline">View History</span>
             </button>
 
             {isLoading ? (
