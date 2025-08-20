@@ -1,5 +1,5 @@
 // Define the UserRole type for clarity and type safety
-export type UserRole = 'user' | 'admin';
+export type UserRole = 'user' | 'admin' | 'mentor';
 
 // Define the NotificationSettings type
 export interface NotificationSettings {

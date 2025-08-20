@@ -8,31 +8,29 @@ import NotificationModal from './NotificationModal';
 const API_URL = import.meta.env.VITE_API_URL;
 
 const NotificationBell: React.FC = () => {
-    const { token, userProfile } = useAuth(); // Get currentUser from context
+    const { token, userProfile } = useAuth();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [mentorRequests, setMentorRequests] = useState<any[]>([]); // New state for mentor requests
+    const [mentorRequests, setMentorRequests] = useState<any[]>([]);
 
     const fetchNotifications = async () => {
         if (!token) return;
         setIsLoading(true);
         try {
-            // Fetch regular notifications
             const notifResponse = await axios.get(`${API_URL}/notifications`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setNotifications(notifResponse.data);
             let unread = notifResponse.data.filter((n: any) => !n.read).length;
 
-            // Conditionally fetch mentor requests if the user is a mentor
             if (userProfile?.role === 'mentor') {
                 const requestsResponse = await axios.get(`${API_URL}/mentors/requests`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setMentorRequests(requestsResponse.data);
-                unread += requestsResponse.data.length; // Add pending requests to the unread count
+                unread += requestsResponse.data.length;
             }
 
             setUnreadCount(unread);
@@ -56,7 +54,6 @@ const NotificationBell: React.FC = () => {
         }
     };
     
-    // New handler function to accept a mentor request
     const handleAcceptRequest = async (requestId: string) => {
         if (!token) return;
         try {
@@ -64,7 +61,6 @@ const NotificationBell: React.FC = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             alert('Request accepted successfully!');
-            // Refresh notifications and requests
             fetchNotifications(); 
         } catch (error) {
             console.error('Error accepting request:', error);
@@ -72,7 +68,6 @@ const NotificationBell: React.FC = () => {
         }
     };
 
-    // New handler function to decline a mentor request
     const handleDeclineRequest = async (requestId: string) => {
         if (!token) return;
         try {
@@ -80,7 +75,6 @@ const NotificationBell: React.FC = () => {
                 headers: { Authorization: `Bearer ${token}` },
             });
             alert('Request declined.');
-            // Refresh notifications and requests
             fetchNotifications();
         } catch (error) {
             console.error('Error declining request:', error);
@@ -88,11 +82,10 @@ const NotificationBell: React.FC = () => {
         }
     };
 
-
     useEffect(() => {
         fetchNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, userProfile]); // Add currentUser to dependency array
+    }, [token, userProfile]);
 
     const handleBellClick = () => {
         setIsModalOpen(true);
@@ -119,12 +112,13 @@ const NotificationBell: React.FC = () => {
             {isModalOpen && (
                 <NotificationModal
                     notifications={notifications}
-                    mentorRequests={mentorRequests} // Pass mentor requests to the modal
+                    mentorRequests={mentorRequests}
                     unreadCount={unreadCount}
                     isLoading={isLoading}
                     onClose={handleCloseModal}
-                    onAcceptRequest={handleAcceptRequest} // Pass new handler
-                    onDeclineRequest={handleDeclineRequest} // Pass new handler
+                    onAcceptRequest={handleAcceptRequest}
+                    onDeclineRequest={handleDeclineRequest}
+                    userRole={userProfile?.role || 'user'} // Pass the user's role
                 />
             )}
         </>

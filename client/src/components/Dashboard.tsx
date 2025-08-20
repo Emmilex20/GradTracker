@@ -7,7 +7,7 @@ import ApplicationCard from './ApplicationCard';
 import EmailTracker from './EmailTracker';
 import DocumentReview from './DocumentReview';
 import type { UserProfile } from '../types/UserProfile';
-import { FaPlus, FaTimes, FaEnvelope, FaPaperclip, FaGraduationCap, FaLink, FaComments, FaPenFancy } from 'react-icons/fa';
+import { FaPlus, FaTimes, FaEnvelope, FaPaperclip, FaGraduationCap, FaLink, FaComments } from 'react-icons/fa';
 
 import DashboardHeader from './Dashboard/DashboardHeader';
 import ApplicationStats from './Dashboard/ApplicationStats';
@@ -21,8 +21,8 @@ import FeedbackForm from './FeedbackForm';
 import ApplicationSearch from './ApplicationSearch';
 import SOPRequestCard from './Dashboard/SOPRequestCard';
 
+import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -47,8 +47,6 @@ const Dashboard: React.FC = () => {
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
     const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
 
-    const [sopRequests, setSopRequests] = useState<string[]>([]);
-    const [loadingSopRequests, setLoadingSopRequests] = useState(true);
     const [mentorRequests, setMentorRequests] = useState<MentorRequest[]>([]);
     const [loadingMentorRequests, setLoadingMentorRequests] = useState(true);
 
@@ -95,28 +93,6 @@ const Dashboard: React.FC = () => {
         }
     }, [token]);
 
-    const fetchSOPRequests = useCallback(async () => {
-        if (!currentUser) {
-            setLoadingSopRequests(false);
-            return;
-        }
-        setLoadingSopRequests(true);
-        try {
-            const q = query(collection(db, "sop_requests"), where("userId", "==", currentUser.uid));
-            const querySnapshot = await getDocs(q);
-            const requestedAppIds: string[] = [];
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                requestedAppIds.push(data.applicationId);
-            });
-            setSopRequests(requestedAppIds);
-        } catch (error) {
-            console.error("Error fetching SOP requests:", error);
-        } finally {
-            setLoadingSopRequests(false);
-        }
-    }, [currentUser]);
-
     const handleRequestSOPWriting = async (applicationId: string) => {
         if (!currentUser) return;
         try {
@@ -126,8 +102,6 @@ const Dashboard: React.FC = () => {
                 status: 'pending',
                 timestamp: new Date().toISOString()
             });
-
-            setSopRequests(prev => [...prev, applicationId]);
 
             alert('SOP Live Writing request has been sent! An admin will be notified.');
 
@@ -141,9 +115,8 @@ const Dashboard: React.FC = () => {
         if (currentUser && token) {
             fetchApplications();
             fetchMentorRequests();
-            fetchSOPRequests();
         }
-    }, [currentUser, token, fetchApplications, fetchMentorRequests, fetchSOPRequests]);
+    }, [currentUser, token, fetchApplications, fetchMentorRequests]);
 
     useEffect(() => {
         const today = new Date();
@@ -396,22 +369,12 @@ const Dashboard: React.FC = () => {
                     )}
                 </div>
 
-                {/* New SOP Live Writing Section */}
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl sm:text-2xl font-bold text-secondary flex items-center">
-                            <FaPenFancy className="mr-2 text-primary" />
-                            SOP Live Writing Requests
-                        </h2>
-                    </div>
-                    {/* Pass data to the new component */}
-                    <SOPRequestCard
-                        applications={applications}
-                        sopRequests={sopRequests}
-                        onRequestSOPWriting={handleRequestSOPWriting}
-                        loading={loadingSopRequests}
-                    />
-                </div>
+                {/* Updated SOP Live Writing Section */}
+                <SOPRequestCard
+                    applications={applications}
+                    onRequestSOPWriting={handleRequestSOPWriting}
+                    currentUserUid={currentUser.uid} 
+                />
                 
                 {upcomingDeadlines.length > 0 && (
                     <UpcomingDeadlines upcomingDeadlines={upcomingDeadlines} getDaysUntil={getDaysUntil} />

@@ -51,11 +51,14 @@ router.get('/', verifyToken, async (req, res) => {
             .orderBy('createdAt', 'desc')
             .get();
 
-        const notifications = notificationsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate() // Convert Firestore Timestamp to JavaScript Date
-        }));
+        const notifications = notificationsSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                createdAt: data.createdAt ? data.createdAt.toDate() : null,
+            };
+        });
 
         res.status(200).json(notifications);
     } catch (error) {
@@ -85,5 +88,6 @@ router.put('/mark-as-read', verifyToken, async (req, res) => {
         res.status(500).json({ message: 'An internal server error occurred.' });
     }
 });
+
 
 export default router;
