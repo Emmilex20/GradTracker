@@ -186,12 +186,15 @@ router.post('/:projectId/join-request', verifyToken, async (req, res) => {
                          `${userData.firstName} ${userData.lastName}` : 
                          'A user';
         
+        // Corrected: Use a new Date() object instead of FieldValue.serverTimestamp()
+        const newPendingRequest = {
+            userId,
+            userName,
+            requestedAt: new Date(),
+        };
+
         await projectRef.update({
-            pendingRequests: admin.firestore.FieldValue.arrayUnion({
-                userId,
-                userName,
-                requestedAt: admin.firestore.FieldValue.serverTimestamp(),
-            }),
+            pendingRequests: admin.firestore.FieldValue.arrayUnion(newPendingRequest),
         });
 
         const creatorId = projectData.creatorId;
@@ -246,6 +249,131 @@ router.delete('/:projectId', verifyToken, async (req, res) => {
         res.status(200).json({ message: 'Project deleted successfully.' });
     } catch (error) {
         console.error('Error deleting project:', error);
+        res.status(500).json({ message: 'An internal server error occurred.' });
+    }
+});
+
+// Admin route to get all pending join requests
+router.get('/join-requests/pending', verifyToken, async (req, res) => {
+    if (!await isAdmin(req.user.uid)) {
+        return res.status(403).json({ message: 'Forbidden: Only administrators can view join requests.' });
+    }
+
+    try {
+        const projectsSnapshot = await db.collection('projects')
+            .where('pendingRequests', '!=', []) // Find projects with pending requests
+            .get();
+
+        const pendingRequests = [];
+        projectsSnapshot.docs.forEach(doc => {
+            const projectData = doc.data();
+            projectData.pendingRequests.forEach(request => {
+                pendingRequests.push({
+                    userId: request.userId,
+                    userName: request.userName,
+                    projectId: doc.id,
+                    projectTitle: projectData.title,
+                    requestedAt: request.requestedAt,
+                });
+            });
+        });
+
+        res.status(200).json(pendingRequests);
+    } catch (error) {
+        console.error('Error fetching pending join requests:', error);
+        res.status(500).json({ message: 'An internal server error occurred.' });
+    }
+});
+
+// Admin route to approve a join request
+router.put('/:projectId/join-requests/approve', verifyToken, async (req, res) => {
+    if (!await isAdmin(req.user.uid)) {
+        return res.status(403).json({ message: 'Forbidden: Only administrators can approve join requests.' });
+    }
+
+    const { projectId } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required.' });
+    }
+
+    try {
+        const projectRef = db.collection('projects').doc(projectId);
+        const projectDoc = await projectRef.get();
+
+        if (!projectDoc.exists) {
+            return res.status(404).json({ message: 'Project not found.' });
+        }
+
+        const projectData = projectDoc.data();
+        const pendingRequests = projectData.pendingRequests || [];
+        const requestToApprove = pendingRequests.find(r => r.userId === userId);
+
+        if (!requestToApprove) {
+            return res.status(404).json({ message: 'Join request not found.' });
+        }
+
+        const newPendingRequests = pendingRequests.filter(r => r.userId !== userId);
+
+        await projectRef.update({
+            members: admin.firestore.FieldValue.arrayUnion(userId),
+            pendingRequests: newPendingRequests,
+        });
+
+        // Notify the user who made the request
+        const notificationMessage = `Your request to join "${projectData.title}" has been approved! You are now a member.`;
+        await createNotification(userId, req.user.uid, notificationMessage, 'join_request_approved');
+
+        res.status(200).json({ message: 'Join request approved successfully.' });
+    } catch (error) {
+        console.error('Error approving join request:', error);
+        res.status(500).json({ message: 'An internal server error occurred.' });
+    }
+});
+
+// Admin route to decline a join request
+router.put('/:projectId/join-requests/decline', verifyToken, async (req, res) => {
+    if (!await isAdmin(req.user.uid)) {
+        return res.status(403).json({ message: 'Forbidden: Only administrators can decline join requests.' });
+    }
+
+    const { projectId } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required.' });
+    }
+
+    try {
+        const projectRef = db.collection('projects').doc(projectId);
+        const projectDoc = await projectRef.get();
+
+        if (!projectDoc.exists) {
+            return res.status(404).json({ message: 'Project not found.' });
+        }
+
+        const projectData = projectDoc.data();
+        const pendingRequests = projectData.pendingRequests || [];
+        const requestToDecline = pendingRequests.find(r => r.userId === userId);
+
+        if (!requestToDecline) {
+            return res.status(404).json({ message: 'Join request not found.' });
+        }
+
+        const newPendingRequests = pendingRequests.filter(r => r.userId !== userId);
+
+        await projectRef.update({
+            pendingRequests: newPendingRequests,
+        });
+
+        // Notify the user who made the request
+        const notificationMessage = `Your request to join "${projectData.title}" has been declined by an admin.`;
+        await createNotification(userId, req.user.uid, notificationMessage, 'join_request_declined');
+
+        res.status(200).json({ message: 'Join request declined successfully.' });
+    } catch (error) {
+        console.error('Error declining join request:', error);
         res.status(500).json({ message: 'An internal server error occurred.' });
     }
 });
