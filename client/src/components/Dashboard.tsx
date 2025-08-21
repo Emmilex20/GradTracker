@@ -392,7 +392,7 @@ const Dashboard: React.FC = () => {
                 />
 
                 {/* New: AI Application Predictor */}
-                <AIPredictor />
+                <AIPredictor applications={applications} />
 
                 {/* New: Join Ongoing Projects Card */}
                 <ProjectsCard onJoinProjects={() => setIsProjectsModalOpen(true)} />
