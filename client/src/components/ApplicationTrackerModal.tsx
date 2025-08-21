@@ -3,7 +3,7 @@
 import React from 'react';
 import type { Application } from '../types/Application';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaPlus } from 'react-icons/fa';
 import ApplicationCard from './ApplicationCard';
 
 interface ApplicationTrackerModalProps {
@@ -36,55 +36,60 @@ const ApplicationTrackerModal: React.FC<ApplicationTrackerModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-            <div className="relative w-full max-w-7xl h-[90vh] bg-neutral-light rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in overflow-hidden">
+            <div className="relative w-full max-w-7xl h-[90vh] bg-neutral-light rounded-2xl shadow-2xl p-6 sm:p-8 animate-fade-in flex flex-col">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-20"
                     aria-label="Close modal"
                 >
                     <FaTimes className="text-2xl" />
                 </button>
-                <h2 className="text-2xl font-bold text-secondary mb-6">Application Tracker Board</h2>
+                <h2 className="text-3xl font-bold text-secondary mb-8">Application Tracker Board</h2>
                 
                 <DragDropContext onDragEnd={onApplicationStatusChange}>
-                    <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto pb-4 h-full">
+                    <section className="flex-grow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-x-auto pb-4 custom-scrollbar">
                         {statusColumns.map(status => (
                             <Droppable key={status} droppableId={status}>
-                                {(provided) => (
+                                {(provided, snapshot) => (
                                     <div
                                         ref={provided.innerRef}
                                         {...provided.droppableProps}
-                                        className="flex-shrink-0 w-full bg-white rounded-2xl p-4 shadow-inner min-h-[250px] transition-all duration-200"
+                                        className={`flex-shrink-0 w-80 sm:w-auto bg-gray-100 rounded-2xl p-4 shadow-md transition-all duration-300
+                                                    ${snapshot.isDraggingOver ? 'bg-indigo-100 scale-[1.01] shadow-xl' : ''}`}
                                     >
-                                        <h2 className="text-lg font-bold text-secondary mb-4 flex justify-between items-center">
-                                            <span>{status}</span>
+                                        <h2 className="text-lg font-bold text-secondary mb-4 flex justify-between items-center border-b pb-2 border-gray-300">
+                                            <span className="capitalize">{status}</span>
                                             <span className="text-sm font-medium text-neutral-dark bg-neutral-200 px-2 py-1 rounded-full">
                                                 {applicationsByStatus[status].length}
                                             </span>
                                         </h2>
-                                        {applicationsByStatus[status].length > 0 ? (
-                                            applicationsByStatus[status].map((app, index) => (
-                                                <Draggable key={app._id} draggableId={app._id} index={index}>
-                                                    {(provided, snapshot) => (
-                                                        <ApplicationCard
-                                                            application={app}
-                                                            onViewDetailsModal={onViewDetailsModal}
-                                                            onViewDashboardSections={onViewDashboardSections}
-                                                            isDragging={snapshot.isDragging}
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                        />
-                                                    )}
-                                                </Draggable>
-                                            ))
-                                        ) : (
-                                            <div className="bg-neutral-light p-6 rounded-xl text-center text-neutral-dark italic shadow-sm border border-neutral-300">
-                                                <p className="mb-2">No applications here yet.</p>
-                                                <p>Drag and drop or add a new one.</p>
-                                            </div>
-                                        )}
-                                        {provided.placeholder}
+                                        <div className="flex flex-col gap-3 min-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                                            {applicationsByStatus[status].length > 0 ? (
+                                                applicationsByStatus[status].map((app, index) => (
+                                                    <Draggable key={app._id} draggableId={app._id} index={index}>
+                                                        {(provided, snapshot) => (
+                                                            <ApplicationCard
+                                                                application={app}
+                                                                onViewDetailsModal={onViewDetailsModal}
+                                                                onViewDashboardSections={onViewDashboardSections}
+                                                                isDragging={snapshot.isDragging}
+                                                                ref={provided.innerRef}
+                                                                draggableProps={provided.draggableProps}
+                                                                dragHandleProps={provided.dragHandleProps}
+                                                            />
+                                                        )}
+                                                    </Draggable>
+                                                ))
+                                            ) : (
+                                                <div className={`bg-white p-6 rounded-xl text-center text-neutral-dark italic shadow-sm border border-neutral-300 transition-all duration-300
+                                                                 ${snapshot.isDraggingOver ? 'animate-pulse' : ''}`}>
+                                                    <FaPlus className="text-2xl text-gray-400 mx-auto mb-2" />
+                                                    <p className="mb-1 text-sm">No applications here.</p>
+                                                    <p className="text-xs">Drop a card here to get started.</p>
+                                                </div>
+                                            )}
+                                            {provided.placeholder}
+                                        </div>
                                     </div>
                                 )}
                             </Droppable>
