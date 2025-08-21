@@ -1,8 +1,10 @@
+// src/components/ApplicationDetail.tsx
 import React from 'react';
 import axios from 'axios';
 import type { Application } from '../types/Application';
-import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
-import { FaTimes, FaEdit, FaTrashAlt, FaGraduationCap, FaLink, FaCalendarAlt, FaDollarSign, FaUserGraduate, FaFileAlt } from 'react-icons/fa';
+import { useAuth } from '../context/AuthContext';
+import { FaTimes, FaEdit, FaTrashAlt, FaGraduationCap, FaLink, FaCalendarAlt, FaDollarSign, FaUserGraduate, FaFileAlt, FaFile, FaSpinner } from 'react-icons/fa';
+import DocumentReviewModal from './DocumentReviewModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -29,14 +31,15 @@ const getStatusBgClass = (status: string) => {
     }
 };
 
-const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onClose, onDelete, onEdit }) => {
-    // CORRECTED: Get the authentication token from the AuthContext
+const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onClose, onDelete, onEdit, onApplicationUpdated }) => {
     const { token } = useAuth();
+    const [isDeleting, setIsDeleting] = React.useState(false);
+    const [isDocModalOpen, setIsDocModalOpen] = React.useState(false);
 
     const handleDelete = async () => {
         if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
+            setIsDeleting(true);
             try {
-                // CORRECTED: Include the Authorization header with the token
                 await axios.delete(
                     `${API_URL}/applications/${application._id}`,
                     {
@@ -49,7 +52,8 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                 onClose();
             } catch (err) {
                 console.error('Failed to delete application:', err);
-                // You might want to add a user-facing error message here
+            } finally {
+                setIsDeleting(false);
             }
         }
     };
@@ -70,7 +74,6 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-gray-900 bg-opacity-70 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col transform scale-95 transition-all duration-300 ease-in-out">
-                
                 {/* Header Row */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6 md:p-8 border-b border-gray-200">
                     <div className="flex-1 mb-2 sm:mb-0">
@@ -154,6 +157,13 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                         <button
+                            onClick={() => setIsDocModalOpen(true)}
+                            className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105 text-sm"
+                        >
+                            <FaFile />
+                            <span>Manage Documents</span>
+                        </button>
+                        <button
                             onClick={onEdit}
                             className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105 text-sm"
                         >
@@ -162,14 +172,25 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="flex items-center justify-center space-x-2 px-6 py-3 bg-red-600 text-white font-bold rounded-full shadow-lg hover:bg-red-700 transition-all transform hover:scale-105 text-sm"
+                            disabled={isDeleting}
+                            className="flex items-center justify-center space-x-2 px-6 py-3 bg-red-600 text-white font-bold rounded-full shadow-lg hover:bg-red-700 transition-all transform hover:scale-105 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <FaTrashAlt />
-                            <span>Delete Application</span>
+                            {isDeleting ? <FaSpinner className="animate-spin" /> : <FaTrashAlt />}
+                            <span className="ml-2">{isDeleting ? 'Deleting...' : 'Delete Application'}</span>
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* Render the DocumentReviewModal */}
+            {isDocModalOpen && (
+                <DocumentReviewModal
+                    application={application}
+                    onClose={() => setIsDocModalOpen(false)}
+                    onDocumentUpdated={onApplicationUpdated}
+                    isOpen={isDocModalOpen}
+                />
+            )}
         </div>
     );
 };

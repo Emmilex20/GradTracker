@@ -1,5 +1,3 @@
-// src/components/Dashboard/SOPRequestCard.tsx
-
 import React, { useEffect, useState } from 'react';
 import { FaSpinner, FaPenFancy, FaClock, FaCheckCircle, FaTimesCircle, FaLink, FaCalendarAlt, FaHistory, FaTimes } from 'react-icons/fa';
 import type { Application } from '../../types/Application';
@@ -37,6 +35,7 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
     const [mostRecentRequest, setMostRecentRequest] = useState<SOPRequest | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [showRequestModal, setShowRequestModal] = useState(false); // New state for the request modal
 
     useEffect(() => {
         if (!currentUserUid) {
@@ -55,7 +54,6 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                 fetchedRequests.push({ ...doc.data(), id: doc.id } as SOPRequest);
             });
             
-            // Sort requests by timestamp in descending order
             fetchedRequests.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
             setAllSopRequests(fetchedRequests);
@@ -131,34 +129,6 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                         </p>
                     </div>
                 );
-            case 'declined':
-            case 'not completed':
-                return (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4 shadow-sm">
-                        <h4 className="font-semibold text-red-800 flex items-center">
-                            <FaTimesCircle className="text-red-500 mr-2" />
-                            Request for <strong>{app.schoolName}</strong> was {request.status === 'declined' ? 'declined' : 'not completed'}.
-                        </h4>
-                        {(request.declineReason || request.uncompletionReason) && (
-                            <p className="text-red-700 mt-2 italic"><strong>Reason:</strong> {request.declineReason || request.uncompletionReason}</p>
-                        )}
-                        <p className="text-red-700 mt-2">
-                            If you wish, you can submit a new request for this application.
-                        </p>
-                    </div>
-                );
-            case 'completed':
-                return (
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 shadow-sm">
-                        <h4 className="font-semibold text-gray-800 flex items-center">
-                            <FaCheckCircle className="text-gray-500 mr-2" />
-                            Session for <strong>{app.schoolName}</strong> has been completed.
-                        </h4>
-                        <p className="text-gray-700 mt-2 italic">
-                            You can now proceed with your application materials.
-                        </p>
-                    </div>
-                );
             default:
                 return null;
         }
@@ -168,18 +138,26 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
         <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 relative">
             <h2 className="text-xl sm:text-2xl font-bold text-secondary flex items-center mb-6">
                 <FaPenFancy className="mr-2 text-primary" />
-                SOP Live Writing Requests
+                SOP Live Writing
             </h2>
             
-            <button
-                onClick={() => setShowHistoryModal(true)}
-                className="absolute top-6 right-6 flex items-center text-sm text-primary-dark font-semibold py-2 px-4 rounded-full bg-primary-light hover:bg-primary transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
-            >
-                {/* Icon for all screen sizes */}
-                <FaHistory className="sm:mr-2" />
-                {/* Text visible only on screens larger than 'sm' */}
-                <span className="hidden sm:inline">View History</span>
-            </button>
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2 mb-4">
+                <button
+                    onClick={() => setShowRequestModal(true)}
+                    className="flex items-center text-sm text-white font-semibold py-2 px-4 rounded-full bg-blue-500 hover:bg-blue-600 transition-all duration-300"
+                >
+                    <FaPenFancy className="sm:mr-2" />
+                    <span className="hidden sm:inline">Request New Session</span>
+                </button>
+                <button
+                    onClick={() => setShowHistoryModal(true)}
+                    className="flex items-center text-sm text-primary-dark font-semibold py-2 px-4 rounded-full bg-primary-light hover:bg-primary transition-all duration-300"
+                >
+                    <FaHistory className="sm:mr-2" />
+                    <span className="hidden sm:inline">View History</span>
+                </button>
+            </div>
 
             {isLoading ? (
                 <div className="flex justify-center items-center py-8">
@@ -187,45 +165,59 @@ const SOPRequestCard: React.FC<Props> = ({ applications, onRequestSOPWriting, cu
                     <span className="ml-3 text-gray-600">Loading requests...</span>
                 </div>
             ) : (
-                <>
-                    {mostRecentRequest ? (
-                        <>
-                            <h3 className="text-lg font-bold text-secondary mb-4">Current Status</h3>
-                            {renderRequestCardContent(mostRecentRequest)}
-                        </>
-                    ) : (
-                        <p className="text-gray-500 mb-6">You have no active or historical SOP requests.</p>
-                    )}
+                <div className="text-center text-gray-500">
+                    <p>Use the buttons above to manage your SOP writing sessions.</p>
+                </div>
+            )}
 
-                    <h3 className="text-lg font-bold text-secondary mb-4">Request a New Session</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {applications.map(app => (
-                            <div
-                                key={app._id}
-                                className={`p-4 rounded-xl shadow-md border-2 transition-all duration-300 ${
-                                    hasActiveRequest(app._id)
-                                        ? 'bg-gray-100 border-gray-300 cursor-not-allowed'
-                                        : 'bg-white border-primary-light hover:shadow-lg'
-                                }`}
-                            >
-                                <h4 className="font-bold text-lg text-secondary">{app.schoolName}</h4>
-                                <p className="text-sm text-neutral-dark mb-2">{app.programName}</p>
-                                {hasActiveRequest(app._id) ? (
-                                    <div className="flex items-center text-sm font-semibold text-gray-500 mt-2">
-                                        <FaTimesCircle className="mr-1" /> An active request exists
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => onRequestSOPWriting(app._id)}
-                                        className="mt-2 w-full bg-primary text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-700 transition-colors"
-                                    >
-                                        Request SOP Writing
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+            {/* Request Modal */}
+            {showRequestModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+                    <div className="relative bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl my-auto">
+                        <button onClick={() => setShowRequestModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                            <FaTimes className="text-2xl" />
+                        </button>
+                        <h3 className="text-2xl font-bold text-secondary mb-6">SOP Live Writing Session</h3>
+
+                        {mostRecentRequest && (mostRecentRequest.status === 'pending' || mostRecentRequest.status === 'accepted' || mostRecentRequest.status === 'rescheduled') ? (
+                            <>
+                                <h4 className="text-lg font-bold text-secondary mb-4">Current Active Request</h4>
+                                {renderRequestCardContent(mostRecentRequest)}
+                            </>
+                        ) : (
+                            <p className="text-gray-500 mb-6">You have no active SOP writing requests.</p>
+                        )}
+                        
+                        <h4 className="text-lg font-bold text-secondary mb-4 mt-6">Request a New Session</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {applications.map(app => (
+                                <div
+                                    key={app._id}
+                                    className={`p-4 rounded-xl shadow-md border-2 transition-all duration-300 ${
+                                        hasActiveRequest(app._id)
+                                            ? 'bg-gray-100 border-gray-300 cursor-not-allowed'
+                                            : 'bg-white border-primary-light hover:shadow-lg'
+                                    }`}
+                                >
+                                    <h4 className="font-bold text-lg text-secondary">{app.schoolName}</h4>
+                                    <p className="text-sm text-neutral-dark mb-2">{app.programName}</p>
+                                    {hasActiveRequest(app._id) ? (
+                                        <div className="flex items-center text-sm font-semibold text-gray-500 mt-2">
+                                            <FaTimesCircle className="mr-1" /> An active request exists
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => onRequestSOPWriting(app._id)}
+                                            className="mt-2 w-full bg-primary text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-700 transition-colors"
+                                        >
+                                            Request SOP Writing
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </>
+                </div>
             )}
 
             {/* History Modal */}

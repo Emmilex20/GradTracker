@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import type { Application, Email } from '../types/Application';
+import { useAuth } from '../context/AuthContext'; // 1. Import useAuth
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -10,6 +11,9 @@ interface EmailTrackerProps {
 }
 
 const EmailTracker: React.FC<EmailTrackerProps> = ({ application, onEmailAdded }) => {
+  // 2. Access the token from the useAuth hook
+  const { token } = useAuth();
+  
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [recipient, setRecipient] = useState('');
@@ -74,11 +78,22 @@ Sincerely,
       return;
     }
 
+    if (!token) {
+      // Handle the case where the user is not authenticated
+      setError('You must be logged in to perform this action.');
+      return;
+    }
+
     try {
       await axios.post(`${API_URL}/applications/${application._id}/emails`, {
         subject,
         body,
         recipient,
+      }, {
+        // 3. Add the Authorization header
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       onEmailAdded();
       setSubject('');
@@ -86,7 +101,7 @@ Sincerely,
       setRecipient('');
       setShowForm(false);
     } catch (err) {
-      setError('Failed to add email record.');
+      setError('Failed to add email record. Please try again.');
       console.error(err);
     }
   };

@@ -1,19 +1,19 @@
+// src/components/Dashboard.tsx
+
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import type { Application } from '../types/Application';
-import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
-import ApplicationCard from './ApplicationCard';
+import type { DropResult } from '@hello-pangea/dnd';
 import EmailTracker from './EmailTracker';
 import DocumentReview from './DocumentReview';
 import type { UserProfile } from '../types/UserProfile';
-import { FaPlus, FaTimes, FaEnvelope, FaPaperclip, FaGraduationCap, FaLink, FaComments } from 'react-icons/fa';
+import { FaTimes, FaEnvelope, FaPaperclip, FaGraduationCap, FaLink, FaComments, FaExpand } from 'react-icons/fa';
 
 import DashboardHeader from './Dashboard/DashboardHeader';
 import ApplicationStats from './Dashboard/ApplicationStats';
 import UpcomingDeadlines from './Dashboard/UpcomingDeadlines';
 import MentorConnectionCard from './Dashboard/MentorConnectionCard';
-import DashboardSkeleton from './Dashboard/DashboardSkeleton';
 import ApplicationDetail from './ApplicationDetail';
 import AddApplicationForm from './AddApplicationForm';
 import EditApplicationForm from './EditApplicationForm';
@@ -22,6 +22,7 @@ import ApplicationSearch from './ApplicationSearch';
 import SOPRequestCard from './Dashboard/SOPRequestCard';
 import ProjectsCard from './Dashboard/ProjectsCard';
 import JoinProjectsModal from './JoinProjectsModal';
+import ApplicationTrackerModal from './ApplicationTrackerModal';
 import AIPredictor from './AIPredictor';
 
 import { collection, addDoc } from 'firebase/firestore';
@@ -46,14 +47,15 @@ const Dashboard: React.FC = () => {
     const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-    const [fetchError, setFetchError] = useState<string | null>(null);
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
     const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
 
     const [mentorRequests, setMentorRequests] = useState<MentorRequest[]>([]);
     const [loadingMentorRequests, setLoadingMentorRequests] = useState(true);
 
-    const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false); // New state for projects modal
+    const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
+    const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false); // New state for email modal
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
     const statusColumns = ['Interested', 'Submitted', 'Accepted', 'Rejected'];
@@ -64,7 +66,6 @@ const Dashboard: React.FC = () => {
             return;
         }
         setLoading(true);
-        setFetchError(null);
         try {
             const response = await axios.get<Application[]>(`${API_URL}/applications/${currentUser.uid}`, {
                 headers: { Authorization: `Bearer ${token}` }
@@ -77,7 +78,6 @@ const Dashboard: React.FC = () => {
             }
         } catch (error) {
             console.error('Error fetching applications:', error);
-            setFetchError('Failed to load applications. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -191,7 +191,7 @@ const Dashboard: React.FC = () => {
             await axios.post(`${API_URL}/mentors/request`, { mentorId }, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            await fetchMentorRequests(); 
+            await fetchMentorRequests();
         } catch (error) {
             console.error('Error sending mentor request:', error);
             alert('An error occurred while sending the request.');
@@ -214,11 +214,13 @@ const Dashboard: React.FC = () => {
         return diffDays;
     };
 
-    const handleViewDetailsModal = (application: Application) => {
+    const handleViewDetailsFromTracker = (application: Application) => {
+        setIsTrackerModalOpen(false);
         setSelectedApplication(application);
     };
 
     const handleViewDashboardSections = (application: Application) => {
+        setIsTrackerModalOpen(false);
         setSelectedApplicationForTabs(application);
         setTimeout(() => {
             if (detailsSectionRef.current) {
@@ -235,86 +237,18 @@ const Dashboard: React.FC = () => {
                     handleCalendarSync={handleCalendarSync}
                     setIsFeedbackOpen={setIsFeedbackOpen}
                 />
-                
+
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mb-6">
                     <ApplicationSearch />
                 </div>
-                
+
                 <ApplicationStats
                     applications={applications}
                     applicationsByStatus={applicationsByStatus}
                     statusColumns={statusColumns}
                     loading={loading}
+                    onOpenTracker={() => setIsTrackerModalOpen(true)}
                 />
-
-                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8">
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 sm:mb-6">
-                        <h2 className="text-xl sm:text-2xl font-bold text-secondary mb-2 sm:mb-0">My Applications</h2>
-                        <button
-                            onClick={() => setIsFormOpen(true)}
-                            className="bg-primary text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
-                        >
-                            <FaPlus />
-                            <span>Add New</span>
-                        </button>
-                    </div>
-
-                    {fetchError && (
-                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-4" role="alert">
-                            <span className="block sm:inline">{fetchError}</span>
-                        </div>
-                    )}
-
-                    {loading ? (
-                        <DashboardSkeleton />
-                    ) : (
-                        <DragDropContext onDragEnd={onDragEnd}>
-                            <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto pb-4">
-                                {statusColumns.map(status => (
-                                    <Droppable key={status} droppableId={status}>
-                                        {(provided) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.droppableProps}
-                                                className="flex-shrink-0 w-full bg-neutral-light rounded-2xl p-4 shadow-inner min-h-[250px] transition-all duration-200"
-                                            >
-                                                <h2 className="text-lg font-bold text-secondary mb-4 flex justify-between items-center">
-                                                    <span>{status}</span>
-                                                    <span className="text-sm font-medium text-neutral-dark bg-neutral-200 px-2 py-1 rounded-full">
-                                                        {applicationsByStatus[status].length}
-                                                    </span>
-                                                </h2>
-                                                {applicationsByStatus[status].length > 0 ? (
-                                                    applicationsByStatus[status].map((app, index) => (
-                                                        <Draggable key={app._id} draggableId={app._id} index={index}>
-                                                            {(provided, snapshot) => (
-                                                                <ApplicationCard
-                                                                    application={app}
-                                                                    onViewDetailsModal={handleViewDetailsModal}
-                                                                    onViewDashboardSections={handleViewDashboardSections}
-                                                                    isDragging={snapshot.isDragging}
-                                                                    ref={provided.innerRef}
-                                                                    {...provided.draggableProps}
-                                                                    {...provided.dragHandleProps}
-                                                                />
-                                                            )}
-                                                        </Draggable>
-                                                    ))
-                                                ) : (
-                                                    <div className="bg-white p-6 rounded-xl text-center text-neutral-dark italic shadow-sm border border-neutral-300">
-                                                        <p className="mb-2">No applications here yet.</p>
-                                                        <p>Drag and drop or add a new one.</p>
-                                                    </div>
-                                                )}
-                                                {provided.placeholder}
-                                            </div>
-                                        )}
-                                    </Droppable>
-                                ))}
-                            </section>
-                        </DragDropContext>
-                    )}
-                </div>
 
                 <div ref={detailsSectionRef} className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 sm:mt-10">
                     {applications.length > 0 ? (
@@ -338,10 +272,16 @@ const Dashboard: React.FC = () => {
                                         Email Tracker
                                     </h3>
                                     {selectedApplicationForTabs ? (
-                                        <EmailTracker
-                                            application={selectedApplicationForTabs}
-                                            onEmailAdded={fetchApplications}
-                                        />
+                                        <div className="flex flex-col items-center justify-center h-48">
+                                            <p className="text-neutral-dark mb-4">Track and manage emails related to this application.</p>
+                                            <button
+                                                onClick={() => setIsEmailModalOpen(true)}
+                                                className="bg-primary text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 flex items-center space-x-2"
+                                            >
+                                                <span>Open Email Tracker</span>
+                                                <FaExpand />
+                                            </button>
+                                        </div>
                                     ) : (
                                         <div className="flex items-center justify-center h-48 text-neutral-dark italic">
                                             Select an application above to view its details.
@@ -374,27 +314,26 @@ const Dashboard: React.FC = () => {
                     )}
                 </div>
 
-                {/* Updated SOP Live Writing Section */}
                 <SOPRequestCard
                     applications={applications}
                     onRequestSOPWriting={handleRequestSOPWriting}
-                    currentUserUid={currentUser.uid} 
+                    currentUserUid={currentUser.uid}
                 />
-                
+
+                <AIPredictor 
+                applications={applications} // ✅ Pass the applications prop here
+            />
+
                 {upcomingDeadlines.length > 0 && (
                     <UpcomingDeadlines upcomingDeadlines={upcomingDeadlines} getDaysUntil={getDaysUntil} />
                 )}
-                
+
                 <MentorConnectionCard
                     currentRequests={mentorRequests}
                     loadingRequests={loadingMentorRequests}
                     onSendRequest={handleSendMentorRequest}
                 />
 
-                {/* New: AI Application Predictor */}
-                <AIPredictor applications={applications} />
-
-                {/* New: Join Ongoing Projects Card */}
                 <ProjectsCard onJoinProjects={() => setIsProjectsModalOpen(true)} />
 
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
@@ -432,9 +371,8 @@ const Dashboard: React.FC = () => {
                         <FaComments />
                     </a>
                 </div>
-
             </main>
-            
+
             {isFormOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
                     <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in">
@@ -456,17 +394,13 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
             {selectedApplication && !isEditing && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-                    <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in">
-                        <ApplicationDetail
-                            application={selectedApplication}
-                            onClose={() => setSelectedApplication(null)}
-                            onDelete={handleApplicationDeleted}
-                            onEdit={() => setIsEditing(true)}
-                            onApplicationUpdated={handleApplicationUpdated}
-                        />
-                    </div>
-                </div>
+                <ApplicationDetail
+                    application={selectedApplication}
+                    onClose={() => setSelectedApplication(null)}
+                    onDelete={handleApplicationDeleted}
+                    onEdit={() => setIsEditing(true)}
+                    onApplicationUpdated={handleApplicationUpdated}
+                />
             )}
             {selectedApplication && isEditing && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
@@ -482,11 +416,42 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
             )}
-            {/* New: Projects Modal */}
             {isProjectsModalOpen && (
                 <JoinProjectsModal
                     onClose={() => setIsProjectsModalOpen(false)}
                 />
+            )}
+
+            <ApplicationTrackerModal
+                isOpen={isTrackerModalOpen}
+                onClose={() => setIsTrackerModalOpen(false)}
+                applications={applications}
+                onApplicationStatusChange={onDragEnd}
+                onViewDetailsModal={handleViewDetailsFromTracker}
+                onViewDashboardSections={handleViewDashboardSections}
+            />
+
+            {/* New: Email Tracker Modal */}
+            {isEmailModalOpen && selectedApplicationForTabs && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="relative w-full max-w-4xl h-5/6 bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in overflow-y-auto">
+                        <button
+                            onClick={() => setIsEmailModalOpen(false)}
+                            className="absolute top-4 right-4 text-neutral-dark hover:text-red-500 transition-colors text-2xl p-2 rounded-full hover:bg-neutral-100"
+                            title="Close Email Tracker"
+                        >
+                            <FaTimes />
+                        </button>
+                        <h2 className="text-xl sm:text-2xl font-bold text-secondary mb-6 flex items-center">
+                            <FaEnvelope className="mr-2 text-primary" />
+                            Email Tracker: <span className="text-primary ml-2">{selectedApplicationForTabs.schoolName}</span>
+                        </h2>
+                        <EmailTracker
+                            application={selectedApplicationForTabs}
+                            onEmailAdded={fetchApplications}
+                        />
+                    </div>
+                </div>
             )}
         </div>
     );

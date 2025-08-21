@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import type { Application } from '../../types/Application';
 import ApplicationStatusChart from '../ApplicationStatusChart';
-import { FaSpinner, FaChartPie, FaCheckCircle, FaTimesCircle, FaPaperPlane, FaHourglassHalf, FaLightbulb } from 'react-icons/fa';
-import ApplicationListModal from '../ApplicationListModal'; // New component
+import { FaSpinner, FaChartPie, FaCheckCircle, FaTimesCircle, FaPaperPlane, FaHourglassHalf, FaLightbulb, FaExchangeAlt } from 'react-icons/fa';
+import ApplicationListModal from '../ApplicationListModal';
 
 interface ApplicationStatsProps {
     applications: Application[];
     applicationsByStatus: Record<string, Application[]>;
     statusColumns: string[];
     loading: boolean;
+    onOpenTracker: () => void; // New prop for the button click
 }
 
 const statusIconMap: Record<string, React.ReactNode> = {
@@ -19,10 +20,9 @@ const statusIconMap: Record<string, React.ReactNode> = {
     'Rejected': <FaTimesCircle className="text-red-500" />,
 };
 
-const ApplicationStats: React.FC<ApplicationStatsProps> = ({ applications, applicationsByStatus, statusColumns, loading }) => {
+const ApplicationStats: React.FC<ApplicationStatsProps> = ({ applications, applicationsByStatus, statusColumns, loading, onOpenTracker }) => {
     const totalApplications = applications.length;
-    
-    // State to manage the modal
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
@@ -67,19 +67,18 @@ const ApplicationStats: React.FC<ApplicationStatsProps> = ({ applications, appli
                     </div>
                 )}
             </div>
-            
+
             {/* Stats grid section */}
             <div className="col-span-1 bg-white rounded-2xl shadow-lg p-4 sm:p-6 flex flex-col">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">
                     My Stats
                 </h2>
                 <div className="flex-1 grid grid-cols-2 gap-4 mt-2">
-                    {/* Render individual status cards */}
                     {statusColumns.map(status => (
-                        <div 
-                            key={status} 
+                        <div
+                            key={status}
                             className="bg-gray-50 rounded-xl p-3 flex flex-col items-center justify-center shadow-sm cursor-pointer hover:bg-gray-100 transition-colors"
-                            onClick={() => handleCardClick(status)} // Add onClick handler
+                            onClick={() => handleCardClick(status)}
                         >
                             <div className="text-xl mb-1">
                                 {statusIconMap[status]}
@@ -90,19 +89,25 @@ const ApplicationStats: React.FC<ApplicationStatsProps> = ({ applications, appli
                             <p className="text-xs font-semibold text-gray-500 text-center mt-1">{status}</p>
                         </div>
                     ))}
-                    {/* Total Applications Card */}
                     <div className="col-span-full bg-blue-100 rounded-xl p-4 flex flex-col items-center justify-center shadow-md">
                         <p className="text-4xl font-extrabold text-blue-600">{totalApplications}</p>
                         <p className="text-base font-semibold text-blue-800 mt-2 text-center">Total Applications</p>
                     </div>
                 </div>
+                {/* New button to open the tracker modal */}
+                <button
+                    onClick={onOpenTracker}
+                    className="w-full mt-4 bg-primary text-white font-semibold py-2 rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 flex items-center justify-center space-x-2"
+                >
+                    <FaExchangeAlt />
+                    <span>Open Tracker Board</span>
+                </button>
             </div>
 
-            {/* Conditionally render the modal */}
             {isModalOpen && selectedStatus && (
-                <ApplicationListModal 
-                    isOpen={isModalOpen} 
-                    onClose={closeModal} 
+                <ApplicationListModal
+                    isOpen={isModalOpen}
+                    onClose={closeModal}
                     applications={applicationsByStatus[selectedStatus] || []}
                     status={selectedStatus}
                 />
