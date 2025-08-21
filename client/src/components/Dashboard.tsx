@@ -22,6 +22,7 @@ import ApplicationSearch from './ApplicationSearch';
 import SOPRequestCard from './Dashboard/SOPRequestCard';
 import ProjectsCard from './Dashboard/ProjectsCard';
 import JoinProjectsModal from './JoinProjectsModal';
+import AIPredictor from './AIPredictor';
 
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -389,6 +390,9 @@ const Dashboard: React.FC = () => {
                     loadingRequests={loadingMentorRequests}
                     onSendRequest={handleSendMentorRequest}
                 />
+
+                {/* New: AI Application Predictor */}
+                <AIPredictor />
 
                 {/* New: Join Ongoing Projects Card */}
                 <ProjectsCard onJoinProjects={() => setIsProjectsModalOpen(true)} />
