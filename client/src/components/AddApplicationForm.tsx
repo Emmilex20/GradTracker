@@ -15,7 +15,7 @@ interface AddApplicationFormProps {
 const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAdded, onClose }) => {
     const { currentUser } = useAuth();
 
-    // State variables matching the Program type
+    // State variables
     const [university, setUniversity] = useState('');
     const [department, setDepartment] = useState('');
     const [deadline, setDeadline] = useState('');
@@ -25,7 +25,10 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
     const [greWaiver, setGreWaiver] = useState('');
     const [ieltsWaiver, setIeltsWaiver] = useState('');
     const [appFeeWaiver, setAppFeeWaiver] = useState('');
-    const [requiredDocs, setRequiredDocs] = useState('');
+    
+    // State variables for the textarea inputs
+    const [requiredDocsInput, setRequiredDocsInput] = useState('');
+    const [professorsInput, setProfessorsInput] = useState('');
 
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -46,6 +49,7 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
                 ieltsWaiver,
                 appFeeWaiver,
                 requiredDocs,
+                professors,
             } = event.data.payload as Program;
 
             if (university) setUniversity(university);
@@ -56,8 +60,13 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
             if (greWaiver) setGreWaiver(greWaiver);
             if (ieltsWaiver) setIeltsWaiver(ieltsWaiver);
             if (appFeeWaiver) setAppFeeWaiver(appFeeWaiver);
-            if (requiredDocs) {
-                setRequiredDocs(requiredDocs.join(', '));
+
+            // Here, professors is already a string, no need to join.
+            if (requiredDocs && Array.isArray(requiredDocs)) {
+                setRequiredDocsInput(requiredDocs.join(', '));
+            }
+            if (professors) {
+                setProfessorsInput(professors);
             }
         };
 
@@ -71,7 +80,6 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        // This is the updated check that handles the null case for currentUser and currentUser.email
         if (!currentUser || !currentUser.email) {
             setError('You must be logged in with a valid email to add an application.');
             setLoading(false);
@@ -92,12 +100,15 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
                 greWaiver,
                 ieltsWaiver,
                 appFeeWaiver,
-                requiredDocs: requiredDocs.split(',').map(doc => doc.trim()),
+                // Split the string input into a string array for the payload
+                requiredDocs: requiredDocsInput.split(',').map(doc => doc.trim()).filter(doc => doc.length > 0),
+                // Directly assign the string input
+                professors: professorsInput,
                 appLink: '',
                 contactEmail: '',
                 userId: currentUser.uid,
                 userEmail: currentUser.email,
-                 position: 'N/A',
+                position: 'N/A',
             };
 
             await axios.post(`${API_URL}/applications`, {
@@ -214,10 +225,19 @@ const AddApplicationForm: React.FC<AddApplicationFormProps> = ({ onApplicationAd
                     <div className="col-span-full">
                         <label className="block text-sm font-semibold text-gray-700 mb-1">Required Docs (comma separated)</label>
                         <textarea
-                            value={requiredDocs}
-                            onChange={(e) => setRequiredDocs(e.target.value)}
+                            value={requiredDocsInput}
+                            onChange={(e) => setRequiredDocsInput(e.target.value)}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-700"
                             rows={4}
+                        />
+                    </div>
+                    <div className="col-span-full">
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">Professors (URL)</label>
+                        <textarea
+                            value={professorsInput}
+                            onChange={(e) => setProfessorsInput(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 text-gray-700"
+                            rows={2}
                         />
                     </div>
                     <div className="col-span-full">
