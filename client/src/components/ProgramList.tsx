@@ -74,13 +74,14 @@ const ProgramList: React.FC = () => {
       return;
     }
 
-    setAddingStates(prev => ({ ...prev, [program._id]: true }));
+    setAddingStates(prev => ({ ...prev, [program.id]: true }));
     try {
       await api.post('/applications', {
         userId: currentUser.uid,
         schoolName: program.university,
         programName: program.department,
         status: 'Interested',
+        professors: program.professors, 
         funding: program.funding,
         fundingAmount: program.fundingAmount,
         deadline: program.deadline,
@@ -102,7 +103,7 @@ const ProgramList: React.FC = () => {
         alert('Failed to add program to your dashboard. Please try again.');
       }
     } finally {
-      setAddingStates(prev => ({ ...prev, [program._id]: false }));
+      setAddingStates(prev => ({ ...prev, [program.id]: false }));
     }
   };
 
@@ -167,10 +168,10 @@ const ProgramList: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {programs.length > 0 ? (
           programs.map((program) => {
-            const isAdding = addingStates[program._id];
+            const isAdding = addingStates[program.id];
             return (
               <article
-                key={program._id}
+                key={program.id}
                 className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 dark:border-gray-700 flex flex-col justify-between"
                 aria-label={`Program ${program.department} at ${program.university}`}
               >
@@ -182,6 +183,16 @@ const ProgramList: React.FC = () => {
                     at {program.university}
                   </p>
                   <dl className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    {program.professors && (
+                      <div>
+                        <dt className="font-semibold inline">Professors:</dt>{' '}
+                        <dd className="inline">
+                            <a href={program.professors} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                Website
+                            </a>
+                        </dd>
+                      </div>
+                    )}
                     <div>
                       <dt className="font-semibold inline">Funding:</dt>{' '}
                       <dd className="inline capitalize">{program.funding}</dd>

@@ -5,10 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import type { Application } from '../types/Application';
 import type { DropResult } from '@hello-pangea/dnd';
-import EmailTracker from './EmailTracker';
 import DocumentReview from './DocumentReview';
 import type { UserProfile } from '../types/UserProfile';
-import { FaTimes, FaEnvelope, FaPaperclip, FaGraduationCap, FaLink, FaComments, FaExpand } from 'react-icons/fa';
+import { FaTimes, FaPaperclip, FaGraduationCap, FaLink, FaComments } from 'react-icons/fa';
 
 import DashboardHeader from './Dashboard/DashboardHeader';
 import ApplicationStats from './Dashboard/ApplicationStats';
@@ -49,13 +48,12 @@ const Dashboard: React.FC = () => {
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
     const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
-
+    
     const [mentorRequests, setMentorRequests] = useState<MentorRequest[]>([]);
     const [loadingMentorRequests, setLoadingMentorRequests] = useState(true);
 
     const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
     const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
-    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false); // New state for email modal
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
     const statusColumns = ['Interested', 'Submitted', 'Accepted', 'Rejected'];
@@ -107,9 +105,7 @@ const Dashboard: React.FC = () => {
                 status: 'pending',
                 timestamp: new Date().toISOString()
             });
-
             alert('SOP Live Writing request has been sent! An admin will be notified.');
-
         } catch (error) {
             console.error('Error sending SOP request:', error);
             alert('Failed to send SOP request. Please try again.');
@@ -265,45 +261,25 @@ const Dashboard: React.FC = () => {
                                     <FaTimes />
                                 </button>
                             </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-                                <div className="bg-neutral-light rounded-xl p-4 sm:p-6 shadow-inner">
-                                    <h3 className="text-lg font-bold text-secondary mb-4 flex items-center">
-                                        <FaEnvelope className="mr-2 text-primary" />
-                                        Email Tracker
-                                    </h3>
-                                    {selectedApplicationForTabs ? (
-                                        <div className="flex flex-col items-center justify-center h-48">
-                                            <p className="text-neutral-dark mb-4">Track and manage emails related to this application.</p>
-                                            <button
-                                                onClick={() => setIsEmailModalOpen(true)}
-                                                className="bg-primary text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:bg-indigo-700 transition-all duration-300 flex items-center space-x-2"
-                                            >
-                                                <span>Open Email Tracker</span>
-                                                <FaExpand />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center justify-center h-48 text-neutral-dark italic">
-                                            Select an application above to view its details.
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="bg-neutral-light rounded-xl p-4 sm:p-6 shadow-inner">
-                                    <h3 className="text-lg font-bold text-secondary mb-4 flex items-center">
-                                        <FaPaperclip className="mr-2 text-primary" />
-                                        Document Storage and Reviews
-                                    </h3>
-                                    {selectedApplicationForTabs ? (
+                            
+                            {/* Tab Content - simplified to only show DocumentReview */}
+                            <div className="tab-content">
+                                {selectedApplicationForTabs ? (
+                                    <div className="bg-neutral-light rounded-xl p-4 sm:p-6 shadow-inner">
+                                        <h3 className="text-lg font-bold text-secondary mb-4 flex items-center">
+                                            <FaPaperclip className="mr-2 text-primary" />
+                                            Document Storage and Reviews
+                                        </h3>
                                         <DocumentReview
                                             application={selectedApplicationForTabs}
                                             onDocumentUpdated={fetchApplications}
                                         />
-                                    ) : (
-                                        <div className="flex items-center justify-center h-48 text-neutral-dark italic">
-                                            Select an application above to view its details.
-                                        </div>
-                                    )}
-                                </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-center h-48 text-neutral-dark italic">
+                                        Select an application above to view its details.
+                                    </div>
+                                )}
                             </div>
                         </>
                     ) : (
@@ -321,8 +297,8 @@ const Dashboard: React.FC = () => {
                 />
 
                 <AIPredictor 
-                applications={applications} // ✅ Pass the applications prop here
-            />
+                    applications={applications}
+                />
 
                 {upcomingDeadlines.length > 0 && (
                     <UpcomingDeadlines upcomingDeadlines={upcomingDeadlines} getDaysUntil={getDaysUntil} />
@@ -430,29 +406,6 @@ const Dashboard: React.FC = () => {
                 onViewDetailsModal={handleViewDetailsFromTracker}
                 onViewDashboardSections={handleViewDashboardSections}
             />
-
-            {/* New: Email Tracker Modal */}
-            {isEmailModalOpen && selectedApplicationForTabs && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-                    <div className="relative w-full max-w-4xl h-5/6 bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in overflow-y-auto">
-                        <button
-                            onClick={() => setIsEmailModalOpen(false)}
-                            className="absolute top-4 right-4 text-neutral-dark hover:text-red-500 transition-colors text-2xl p-2 rounded-full hover:bg-neutral-100"
-                            title="Close Email Tracker"
-                        >
-                            <FaTimes />
-                        </button>
-                        <h2 className="text-xl sm:text-2xl font-bold text-secondary mb-6 flex items-center">
-                            <FaEnvelope className="mr-2 text-primary" />
-                            Email Tracker: <span className="text-primary ml-2">{selectedApplicationForTabs.schoolName}</span>
-                        </h2>
-                        <EmailTracker
-                            application={selectedApplicationForTabs}
-                            onEmailAdded={fetchApplications}
-                        />
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

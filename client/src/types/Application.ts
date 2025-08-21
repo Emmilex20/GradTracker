@@ -38,4 +38,5 @@ export interface Application {
   appFeeWaiver: string;
   requiredDocs: string[];
   appLink: string;
+  professors: string;
 }

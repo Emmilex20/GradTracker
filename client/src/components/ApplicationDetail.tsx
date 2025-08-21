@@ -1,9 +1,10 @@
 // src/components/ApplicationDetail.tsx
+
 import React from 'react';
 import axios from 'axios';
 import type { Application } from '../types/Application';
 import { useAuth } from '../context/AuthContext';
-import { FaTimes, FaEdit, FaTrashAlt, FaGraduationCap, FaLink, FaCalendarAlt, FaDollarSign, FaUserGraduate, FaFileAlt, FaFile, FaSpinner } from 'react-icons/fa';
+import { FaTimes, FaEdit, FaTrashAlt, FaGraduationCap, FaLink, FaCalendarAlt, FaDollarSign, FaUserGraduate, FaFileAlt, FaFile, FaSpinner, FaChalkboardTeacher } from 'react-icons/fa';
 import DocumentReviewModal from './DocumentReviewModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -93,6 +94,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                             onClick={onClose}
                             className="text-gray-500 hover:text-red-500 transition-colors text-2xl sm:text-3xl p-2 rounded-full hover:bg-gray-100"
                             title="Close"
+                            aria-label="Close modal"
                         >
                             <FaTimes />
                         </button>
@@ -118,6 +120,19 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                                 <p className="text-lg font-semibold text-gray-900">{application.funding || 'Not specified'}</p>
                             </div>
                         </div>
+                        {application.professors && (
+                             <div className="flex items-start space-x-4 col-span-full md:col-span-1">
+                                <FaChalkboardTeacher className="text-2xl text-orange-500 flex-shrink-0" />
+                                <div>
+                                    <p className="text-sm text-gray-500">Professors</p>
+                                    <p className="text-lg font-semibold text-gray-900">
+                                        <a href={application.professors} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                            Website
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                         {application.appLink && (
                             <div className="flex items-start space-x-4 col-span-full">
                                 <FaLink className="text-2xl text-purple-500 flex-shrink-0" />
@@ -159,6 +174,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                         <button
                             onClick={() => setIsDocModalOpen(true)}
                             className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105 text-sm"
+                            aria-label="Manage documents for this application"
                         >
                             <FaFile />
                             <span>Manage Documents</span>
@@ -166,6 +182,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                         <button
                             onClick={onEdit}
                             className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-full shadow-lg hover:bg-blue-700 transition-all transform hover:scale-105 text-sm"
+                            aria-label="Edit this application's details"
                         >
                             <FaEdit />
                             <span>Edit Application</span>
@@ -174,6 +191,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                             onClick={handleDelete}
                             disabled={isDeleting}
                             className="flex items-center justify-center space-x-2 px-6 py-3 bg-red-600 text-white font-bold rounded-full shadow-lg hover:bg-red-700 transition-all transform hover:scale-105 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Delete this application"
                         >
                             {isDeleting ? <FaSpinner className="animate-spin" /> : <FaTrashAlt />}
                             <span className="ml-2">{isDeleting ? 'Deleting...' : 'Delete Application'}</span>

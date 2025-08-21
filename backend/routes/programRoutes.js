@@ -6,6 +6,7 @@ const router = express.Router();
 
 const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(process.env.AIRTABLE_BASE_ID);
 const table = base('Graduate Programs');
+const professorsTable = base('Professors'); // Assuming you have a separate table for professors
 
 // GET all programs and filter based on search and funding query parameters
 router.get('/', async (req, res) => {
@@ -42,6 +43,8 @@ router.get('/', async (req, res) => {
             id: record.id,
             university: record.fields['University'],
             department: record.fields['Department'],
+            // Linked field from Airtable returns an array of strings (the names)
+            professors: record.fields['Professors'] || [], 
             funding: record.fields['Funding'],
             fundingAmount: record.fields['Funding Amount'] || 'N/A',
             deadline: record.fields['Application Deadline'] || 'N/A',
@@ -58,8 +61,5 @@ router.get('/', async (req, res) => {
         res.status(500).json({ message: "Failed to fetch programs." });
     }
 });
-
-// Remove the old /search route since the main '/' route will handle everything
-// router.get('/search', ... ); 
 
 export default router;

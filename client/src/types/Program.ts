@@ -1,9 +1,11 @@
 // src/types/Program.ts
 
 export interface Program {
+  id: string; 
   _id: string;
   university: string;
   department: string;
+  professors: string; // <-- Changed to a single string
   funding: string;
   fundingAmount: string;
   deadline: string;
@@ -14,17 +16,17 @@ export interface Program {
   appLink: string;
 }
 
-// NEW: Interface for the populated application data
+// Interface for the populated application data
 export interface PopulatedApplication {
   _id: string;
   schoolName: string;
   programName: string;
 }
 
-// NEW: Document interface that uses the populated type
+// Document interface that uses the populated type
 export interface Document {
   _id: string;
-  applicationId: PopulatedApplication; // <-- Updated to the populated type
+  applicationId: PopulatedApplication;
   userId: string;
   fileName: string;
   fileUrl: string;

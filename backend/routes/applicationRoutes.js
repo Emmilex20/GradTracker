@@ -1,3 +1,4 @@
+// applications.js
 import express from 'express';
 import Application from '../models/Application.js';
 import ical from 'ical-generator';
@@ -59,6 +60,7 @@ router.post('/', async (req, res) => {
             appFeeWaiver,
             requiredDocs,
             appLink,
+            professors, // <-- Add professors here
         } = req.body;
 
         const existingApplication = await Application.findOne({
@@ -85,6 +87,7 @@ router.post('/', async (req, res) => {
             appFeeWaiver,
             requiredDocs,
             appLink,
+            professors, // <-- Add professors here
         });
 
         const application = await newApplication.save();
