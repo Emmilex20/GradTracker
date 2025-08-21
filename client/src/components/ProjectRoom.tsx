@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc, collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, onSnapshot, query, orderBy, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
-import { FaPaperPlane, FaSpinner, FaUsers, FaArrowLeft } from 'react-icons/fa';
+import { FaPaperPlane, FaSpinner, FaUsers, FaArrowLeft, FaCheck, FaCheckDouble } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Define the Idea and ProjectDetails interfaces
 interface Idea {
+  id: string;
   userId: string;
   userName: string;
   content: string;
   createdAt: { toDate: () => Date };
+  readBy?: string[]; // New field to track who has read the idea
 }
 
 interface ProjectDetails {
@@ -32,6 +34,7 @@ const ProjectRoom: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Removed messagesEndRef and scrollToBottom as they are no longer needed for auto-scrolling
 
   // Fetch project data and set up real-time listener for ideas
   useEffect(() => {
@@ -53,7 +56,6 @@ const ProjectRoom: React.FC = () => {
 
         const projectData = projectSnap.data() as ProjectDetails;
 
-        // Check if the current user is a member
         if (!projectData.members.includes(currentUser.uid)) {
           setError("Access denied. You are not a member of this project.");
           setLoading(false);
@@ -62,18 +64,34 @@ const ProjectRoom: React.FC = () => {
 
         setProject({ ...projectData, id: projectSnap.id });
 
-        // Set up a real-time listener for ideas
-        const ideasQuery = query(collection(db, 'projects', projectId, 'ideas'), orderBy('createdAt', 'desc'));
-        const unsubscribe = onSnapshot(ideasQuery, (querySnapshot) => {
+        // Order by 'createdAt' in ascending order to display older ideas at the top
+        const ideasQuery = query(collection(db, 'projects', projectId, 'ideas'), orderBy('createdAt', 'asc'));
+        const unsubscribe = onSnapshot(ideasQuery, async (querySnapshot) => {
           const fetchedIdeas: Idea[] = [];
+          const ideasToUpdate: any[] = [];
+
           querySnapshot.forEach((doc) => {
-            fetchedIdeas.push(doc.data() as Idea);
+            const idea = { id: doc.id, ...doc.data() } as Idea;
+            fetchedIdeas.push(idea);
+
+            // If the user hasn't read this idea yet, add it to the list to be updated
+            if (idea.userId !== currentUser.uid && (!idea.readBy || !idea.readBy.includes(currentUser.uid))) {
+              ideasToUpdate.push(doc.ref);
+            }
           });
+          
           setIdeas(fetchedIdeas);
+          setLoading(false);
+
+          // Update the `readBy` field for all newly viewed ideas
+          ideasToUpdate.forEach(async (ideaRef) => {
+            await updateDoc(ideaRef, {
+              readBy: arrayUnion(currentUser.uid)
+            });
+          });
         });
 
-        setLoading(false);
-        return () => unsubscribe(); // Cleanup the listener
+        return () => unsubscribe();
       } catch (err) {
         console.error('Failed to fetch project data:', err);
         setError("Failed to load project. Please check your connection.");
@@ -96,6 +114,7 @@ const ProjectRoom: React.FC = () => {
         userName: currentUser.displayName || 'Anonymous',
         content: newIdea,
         createdAt: new Date(),
+        readBy: [currentUser.uid] // The sender has read the idea by default
       };
       await addDoc(ideasRef, newIdeaData);
       setNewIdea('');
@@ -104,6 +123,23 @@ const ProjectRoom: React.FC = () => {
       alert('Failed to submit idea. Please try again.');
     } finally {
       setSubmitLoading(false);
+    }
+  };
+
+  const getMessageStatus = (idea: Idea) => {
+    if (!project || !idea.readBy) {
+      return null; // No status if project or readBy is missing
+    }
+
+    const totalMembers = project.members.length;
+    const readersCount = new Set(idea.readBy).size;
+
+    if (readersCount === totalMembers) {
+      return <FaCheckDouble className="text-blue-400" />;
+    } else if (readersCount > 1) {
+      return <FaCheckDouble />;
+    } else {
+      return <FaCheck />;
     }
   };
 
@@ -128,7 +164,6 @@ const ProjectRoom: React.FC = () => {
     );
   }
 
-  // Main component content
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-black p-4 sm:p-8 pt-16 mt-16 text-white">
       <motion.div
@@ -154,69 +189,70 @@ const ProjectRoom: React.FC = () => {
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Idea Submission Card */}
-          <motion.div
-            className="md:col-span-1 bg-white/10 backdrop-blur-md rounded-3xl shadow-xl p-6 border border-white/20 h-fit"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            <h2 className="text-2xl font-bold text-white mb-4">Share Your Idea</h2>
-            <form onSubmit={handleSubmitIdea} className="flex flex-col space-y-4">
-              <textarea
-                value={newIdea}
-                onChange={(e) => setNewIdea(e.target.value)}
-                placeholder="What's on your mind?..."
-                className="w-full p-4 border border-neutral-700 bg-neutral-800 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/80 transition-colors placeholder-neutral-500"
-                rows={4}
-                required
-              />
-              <button
-                type="submit"
-                className="flex items-center justify-center bg-primary text-white py-3 rounded-xl font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={submitLoading}
-              >
-                {submitLoading ? <FaSpinner className="animate-spin" /> : <><FaPaperPlane className="mr-2" /> Post Idea</>}
-              </button>
-            </form>
-          </motion.div>
-
-          {/* Ideas List Card */}
-          <motion.div
-            className="md:col-span-2 bg-white/10 backdrop-blur-md rounded-3xl shadow-xl p-6 border border-white/20"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            <h2 className="text-2xl font-bold text-white mb-4">Project Whiteboard</h2>
-            <div className="space-y-4 max-h-[60vh] md:max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
-              <AnimatePresence initial={false}>
-                {ideas.length === 0 ? (
-                  <p className="text-center text-neutral-400 italic py-10">No ideas shared yet. Be the first to add a sticky note! 📝</p>
-                ) : (
-                  ideas.map((idea, index) => (
+        {/* Project Whiteboard (Ideas List) */}
+        <motion.div
+          className="bg-white/10 backdrop-blur-md rounded-3xl shadow-xl p-6 border border-white/20 flex flex-col h-[70vh] md:h-[80vh]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <h2 className="text-2xl font-bold text-white mb-4">Project Whiteboard</h2>
+          {/* Removed flex-col-reverse and added a new ref at the top for non-auto-scrolling */}
+          <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar space-y-4">
+            <AnimatePresence>
+              {ideas.length === 0 ? (
+                <div className="flex-grow flex items-center justify-center">
+                  <p className="text-center text-neutral-400 italic">No ideas shared yet. Be the first to add a sticky note! 📝</p>
+                </div>
+              ) : (
+                ideas.map((idea) => {
+                  const isSender = idea.userId === currentUser?.uid;
+                  return (
                     <motion.div
-                      key={index}
+                      key={idea.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ duration: 0.3 }}
-                      className="bg-white/5 p-4 rounded-xl border border-white/10 shadow-lg relative overflow-hidden group hover:shadow-2xl transition-shadow duration-300"
+                      className={`flex mb-2 ${isSender ? 'justify-end' : 'justify-start'}`}
                     >
-                      <p className="text-neutral-200 break-words text-lg mb-2">{idea.content}</p>
-                      <div className="flex justify-end text-xs text-neutral-400 mt-2">
-                        <span>
-                          By: <b>{idea.userName}</b> on {idea.createdAt.toDate().toLocaleString()}
-                        </span>
+                      <div className={`p-4 rounded-xl shadow-lg relative max-w-[80%] md:max-w-[60%] ${isSender ? 'bg-primary/80 text-white rounded-br-none' : 'bg-neutral-800 text-neutral-200 rounded-bl-none'}`}>
+                        <p className="break-words">{idea.content}</p>
+                        <div className={`flex items-center mt-2 text-xs ${isSender ? 'justify-end' : 'justify-start'}`}>
+                          <span className="text-neutral-400 mr-2">
+                            {idea.userName}
+                          </span>
+                          <span className="text-neutral-400 mr-1">
+                            {idea.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {isSender && getMessageStatus(idea)}
+                        </div>
                       </div>
                     </motion.div>
-                  ))
-                )}
-              </AnimatePresence>
-            </div>
-          </motion.div>
-        </div>
+                  );
+                }))}
+            </AnimatePresence>
+          </div>
+          
+          {/* Idea submission form */}
+          <form onSubmit={handleSubmitIdea} className="flex items-center space-x-2 mt-4">
+            <textarea
+              value={newIdea}
+              onChange={(e) => setNewIdea(e.target.value)}
+              placeholder="Share your idea..."
+              className="flex-grow p-4 border border-neutral-700 bg-neutral-800 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/80 transition-colors placeholder-neutral-500"
+              rows={1}
+              required
+            />
+            <button
+              type="submit"
+              className="flex items-center justify-center bg-primary text-white p-4 rounded-full font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={submitLoading || !newIdea.trim()}
+            >
+              {submitLoading ? <FaSpinner className="animate-spin" /> : <FaPaperPlane />}
+            </button>
+          </form>
+        </motion.div>
       </motion.div>
     </div>
   );
