@@ -24,8 +24,13 @@ import JoinProjectsModal from './JoinProjectsModal';
 import ApplicationTrackerModal from './ApplicationTrackerModal';
 import AIPredictor from './AIPredictor';
 import InterviewPrepForm from './InterviewPrepForm';
-import InterviewPrepHistory from './Dashboard/InterviewPrepHistory'; // Import the new component
-import Modal from './Modal'; // Assuming you have a reusable Modal component
+import InterviewPrepHistory from './Dashboard/InterviewPrepHistory'; 
+
+// NEW IMPORTS FOR VISA INTERVIEW PREP
+import VisaInterviewPrepForm from './VisaInterviewPrepForm';
+import VisaInterviewHistory from './Dashboard/VisaInterviewHistory';
+
+import Modal from './Modal';
 
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -57,8 +62,14 @@ const Dashboard: React.FC = () => {
 
     const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
     const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
+    
+    // State for Admission Interview Prep
     const [isInterviewPrepFormOpen, setIsInterviewPrepFormOpen] = useState(false);
-    const [showInterviewPrepHistoryModal, setShowInterviewPrepHistoryModal] = useState(false); // NEW state for history modal
+    const [showInterviewPrepHistoryModal, setShowInterviewPrepHistoryModal] = useState(false);
+
+    // NEW State for Visa Interview Prep
+    const [isVisaPrepFormOpen, setIsVisaPrepFormOpen] = useState(false);
+    const [showVisaPrepHistoryModal, setShowVisaPrepHistoryModal] = useState(false);
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
     const statusColumns = ['Interested', 'Submitted', 'Accepted', 'Rejected'];
@@ -120,6 +131,12 @@ const Dashboard: React.FC = () => {
     const handleInterviewRequestSent = () => {
         setIsInterviewPrepFormOpen(false);
         alert('Interview preparation request sent successfully! We will be in touch shortly.');
+    };
+    
+    // NEW: Handler for visa prep requests
+    const handleVisaRequestSent = () => {
+        setIsVisaPrepFormOpen(false);
+        alert('Visa preparation request sent successfully! We will be in touch shortly.');
     };
 
     useEffect(() => {
@@ -272,7 +289,6 @@ const Dashboard: React.FC = () => {
                                 </button>
                             </div>
                             
-                            {/* Tab Content - simplified to only show DocumentReview */}
                             <div className="tab-content">
                                 {selectedApplicationForTabs ? (
                                     <div className="bg-neutral-light rounded-xl p-4 sm:p-6 shadow-inner">
@@ -306,13 +322,14 @@ const Dashboard: React.FC = () => {
                     currentUserUid={currentUser.uid}
                 />
 
+                {/* Admission Interview Prep Card - Updated text */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
                     <div className="text-center sm:text-left mb-4 sm:mb-0">
                         <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
-                            <FaGraduationCap className="mr-2 text-primary" /> Interview Preparation
+                            <FaGraduationCap className="mr-2 text-primary" /> Admission Interview Preparation
                         </h3>
                         <p className="text-neutral-dark mt-1 text-sm sm:text-base">
-                            Request one-on-one interview preparation sessions with an expert.
+                            Request one-on-one sessions for your university admission interviews.
                         </p>
                     </div>
                     <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
@@ -325,6 +342,34 @@ const Dashboard: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setShowInterviewPrepHistoryModal(true)}
+                            className="bg-gray-200 text-secondary font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-gray-300 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 w-full"
+                        >
+                            <span>View History</span>
+                            <FaHistory />
+                        </button>
+                    </div>
+                </div>
+
+                {/* NEW: Visa Interview Prep Card */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
+                    <div className="text-center sm:text-left mb-4 sm:mb-0">
+                        <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
+                            <FaLink className="mr-2 text-primary" /> Visa Interview Preparation
+                        </h3>
+                        <p className="text-neutral-dark mt-1 text-sm sm:text-base">
+                            Request one-on-one sessions to prepare for your visa interview.
+                        </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+                        <button
+                            onClick={() => setIsVisaPrepFormOpen(true)}
+                            className="bg-primary text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 w-full"
+                        >
+                            <span>Request Visa Session</span>
+                            <FaCalendarAlt />
+                        </button>
+                        <button
+                            onClick={() => setShowVisaPrepHistoryModal(true)}
                             className="bg-gray-200 text-secondary font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-gray-300 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 w-full"
                         >
                             <span>View History</span>
@@ -444,10 +489,25 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
             
-            {/* NEW: Interview Prep History Modal */}
+            {/* Admission Interview History Modal */}
             {showInterviewPrepHistoryModal && (
                 <Modal onClose={() => setShowInterviewPrepHistoryModal(false)}>
                     <InterviewPrepHistory onClose={() => setShowInterviewPrepHistoryModal(false)} />
+                </Modal>
+            )}
+
+            {/* NEW: Visa Interview Prep Form Modal */}
+            {isVisaPrepFormOpen && (
+                <VisaInterviewPrepForm
+                    onClose={() => setIsVisaPrepFormOpen(false)}
+                    onVisaRequestSent={handleVisaRequestSent}
+                />
+            )}
+
+            {/* NEW: Visa Interview History Modal - Fix applied here */}
+            {showVisaPrepHistoryModal && (
+                <Modal onClose={() => setShowVisaPrepHistoryModal(false)}>
+                    <VisaInterviewHistory onClose={() => setShowVisaPrepHistoryModal(false)} />
                 </Modal>
             )}
 

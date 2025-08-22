@@ -1,12 +1,13 @@
 // src/components/AdminDashboard.tsx
 
 import React, { useState } from 'react';
-import { FaFileAlt, FaBullhorn, FaPenFancy, FaTasks, FaCalendarCheck } from 'react-icons/fa'; // Import new icon
+import { FaFileAlt, FaBullhorn, FaPenFancy, FaTasks, FaCalendarCheck, FaPassport } from 'react-icons/fa'; 
 import AdminReviewPage from './AdminReviewPage';
 import AdminNotificationForm from '../components/AdminDashboard/AdminNotificationForm';
 import AdminSOPRequests from './AdminDashboard/AdminSOPRequests';
 import AdminProjectReview from './AdminDashboard/AdminProjectReview';
-import AdminInterviewPrepRequests from './AdminDashboard/AdminInterviewPrepRequests'; // Import the new component
+import AdminInterviewPrepRequests from './AdminDashboard/AdminInterviewPrepRequests'; 
+import AdminVisaPrepRequests from './AdminDashboard/AdminVisaPrepRequests'; // Import the new component
 
 const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState('sopRequests');
@@ -21,8 +22,10 @@ const AdminDashboard: React.FC = () => {
                 return <AdminNotificationForm />;
             case 'projectReview':
                 return <AdminProjectReview />;
-            case 'interviewPrepRequests': // New case for the interview prep requests
+            case 'interviewPrepRequests':
                 return <AdminInterviewPrepRequests />;
+            case 'visaPrepRequests': // New case for visa prep requests
+                return <AdminVisaPrepRequests />;
             default:
                 return null;
         }
@@ -75,7 +78,7 @@ const AdminDashboard: React.FC = () => {
                     <FaTasks className="inline mr-2" /> Project Reviews
                 </button>
                 <button
-                    onClick={() => setActiveTab('interviewPrepRequests')} // New tab for interview requests
+                    onClick={() => setActiveTab('interviewPrepRequests')}
                     className={`px-4 py-2 font-medium text-sm transition-colors duration-200 ${
                         activeTab === 'interviewPrepRequests'
                             ? 'text-blue-600 border-b-2 border-blue-600'
@@ -83,6 +86,16 @@ const AdminDashboard: React.FC = () => {
                     }`}
                 >
                     <FaCalendarCheck className="inline mr-2" /> Interview Prep
+                </button>
+                 <button
+                    onClick={() => setActiveTab('visaPrepRequests')} // New tab for visa prep requests
+                    className={`px-4 py-2 font-medium text-sm transition-colors duration-200 ${
+                        activeTab === 'visaPrepRequests'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    <FaPassport className="inline mr-2" /> Visa Prep
                 </button>
             </div>
 

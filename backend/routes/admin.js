@@ -220,4 +220,45 @@ router.post('/interview-prep/send-response', verifyToken, checkRole('admin'), as
     }
 });
 
+// NEW: Route to handle admin sending a response to a visa interview prep request
+router.post('/visa-prep/send-response', verifyToken, checkRole('admin'), async (req, res) => {
+    try {
+        const { requestId, message, scheduledDate, scheduledTime, zoomLink } = req.body;
+
+        if (!requestId || !message || !scheduledDate || !scheduledTime || !zoomLink) {
+            return res.status(400).json({ message: 'Request ID, message, date, time, and Zoom link are required.' });
+        }
+
+        const requestRef = db.collection('visa_interview_prep_requests').doc(requestId);
+        await requestRef.update({
+            adminResponse: message,
+            scheduledDate,
+            scheduledTime,
+            zoomLink,
+            status: 'scheduled',
+            respondedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        const requestDoc = await requestRef.get();
+        if (requestDoc.exists) {
+            const requestData = requestDoc.data();
+            const userId = requestData?.userId;
+            if (userId) {
+                await db.collection('notifications').add({
+                    userId,
+                    message: `Your visa prep session for ${requestData?.visaType} has been scheduled for ${scheduledDate} at ${scheduledTime}. The Zoom link is: ${zoomLink}.`,
+                    type: 'visa_prep_response',
+                    read: false,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+            }
+        }
+
+        res.status(200).json({ message: 'Visa prep response sent successfully.' });
+    } catch (error) {
+        console.error('Error sending admin visa prep response:', error);
+        res.status(500).json({ message: 'Failed to send response.' });
+    }
+});
+
 export default router;

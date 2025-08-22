@@ -42,6 +42,9 @@ import interviewPrepRoutes from './routes/interviewPrepRoutes.js';
 // === NEW AI ROUTES IMPORT ===
 import aiRoutes from './routes/aiRoutes.js';
 
+// === NEW ROUTE IMPORT ===
+import visaInterviewPrepRoutes from './routes/visaInterviewPrepRoutes.js';
+
 
 const app = express();
 const server = http.createServer(app);
@@ -292,6 +295,9 @@ app.use('/api/agora', agoraRoutes);
 app.use('/api/projects', verifyToken, projectRoutes);
 app.use('/api/interview-prep', verifyToken, interviewPrepRoutes);
 
+// === NEW VISA INTERVIEW PREP ROUTE ===
+app.use('/api/visa-prep', verifyToken, visaInterviewPrepRoutes);
+
 // === NEW GET Route for fetching historical messages ===
 app.get('/api/messages/:chatId', async (req, res) => {
     try {
@@ -368,4 +374,4 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-}); 
+});
