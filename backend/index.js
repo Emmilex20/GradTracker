@@ -37,6 +37,7 @@ import connectionsRoutes from './routes/connections.js';
 import groupsRoutes from './routes/groups.js';
 import agoraRoutes from './routes/agoraRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
+import interviewPrepRoutes from './routes/interviewPrepRoutes.js';
 
 // === NEW AI ROUTES IMPORT ===
 import aiRoutes from './routes/aiRoutes.js';
@@ -289,6 +290,7 @@ app.use('/api/connections', connectionsRoutes);
 app.use('/api/groups', groupsRoutes);
 app.use('/api/agora', agoraRoutes);
 app.use('/api/projects', verifyToken, projectRoutes);
+app.use('/api/interview-prep', verifyToken, interviewPrepRoutes);
 
 // === NEW GET Route for fetching historical messages ===
 app.get('/api/messages/:chatId', async (req, res) => {

@@ -7,7 +7,7 @@ import type { Application } from '../types/Application';
 import type { DropResult } from '@hello-pangea/dnd';
 import DocumentReview from './DocumentReview';
 import type { UserProfile } from '../types/UserProfile';
-import { FaTimes, FaPaperclip, FaGraduationCap, FaLink, FaComments } from 'react-icons/fa';
+import { FaTimes, FaPaperclip, FaGraduationCap, FaLink, FaComments, FaCalendarAlt, FaHistory } from 'react-icons/fa';
 
 import DashboardHeader from './Dashboard/DashboardHeader';
 import ApplicationStats from './Dashboard/ApplicationStats';
@@ -23,6 +23,9 @@ import ProjectsCard from './Dashboard/ProjectsCard';
 import JoinProjectsModal from './JoinProjectsModal';
 import ApplicationTrackerModal from './ApplicationTrackerModal';
 import AIPredictor from './AIPredictor';
+import InterviewPrepForm from './InterviewPrepForm';
+import InterviewPrepHistory from './Dashboard/InterviewPrepHistory'; // Import the new component
+import Modal from './Modal'; // Assuming you have a reusable Modal component
 
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -54,6 +57,8 @@ const Dashboard: React.FC = () => {
 
     const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
     const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
+    const [isInterviewPrepFormOpen, setIsInterviewPrepFormOpen] = useState(false);
+    const [showInterviewPrepHistoryModal, setShowInterviewPrepHistoryModal] = useState(false); // NEW state for history modal
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
     const statusColumns = ['Interested', 'Submitted', 'Accepted', 'Rejected'];
@@ -110,6 +115,11 @@ const Dashboard: React.FC = () => {
             console.error('Error sending SOP request:', error);
             alert('Failed to send SOP request. Please try again.');
         }
+    };
+
+    const handleInterviewRequestSent = () => {
+        setIsInterviewPrepFormOpen(false);
+        alert('Interview preparation request sent successfully! We will be in touch shortly.');
     };
 
     useEffect(() => {
@@ -296,6 +306,33 @@ const Dashboard: React.FC = () => {
                     currentUserUid={currentUser.uid}
                 />
 
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
+                    <div className="text-center sm:text-left mb-4 sm:mb-0">
+                        <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
+                            <FaGraduationCap className="mr-2 text-primary" /> Interview Preparation
+                        </h3>
+                        <p className="text-neutral-dark mt-1 text-sm sm:text-base">
+                            Request one-on-one interview preparation sessions with an expert.
+                        </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+                        <button
+                            onClick={() => setIsInterviewPrepFormOpen(true)}
+                            className="bg-primary text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 w-full"
+                        >
+                            <span>Request Session</span>
+                            <FaCalendarAlt />
+                        </button>
+                        <button
+                            onClick={() => setShowInterviewPrepHistoryModal(true)}
+                            className="bg-gray-200 text-secondary font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-gray-300 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 w-full"
+                        >
+                            <span>View History</span>
+                            <FaHistory />
+                        </button>
+                    </div>
+                </div>
+
                 <AIPredictor 
                     applications={applications}
                 />
@@ -396,6 +433,22 @@ const Dashboard: React.FC = () => {
                 <JoinProjectsModal
                     onClose={() => setIsProjectsModalOpen(false)}
                 />
+            )}
+            {isInterviewPrepFormOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <InterviewPrepForm
+                        applications={applications}
+                        onClose={() => setIsInterviewPrepFormOpen(false)}
+                        onInterviewRequestSent={handleInterviewRequestSent}
+                    />
+                </div>
+            )}
+            
+            {/* NEW: Interview Prep History Modal */}
+            {showInterviewPrepHistoryModal && (
+                <Modal onClose={() => setShowInterviewPrepHistoryModal(false)}>
+                    <InterviewPrepHistory onClose={() => setShowInterviewPrepHistoryModal(false)} />
+                </Modal>
             )}
 
             <ApplicationTrackerModal
