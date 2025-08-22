@@ -25,15 +25,15 @@ import ApplicationTrackerModal from './ApplicationTrackerModal';
 import AIPredictor from './AIPredictor';
 import InterviewPrepForm from './InterviewPrepForm';
 import InterviewPrepHistory from './Dashboard/InterviewPrepHistory'; 
-
-// NEW IMPORTS FOR VISA INTERVIEW PREP
 import VisaInterviewPrepForm from './VisaInterviewPrepForm';
 import VisaInterviewHistory from './Dashboard/VisaInterviewHistory';
-
 import Modal from './Modal';
 
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+
+// NEW IMPORTS
+import FinancialSupportCard from './Dashboard/FinancialSupportCard';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -63,11 +63,9 @@ const Dashboard: React.FC = () => {
     const [isProjectsModalOpen, setIsProjectsModalOpen] = useState(false);
     const [isTrackerModalOpen, setIsTrackerModalOpen] = useState(false);
     
-    // State for Admission Interview Prep
     const [isInterviewPrepFormOpen, setIsInterviewPrepFormOpen] = useState(false);
     const [showInterviewPrepHistoryModal, setShowInterviewPrepHistoryModal] = useState(false);
 
-    // NEW State for Visa Interview Prep
     const [isVisaPrepFormOpen, setIsVisaPrepFormOpen] = useState(false);
     const [showVisaPrepHistoryModal, setShowVisaPrepHistoryModal] = useState(false);
 
@@ -133,7 +131,6 @@ const Dashboard: React.FC = () => {
         alert('Interview preparation request sent successfully! We will be in touch shortly.');
     };
     
-    // NEW: Handler for visa prep requests
     const handleVisaRequestSent = () => {
         setIsVisaPrepFormOpen(false);
         alert('Visa preparation request sent successfully! We will be in touch shortly.');
@@ -322,7 +319,7 @@ const Dashboard: React.FC = () => {
                     currentUserUid={currentUser.uid}
                 />
 
-                {/* Admission Interview Prep Card - Updated text */}
+                {/* Admission Interview Prep Card */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
                     <div className="text-center sm:text-left mb-4 sm:mb-0">
                         <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
@@ -350,7 +347,7 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* NEW: Visa Interview Prep Card */}
+                {/* Visa Interview Prep Card */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
                     <div className="text-center sm:text-left mb-4 sm:mb-0">
                         <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
@@ -377,6 +374,9 @@ const Dashboard: React.FC = () => {
                         </button>
                     </div>
                 </div>
+
+                {/* NEW: Financial Support Card */}
+                <FinancialSupportCard applications={applications} />
 
                 <AIPredictor 
                     applications={applications}
@@ -496,7 +496,7 @@ const Dashboard: React.FC = () => {
                 </Modal>
             )}
 
-            {/* NEW: Visa Interview Prep Form Modal */}
+            {/* Visa Interview Prep Form Modal */}
             {isVisaPrepFormOpen && (
                 <VisaInterviewPrepForm
                     onClose={() => setIsVisaPrepFormOpen(false)}
@@ -504,7 +504,7 @@ const Dashboard: React.FC = () => {
                 />
             )}
 
-            {/* NEW: Visa Interview History Modal - Fix applied here */}
+            {/* Visa Interview History Modal */}
             {showVisaPrepHistoryModal && (
                 <Modal onClose={() => setShowVisaPrepHistoryModal(false)}>
                     <VisaInterviewHistory onClose={() => setShowVisaPrepHistoryModal(false)} />

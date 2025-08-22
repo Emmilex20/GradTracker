@@ -1,13 +1,13 @@
-// src/components/AdminDashboard.tsx
-
 import React, { useState } from 'react';
-import { FaFileAlt, FaBullhorn, FaPenFancy, FaTasks, FaCalendarCheck, FaPassport } from 'react-icons/fa'; 
+import { FaFileAlt, FaBullhorn, FaPenFancy, FaTasks, FaCalendarCheck, FaPassport, FaMoneyBillWave } from 'react-icons/fa'; // Import the new icon
 import AdminReviewPage from './AdminReviewPage';
 import AdminNotificationForm from '../components/AdminDashboard/AdminNotificationForm';
 import AdminSOPRequests from './AdminDashboard/AdminSOPRequests';
 import AdminProjectReview from './AdminDashboard/AdminProjectReview';
 import AdminInterviewPrepRequests from './AdminDashboard/AdminInterviewPrepRequests'; 
-import AdminVisaPrepRequests from './AdminDashboard/AdminVisaPrepRequests'; // Import the new component
+import AdminVisaPrepRequests from './AdminDashboard/AdminVisaPrepRequests';
+// NEW IMPORT
+import AdminFinancialSupportRequests from './AdminDashboard/AdminFinancialSupportRequests'; 
 
 const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState('sopRequests');
@@ -24,8 +24,10 @@ const AdminDashboard: React.FC = () => {
                 return <AdminProjectReview />;
             case 'interviewPrepRequests':
                 return <AdminInterviewPrepRequests />;
-            case 'visaPrepRequests': // New case for visa prep requests
+            case 'visaPrepRequests':
                 return <AdminVisaPrepRequests />;
+            case 'financialSupportRequests': // New case for financial support requests
+                return <AdminFinancialSupportRequests />;
             default:
                 return null;
         }
@@ -87,8 +89,8 @@ const AdminDashboard: React.FC = () => {
                 >
                     <FaCalendarCheck className="inline mr-2" /> Interview Prep
                 </button>
-                 <button
-                    onClick={() => setActiveTab('visaPrepRequests')} // New tab for visa prep requests
+                <button
+                    onClick={() => setActiveTab('visaPrepRequests')}
                     className={`px-4 py-2 font-medium text-sm transition-colors duration-200 ${
                         activeTab === 'visaPrepRequests'
                             ? 'text-blue-600 border-b-2 border-blue-600'
@@ -96,6 +98,16 @@ const AdminDashboard: React.FC = () => {
                     }`}
                 >
                     <FaPassport className="inline mr-2" /> Visa Prep
+                </button>
+                 <button
+                    onClick={() => setActiveTab('financialSupportRequests')} // New tab
+                    className={`px-4 py-2 font-medium text-sm transition-colors duration-200 ${
+                        activeTab === 'financialSupportRequests'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    <FaMoneyBillWave className="inline mr-2" /> Financial Support
                 </button>
             </div>
 

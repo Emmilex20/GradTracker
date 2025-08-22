@@ -38,6 +38,7 @@ import groupsRoutes from './routes/groups.js';
 import agoraRoutes from './routes/agoraRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
 import interviewPrepRoutes from './routes/interviewPrepRoutes.js';
+import financialSupportRoutes from './routes/financialSupportRoutes.js';
 
 // === NEW AI ROUTES IMPORT ===
 import aiRoutes from './routes/aiRoutes.js';
@@ -297,6 +298,7 @@ app.use('/api/interview-prep', verifyToken, interviewPrepRoutes);
 
 // === NEW VISA INTERVIEW PREP ROUTE ===
 app.use('/api/visa-prep', verifyToken, visaInterviewPrepRoutes);
+app.use('/api/financial-support', verifyToken, financialSupportRoutes);
 
 // === NEW GET Route for fetching historical messages ===
 app.get('/api/messages/:chatId', async (req, res) => {

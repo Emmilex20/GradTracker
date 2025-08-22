@@ -261,4 +261,67 @@ router.post('/visa-prep/send-response', verifyToken, checkRole('admin'), async (
     }
 });
 
+// NEW: Route to handle admin sending a response to a financial support request
+router.post('/financial-support/send-response', verifyToken, checkRole('admin'), async (req, res) => {
+    try {
+        const { requestId, message, scheduledDate, scheduledTime, zoomLink, status } = req.body;
+
+        if (!requestId || !status) {
+            return res.status(400).json({ message: 'Request ID and status are required.' });
+        }
+
+        const requestRef = db.collection('financial_support_requests').doc(requestId);
+        const updateData = {
+            adminResponse: message,
+            status: status,
+            respondedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        // Only add scheduled meeting details if the status is 'scheduled'
+        if (status === 'scheduled') {
+            if (!scheduledDate || !scheduledTime || !zoomLink) {
+                return res.status(400).json({ message: 'Date, time, and Zoom link are required for scheduled requests.' });
+            }
+            updateData.scheduledDate = scheduledDate;
+            updateData.scheduledTime = scheduledTime;
+            updateData.zoomLink = zoomLink;
+        }
+
+        await requestRef.update(updateData);
+
+        // Get the request data to craft a specific notification message
+        const requestDoc = await requestRef.get();
+        if (requestDoc.exists) {
+            const requestData = requestDoc.data();
+            const userId = requestData?.userId;
+            const userEmail = requestData?.userEmail; // Assuming user email is stored on the request
+            
+            if (userId) {
+                let notificationMessage = '';
+                if (status === 'scheduled') {
+                    notificationMessage = `Your financial support session for ${requestData?.universityName} has been scheduled for ${scheduledDate} at ${scheduledTime}.`;
+                } else if (status === 'declined') {
+                    notificationMessage = `Your financial support request for ${requestData?.universityName} has been declined.`;
+                } else {
+                    notificationMessage = `Your financial support request for ${requestData?.universityName} has been updated.`;
+                }
+
+                await db.collection('notifications').add({
+                    userId,
+                    userEmail,
+                    message: notificationMessage,
+                    type: 'financial_support_response',
+                    read: false,
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
+            }
+        }
+
+        res.status(200).json({ message: 'Financial support response sent successfully.' });
+    } catch (error) {
+        console.error('Error sending financial support response:', error);
+        res.status(500).json({ message: 'Failed to send response.', error: error.message });
+    }
+});
+
 export default router;
