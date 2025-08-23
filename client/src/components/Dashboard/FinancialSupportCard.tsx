@@ -100,7 +100,7 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
             </div>
 
             {isFormOpen && (
-                <Modal onClose={() => setIsFormOpen(false)}>
+                <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)}>
                     <div className="p-8">
                         <h2 className="text-2xl font-bold mb-4">Request Financial Support Session</h2>
                         <form onSubmit={handleRequest} className="space-y-4">
@@ -184,7 +184,7 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
             )}
 
             {showHistoryModal && (
-                <Modal onClose={() => setShowHistoryModal(false)}>
+                <Modal isOpen={showHistoryModal} onClose={() => setShowHistoryModal(false)}>
                     <FinancialSupportHistory onClose={() => setShowHistoryModal(false)} />
                 </Modal>
             )}
