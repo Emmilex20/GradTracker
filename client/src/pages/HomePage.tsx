@@ -319,7 +319,7 @@ export default function HomePage() {
                             className="text-3xl md:text-4xl font-bold text-center text-secondary"
                             initial={{ opacity: 0, y: 16 }}
                             whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, amount: 0.2 }}
+                            viewport={{ once: true, amount: 0.1 }}
                         >
                             What GradManager Offers.
                         </motion.h2>
@@ -327,7 +327,7 @@ export default function HomePage() {
                           className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark"
                           initial={{ opacity: 0, y: 16 }}
                           whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true, amount: 0.2 }}
+                          viewport={{ once: true, amount: 0.1 }}
                           transition={{ delay: 0.1 }}
                         >
                             Everything from discovery to mentorship — built for applicants who want results and less stress.
@@ -337,7 +337,7 @@ export default function HomePage() {
                             variants={container}
                             initial="hidden"
                             whileInView="show"
-                            viewport={{ once: true, amount: 0.2 }}
+                            viewport={{ once: true, amount: 0.1 }}
                         >
                             {platformFeatures.map((feat, i) => (
                                 <motion.div
