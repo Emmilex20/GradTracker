@@ -176,7 +176,7 @@ const ScholarshipCard: React.FC<ScholarshipCardProps> = ({ school }) => (
             <p className="mt-3 text-sm text-neutral-dark h-14 overflow-hidden">{school.blurb}</p>
             <div className="mt-4 flex items-center justify-between">
                 <div className="text-xs text-neutral-dark">Deadline: <span className="font-semibold">{school.deadline}</span></div>
-                <Link to="/apply" className="px-4 py-2 bg-primary text-white rounded-full text-sm font-semibold hover:opacity-95">Apply</Link>
+                <Link to="/program" className="px-4 py-2 bg-primary text-white rounded-full text-sm font-semibold hover:opacity-95">Apply</Link>
             </div>
         </div>
     </motion.div>

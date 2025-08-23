@@ -7,6 +7,8 @@ import {
     FaCalendarAlt,
     FaUserFriends,
     FaFileAlt,
+    FaPenNib,
+    FaUsers,
 } from 'react-icons/fa';
 
 // Import local images for platform features
@@ -16,6 +18,10 @@ import calendarImage from '../assets/images/calendar.jpg';
 import calendarImage2 from '../assets/images/calendar2.jpg';
 import documentImage from '../assets/images/document.jpg';
 import documentImage2 from '../assets/images/document2.jpg';
+import SOP from '../assets/images/SOP.jpg';
+import SOP2 from '../assets/images/SOP2.jpg';
+import Project from '../assets/images/Project.jpg';
+import Project2 from '../assets/images/Project2.png';
 import mentorImage from '../assets/images/mentor.webp';
 import blogImage from '../assets/images/blog.webp';
 import connectImage from '../assets/images/connect.png';
@@ -67,29 +73,42 @@ export const platformFeatures: Feature[] = [
     {
         icon: <FaSearchDollar className="text-2xl" />, 
         src: scholarshipImage, 
-        title: 'Program Search with Details', 
-        desc: `Allows you to type in your course and school (e.g., Chemistry, Harvard University) and instantly see:
-- Graduate funding opportunities
-- GRE, IELTS, and application fee waiver status
-- Required documents for your application.`,
+        title: 'Search for Graduate Program.', 
+        desc: "Find schools faster. Filter by program, funding, waiver (app fee, GRE, IELTS..) - no more  endless searching.",
         fullDesc: 'Our advanced search engine allows you to filter and discover thousands of graduate programs with funding. You can search by degree level, subject, location, and even specific research interests. We provide verified information on funding availability, application fees, and key requirements, helping you save time and focus on the best-fit opportunities. The platform also gives you a personalized dashboard to track and manage your potential programs.',
         fullImage: scholarshipImage2,
     },
     { 
         icon: <FaCalendarAlt className="text-2xl" />, 
         src: calendarImage, 
-        title: 'Application Tracker', 
-        desc: "Allows you to add programs to your dashboard. Track those you have applied to, and those in progress. You can also track professors you've contacted and those you haven't.",
+        title: 'Application Progress Tracking', 
+        desc: "See all your applications at a glance. Track from 'Interested' to 'Accepted' without losing count.",
         fullDesc: 'The GradManager dashboard is your central hub for all applications. It features a customisable kanban board and a calendar view, allowing you to track each program from "Researching" to "Accepted." You can upload documents, add notes, set reminders, and manage your to-do lists all in one place, ensuring you never miss a critical step.',
         fullImage: calendarImage2,
     },
     { 
+        icon: <FaPenNib className="text-2xl" />, 
+        src: SOP, 
+        title: 'SOP and CV live writing', 
+        desc: "Struggling with your first draft? Get paired with a mentor who will co-write your SOP and CV from scratch with you over Zoom, guiding you step by step.",
+        fullDesc: 'Feeling overwhelmed staring at a blank page? You’re not alone—most students struggle to put their dreams into words. That’s where we come in. In a live Zoom session, you’ll work one-on-one with an expert mentor who understands the pressure you’re under. Together, we’ll turn your raw ideas into a polished SOP and CV that capture your true potential. No more second-guessing or rejection fears—just powerful, professional documents that open doors and give you the confidence to chase your future.',
+        fullImage: SOP2,
+    },
+    { 
         icon: <FaFileAlt className="text-2xl" />, 
         src: documentImage, 
-        title: 'Document Storage and Reviews', 
-        desc: "Store and access your important documents (SOPs, CVs, recommendation letters, etc.) anytime. No worries about losing files, and you can request expert document reviews directly through the app.",
+        title: 'Document Reviews and Storage', 
+        desc: "Finished your draft? Get a mentor's detailed review with line-by-line edits, clarity checks, and final polish so you apply with confidence. Plus, store your SOPs and CVs safely online - no more lost files if your computer crashes.",
         fullDesc: 'Never worry about losing your important files again. With this app, you can securely upload and store documents like SOPs, CVs, and more, ready for access anytime you need them. Plus, you can request expert scholar reviews to refine and improve your documents for the best results.',
         fullImage: documentImage2,
+    },
+    { 
+        icon: <FaUsers className="text-2xl" />, 
+        src: Project2, 
+        title: 'Join Ongoing Projects', 
+        desc: "Worried your CV isn't enough? Collaborate on real projects with peers to boost your portfolio (e.g write review papers for publications, build a model, do research e.t.c).",
+        fullDesc: "Worried your CV isn’t enough? Stand out by collaborating on real projects with driven peers—whether it’s writing impactful review papers, building innovative models, or contributing to research that gets noticed. Not only will you strengthen your portfolio, but you’ll also gain the kind of hands-on experience and credibility that admissions committees and employers truly value.",
+        fullImage: Project,
     },
     { 
         icon: <FaUserFriends className="text-2xl" />, 
@@ -119,31 +138,31 @@ export const platformFeatures: Feature[] = [
 
 export const featuredScholarships: Scholarship[] = [
     {
-        name: 'Global Masters Scholarship — Greenfield University',
+        name: 'Rice University',
         location: 'United Kingdom',
         level: 'Masters',
         funding: 'Full Scholarship',
-        deadline: 'Dec 15, 2025',
+        deadline: '2025-12-01',
         blurb: 'Full tuition + stipend for outstanding international students in STEM & Social Sciences. Covers travel and living allowance.',
-        image: 'https://www.lps.upenn.edu/sites/default/files/2020-10/news-graduation-2019-final2.png',
+        image: 'https://questbridge.imgix.net/content/uploads/partners/rice-university/University_Lockups_Print_Rice_Blue-1.png?auto=compress%2Cformat&fit=clip&h=384&q=90&s=f18020c84f8ca5a4777f9ddd296519cc',
     },
     {
-        name: 'Africa Fellowship for Development',
+        name: 'Massachusetts Institute of Technology (MIT)',
         location: 'USA (virtual + campus)',
         level: 'Masters & PhD',
         funding: 'Tuition + Stipend',
-        deadline: 'Jan 20, 2026',
+        deadline: '2025-12-01',
         blurb: 'Supporting researchers and practitioners from Africa with funding, mentorship and placement opportunities.',
-        image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&q=80&auto=format&fit=crop',
+        image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdM5ksmAFMHhM9XaNNnqDfxCFxFb3LfBXLjA&s',
     },
     {
-        name: 'No-Fee International MBA Grants',
-        location: 'Canada',
+        name: 'University of California, Berkeley',
+        location: 'California',
         level: 'MBA',
         funding: 'Partial Scholarships',
-        deadline: 'Nov 30, 2025',
+        deadline: '2025-12-01',
         blurb: 'Merit-based partial scholarships and waived application fee for select MBA applicants.',
-        image: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1200&q=80&auto=format&fit=crop',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Seal_of_University_of_California%2C_Berkeley.svg',
     },
 ];
 
