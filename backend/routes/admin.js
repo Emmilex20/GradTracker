@@ -92,6 +92,7 @@ router.post('/cv-service/submit', verifyToken, uploadInitialCV.single('cvFile'),
             userEmail,
             cvUrl: req.file.path,
             status: 'pending',
+            type: 'cv_upload',
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
@@ -197,6 +198,51 @@ router.post('/cv-service/correct/:requestId', verifyToken, checkRole('admin'), u
     } catch (err) {
         console.error('Error uploading corrected CV:', err);
         res.status(500).json({ message: 'Server error.', error: err.message });
+    }
+});
+
+// ** NEW: Route for admin to schedule a session for a new CV request **
+router.post('/cv-service/schedule-session/:requestId', verifyToken, checkRole('admin'), async (req, res) => {
+    try {
+        const { requestId } = req.params;
+        const { scheduledDate, scheduledTime, zoomLink } = req.body;
+
+        if (!scheduledDate || !scheduledTime || !zoomLink) {
+            return res.status(400).json({ message: 'Date, time, and Zoom link are required to schedule a session.' });
+        }
+
+        const requestRef = db.collection('cv_requests').doc(requestId);
+        const requestDoc = await requestRef.get();
+
+        if (!requestDoc.exists) {
+            return res.status(404).json({ message: 'CV request not found.' });
+        }
+        
+        const requestData = requestDoc.data();
+        const userId = requestData.userId;
+
+        await requestRef.update({
+            scheduledDate,
+            scheduledTime,
+            zoomLink,
+            status: 'scheduled',
+            respondedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Notify the user that their session has been scheduled
+        await db.collection('notifications').add({
+            userId,
+            message: `Your new CV session has been scheduled for ${scheduledDate} at ${scheduledTime}. The Zoom link is: ${zoomLink}.`,
+            type: 'cv_session_scheduled',
+            read: false,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        res.status(200).json({ message: 'CV session scheduled successfully.' });
+
+    } catch (error) {
+        console.error('Error scheduling CV session:', error);
+        res.status(500).json({ message: 'Server error.', error: error.message });
     }
 });
 
@@ -497,4 +543,4 @@ router.post('/financial-support/send-response', verifyToken, checkRole('admin'),
     }
 });
 
-export default router;
+export default router; 

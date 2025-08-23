@@ -218,85 +218,100 @@ export default function HomePage() {
                         </motion.div>
                     </div>
 
-                    {/* HERO */}
-                    <motion.section
-    initial="hidden"
-    animate="show"
-    variants={container}
-    className="relative overflow-hidden py-20 sm:py-28"
+                   <motion.section
+  initial="hidden"
+  animate="show"
+  variants={container}
+  className="relative overflow-hidden pt-20 pb-12 sm:pt-28 sm:pb-20 lg:pt-32 lg:pb-24 bg-gradient-to-br from-blue-50 via-white to-blue-100"
 >
-    {/* Desktop Gradient Background */}
-    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-100 z-0 lg:block hidden"></div>
-    {/* Mobile Video Background with Overlay */}
-    <div className="absolute inset-0 z-0 block lg:hidden">
-        <video
-            className="absolute inset-0 w-full h-full object-cover"
-            src="https://www.youtube.com/watch?v=eJxJ50MUveQ"
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster="/images/hero-video-bg-fallback.jpg"
-        >
-            Your browser does not support the video tag.
-        </video>
-        {/* Semi-transparent overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40 to-transparent"></div>
-    </div>
-    <motion.div
-        className="absolute z-0 w-72 h-72 bg-blue-200 rounded-full opacity-20 blur-3xl"
-        animate={{ y: [0, -30, 0], x: [0, 20, 0] }}
-        transition={{ repeat: Infinity, duration: 8 }}
-        style={{ top: '6%', left: '-8%' }}
-    />
-    <motion.div
-        className="absolute z-0 w-96 h-96 bg-blue-300 rounded-full opacity-18 blur-3xl"
-        animate={{ y: [0, 20, 0], x: [0, -20, 0] }}
-        transition={{ repeat: Infinity, duration: 10 }}
-        style={{ bottom: '2%', right: '-12%' }}
-    />
+  {/* Floating blobs */}
+  <motion.div
+    className="absolute z-0 w-96 h-96 bg-blue-300 rounded-full opacity-20 blur-3xl"
+    animate={{ y: [0, -40, 0], x: [0, 40, 0] }}
+    transition={{ repeat: Infinity, duration: 10 }}
+    style={{ top: "10%", left: "-10%" }}
+  />
+  <motion.div
+    className="absolute z-0 w-[28rem] h-[28rem] bg-blue-400 rounded-full opacity-20 blur-3xl"
+    animate={{ y: [0, 30, 0], x: [0, -30, 0] }}
+    transition={{ repeat: Infinity, duration: 12 }}
+    style={{ bottom: "-5%", right: "-10%" }}
+  />
 
-    <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-10">
-        <motion.div variants={item} className="flex-1 text-left">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight text-gray-700 lg:text-blue-900">
-                Grad School Application is Daunting!
-            </h1>
-            <p className="mt-5 text-lg text-black lg:text-gray-700 max-w-2xl">
-                From program search to writing tons of SOPs/CVs unto managing cold emails, reference letters, waivers, and deadlines - It is a full time job.
-            </p>
-            <p className="mt-5 text-lg text-black lg:text-gray-700 max-w-2xl">
-                This is why we built GradManager - A personalised WebApp that makes the process less overwhelming. It allows you to manage the entire process with a single dashboard.
-            </p>
+  <div className="container mx-auto px-6 relative z-10 flex flex-col lg:flex-row items-center gap-12">
+    {/* Text Content */}
+    <motion.div variants={item} className="flex-1 text-left">
+      <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-gray-800 lg:text-blue-900 drop-shadow-sm">
+        Grad School Applications, <br />
+        <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+          Simplified for You.
+        </span>
+      </h1>
+      <p className="mt-6 text-lg text-gray-600 max-w-2xl leading-relaxed">
+        From program search to SOPs, CVs, reference letters and deadlines —
+        GradManager makes the journey seamless in one powerful dashboard.
+      </p>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 items-center sm:items-start justify-start">
-                {!currentUser ? (
-                    <>
-                        <Link to="/signup" className="px-8 py-4 rounded-full bg-white text-blue-700 font-bold shadow-2xl flex items-center gap-2">
-                            <FaGraduationCap /> Join Us Now
-                        </Link>
-                    </>
-                ) : (
-                    <Link to="/dashboard" className="px-8 py-4 rounded-full bg-white text-blue-700 font-bold shadow-2xl">Go to Dashboard</Link>
-                )}
-            </div>
+      {/* CTA */}
+      <div className="mt-10 flex flex-col sm:flex-row gap-4">
+        {!currentUser ? (
+          <Link
+            to="/signup"
+            className="relative px-8 py-4 rounded-full 
+                       bg-gradient-to-r from-blue-600 via-indigo-500 to-pink-500
+                       bg-[length:200%_200%] animate-gradient
+                       text-white font-bold shadow-[0_0_25px_rgba(59,130,246,0.6)]
+                       transition-all duration-500 transform hover:scale-110 hover:shadow-[0_0_40px_rgba(59,130,246,0.9)]"
+          >
+            <FaGraduationCap className="inline-block mr-2" />
+            Join Us Now
+          </Link>
+        ) : (
+          <Link
+            to="/dashboard"
+            className="relative px-8 py-4 rounded-full 
+                       bg-gradient-to-r from-blue-600 via-indigo-500 to-pink-500
+                       bg-[length:200%_200%] animate-gradient
+                       text-white font-bold shadow-[0_0_25px_rgba(59,130,246,0.6)]
+                       transition-all duration-500 transform hover:scale-110 hover:shadow-[0_0_40px_rgba(59,130,246,0.9)]"
+          >
+            Go to Dashboard
+          </Link>
+        )}
+      </div>
 
-            <div className="mt-8 flex flex-wrap gap-4 items-center text-sm text-gray-300 lg:text-gray-700">
-                <div className="flex items-center gap-3"><FaBolt /><span>Curated funded programs</span></div>
-                <div className="flex items-center gap-3"><FaShieldAlt /><span>Verified application info</span></div>
-                <div className="flex items-center gap-3"><FaCheckCircle /><span>Mentors & document reviews</span></div>
-            </div>
-        </motion.div>
-        <motion.div variants={item} className="flex-1 relative hidden lg:block">
-            <motion.img
-                src="https://img.freepik.com/premium-photo/handsome-young-latin-american-man-smart-student-watching-webinar-online-class-using-laptop_695242-1819.jpg?semt=ais_hybrid&w=740&q=80"
-                alt="Student using GradManager web app"
-                className="rounded-3xl shadow-2xl w-full h-auto object-cover"
-                animate={{ y: ["0%", "-5%", "0%"] }}
-                transition={{ duration: 3, ease: "easeInOut", repeat: Infinity, repeatType: "loop" }}
-            />
-        </motion.div>
-    </div>
+      {/* Features */}
+      <div className="mt-10 flex flex-wrap gap-6 text-sm text-gray-600">
+        <div className="flex items-center gap-2">
+          <FaBolt className="text-blue-600" /> Curated funded programs
+        </div>
+        <div className="flex items-center gap-2">
+          <FaShieldAlt className="text-blue-600" /> Verified application info
+        </div>
+        <div className="flex items-center gap-2">
+          <FaCheckCircle className="text-blue-600" /> Mentors & reviews
+        </div>
+      </div>
+    </motion.div>
+
+    {/* Image */}
+    <motion.div variants={item} className="flex-1 relative hidden lg:block">
+      <motion.img
+        src="https://img.freepik.com/premium-photo/handsome-young-latin-american-man-smart-student-watching-webinar-online-class-using-laptop_695242-1819.jpg?semt=ais_hybrid&w=740&q=80"
+        alt="Student using GradManager web app"
+        className="rounded-3xl shadow-2xl w-full h-auto object-cover border-8 border-white"
+        animate={{ y: ["0%", "-5%", "0%"] }}
+        transition={{
+          duration: 3,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "loop",
+        }}
+      />
+    </motion.div>
+  </div>
 </motion.section>
+
                     
                     {/* What GradManager Offers */}
                     <section className="container mx-auto px-6 py-14">

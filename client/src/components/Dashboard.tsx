@@ -52,7 +52,10 @@ interface MentorRequest {
 // Corrected type for the Academic CV request data to match the card component
 interface AcademicCVRequest {
     id: string;
-    status: 'pending' | 'completed' | 'none'; // 'review_complete' is mapped to 'completed'
+    status: 'pending' | 'scheduled' | 'completed' | 'none';
+    scheduledDate?: string;
+    scheduledTime?: string;
+    zoomLink?: string;
     correctedCvUrl?: string;
 }
 
@@ -143,15 +146,22 @@ const Dashboard: React.FC = () => {
             const response = await axios.get(`${API_URL}/cv-service/my-request`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (response.data.status === 'none') {
+            
+            const backendData = response.data;
+
+            if (backendData.status === 'none') {
                 setCvRequest(null);
             } else {
-                // Corrected logic: Map 'review_complete' to 'completed'
-                const status = response.data.status === 'review_complete' ? 'completed' : response.data.status;
+                // Map the status and include all relevant data
+                const status = backendData.status === 'review_complete' ? 'completed' : backendData.status;
+
                 setCvRequest({
-                    id: response.data.id,
+                    id: backendData.id,
                     status: status,
-                    correctedCvUrl: response.data.correctedCvUrl
+                    scheduledDate: backendData.scheduledDate,
+                    scheduledTime: backendData.scheduledTime,
+                    zoomLink: backendData.zoomLink,
+                    correctedCvUrl: backendData.correctedCvUrl
                 });
             }
         } catch (error) {
@@ -169,52 +179,80 @@ const Dashboard: React.FC = () => {
                 status: 'pending',
                 timestamp: new Date().toISOString()
             });
-            alert('SOP Live Writing request has been sent! An admin will be notified.');
+            toast.success('SOP Live Writing request has been sent! An admin will be notified.');
         } catch (error) {
             console.error('Error sending SOP request:', error);
-            alert('Failed to send SOP request. Please try again.');
+            toast.error('Failed to send SOP request. Please try again.');
         }
     };
 
     const handleInterviewRequestSent = () => {
         setIsInterviewPrepFormOpen(false);
-        alert('Interview preparation request sent successfully! We will be in touch shortly.');
+        toast.success('Interview preparation request sent successfully! We will be in touch shortly.');
     };
     
     const handleVisaRequestSent = () => {
         setIsVisaPrepFormOpen(false);
-        alert('Visa preparation request sent successfully! We will be in touch shortly.');
+        toast.success('Visa preparation request sent successfully! We will be in touch shortly.');
     };
 
-    // Corrected HANDLER FOR ACADEMIC CV SERVICE
-    const handleRequestCVService = async (file: File) => {
+    // Corrected HANDLER FOR ACADEMIC CV SERVICE - Uploading file
+    const handleCVUpload = async (file: File) => {
         if (!currentUser || !token) {
             toast.error('You must be logged in to submit a request.');
-            return;
+            throw new Error('User not authenticated.');
         }
 
         const formData = new FormData();
         formData.append('cvFile', file);
 
         try {
-            // Unused 'response' variable is removed for cleaner code
             await axios.post(`${API_URL}/cv-service/submit`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     Authorization: `Bearer ${token}`,
                 },
             });
-            toast.success('Your CV request has been submitted successfully!');
+            toast.success('Your CV has been uploaded and submitted for review!');
             setIsCVServiceModalOpen(false);
             fetchCVRequest(); // Refresh the status to show "pending"
+        } catch (error: unknown) {
+            console.error('Failed to upload CV file:', error);
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 409) {
+                    toast.error('You already have a pending CV review request.');
+                } else {
+                    toast.error('Failed to upload file. Please try again.');
+                }
+            } else {
+                toast.error('An unexpected error occurred during file upload.');
+            }
+            throw error; // Re-throw to trigger the modal's error state
+        }
+    };
 
-        } catch (error: unknown) { // Changed 'any' to 'unknown'
-            console.error('Failed to submit CV request:', error);
+    // Corrected HANDLER for new CV request with notes
+    const handleNewCVRequest = async (data: { notes: string }) => {
+        if (!currentUser || !token) {
+            toast.error('You must be logged in to submit a request.');
+            throw new Error('User not authenticated.');
+        }
+
+        try {
+            await axios.post(`${API_URL}/cv-service/new-request`, data, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            toast.success('Your new CV request has been submitted successfully!');
+            setIsCVServiceModalOpen(false);
+            fetchCVRequest();
+        } catch (error: unknown) {
+            console.error('Failed to submit new CV request:', error);
             if (axios.isAxiosError(error) && error.response?.status === 409) {
                 toast.error('You already have a pending CV review request.');
             } else {
                 toast.error('Failed to submit request. Please try again.');
             }
+            throw error;
         }
     };
 
@@ -298,7 +336,7 @@ const Dashboard: React.FC = () => {
             await fetchMentorRequests();
         } catch (error) {
             console.error('Error sending mentor request:', error);
-            alert('An error occurred while sending the request.');
+            toast.error('An error occurred while sending the request.');
         }
     };
 
@@ -407,6 +445,9 @@ const Dashboard: React.FC = () => {
                 <AcademicCVServiceCard 
                     onRequestCVService={() => setIsCVServiceModalOpen(true)} 
                     requestStatus={cvRequest?.status || 'none'}
+                    scheduledDate={cvRequest?.scheduledDate}
+                    scheduledTime={cvRequest?.scheduledTime}
+                    zoomLink={cvRequest?.zoomLink}
                     downloadUrl={cvRequest?.correctedCvUrl}
                 />
 
@@ -583,7 +624,7 @@ const Dashboard: React.FC = () => {
             {/* Admission Interview History Modal - Corrected */}
             {showInterviewPrepHistoryModal && (
                 <Modal 
-                    isOpen={showInterviewPrepHistoryModal} // Fix: Added isOpen prop
+                    isOpen={showInterviewPrepHistoryModal}
                     onClose={() => setShowInterviewPrepHistoryModal(false)}
                 >
                     <InterviewPrepHistory onClose={() => setShowInterviewPrepHistoryModal(false)} />
@@ -601,7 +642,7 @@ const Dashboard: React.FC = () => {
             {/* Visa Interview History Modal - Corrected */}
             {showVisaPrepHistoryModal && (
                 <Modal 
-                    isOpen={showVisaPrepHistoryModal} // Fix: Added isOpen prop
+                    isOpen={showVisaPrepHistoryModal}
                     onClose={() => setShowVisaPrepHistoryModal(false)}
                 >
                     <VisaInterviewHistory onClose={() => setShowVisaPrepHistoryModal(false)} />
@@ -621,7 +662,8 @@ const Dashboard: React.FC = () => {
             <AcademicCVRequestModal
                 isOpen={isCVServiceModalOpen}
                 onClose={() => setIsCVServiceModalOpen(false)}
-                onConfirm={handleRequestCVService}
+                onUpload={handleCVUpload}
+                onNewRequest={handleNewCVRequest}
             />
 
             <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />

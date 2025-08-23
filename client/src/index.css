@@ -19,19 +19,26 @@
   }
 }
 
-@keyframes gradientFlow {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
+/* === Custom Keyframes & Animations === */
 
+/* Slower flow animation */
+@keyframes gradientFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 .animate-gradient-flow {
   background-size: 200% 200%;
   animation: gradientFlow 12s ease infinite;
+}
+
+/* Faster vibrant animation */
+@keyframes gradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 6s ease infinite;
 }
