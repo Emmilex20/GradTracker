@@ -314,104 +314,275 @@ export default function HomePage() {
 
                     
                     {/* What GradManager Offers */}
-                    <section className="container mx-auto px-6 py-14">
-                        <motion.h2
-                            className="text-3xl md:text-4xl font-bold text-center text-secondary"
-                            initial={{ opacity: 0, y: 16 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, amount: 0.1 }}
-                        >
-                            What GradManager Offers.
-                        </motion.h2>
-                        <motion.p 
-                          className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark"
-                          initial={{ opacity: 0, y: 16 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true, amount: 0.1 }}
-                          transition={{ delay: 0.1 }}
-                        >
-                            Everything from discovery to mentorship — built for applicants who want results and less stress.
-                        </motion.p>
-                        <motion.div
-                            className="mt-10 grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-                            variants={container}
-                            initial="hidden"
-                            whileInView="show"
-                            viewport={{ once: true, amount: 0.1 }}
-                        >
-                            {platformFeatures.map((feat, i) => (
-                                <motion.div
-                                    key={i}
-                                    variants={item}
-                                    className="relative p-8 bg-white rounded-2xl shadow-lg border border-transparent overflow-hidden
-                                               transform hover:scale-105 transition-all duration-300 group
-                                               hover:shadow-xl"
-                                >
-                                    <div className="absolute inset-0 border-2 border-primary rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
-                                    <div className="relative z-10 flex flex-col h-full">
-                                        <div className="rounded-full w-14 h-14 flex items-center justify-center bg-blue-100 text-primary mb-6">
-                                            {feat.icon}
-                                        </div>
-                                        <h4 className="font-bold text-lg text-secondary pb-16 h-12 flex items-start">{feat.title}</h4>
-                                        <div className="rounded-lg w-full h-48 flex-grow-0 flex-shrink-0 flex items-center justify-center mb-4 overflow-hidden relative">
-                                            <img src={feat.src} alt={feat.title} className="w-full h-full object-cover rounded-lg" />
-                                        </div>
-                                        <p className="mt-auto text-sm text-neutral-dark flex-grow whitespace-pre-wrap">{feat.desc}</p>
-                                        
-                                        {/* Added "See More" button here */}
-                                        <button
-                                            onClick={() => setModalFeature(feat)}
-                                            className="mt-4 self-start text-sm text-primary font-semibold hover:underline transition"
-                                        >
-                                            Dashboard View
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </motion.div>
-                    </section>
+<section className="relative overflow-hidden py-14 bg-gradient-to-br from-blue-50 via-white to-blue-100">
+  {/* Floating blobs (optional, like hero) */}
+  <motion.div
+    className="absolute z-0 w-96 h-96 bg-blue-300 rounded-full opacity-20 blur-3xl"
+    animate={{ y: [0, -40, 0], x: [0, 40, 0] }}
+    transition={{ repeat: Infinity, duration: 12 }}
+    style={{ top: "-10%", left: "-10%" }}
+  />
+  <motion.div
+    className="absolute z-0 w-[28rem] h-[28rem] bg-blue-400 rounded-full opacity-20 blur-3xl"
+    animate={{ y: [0, 30, 0], x: [0, -30, 0] }}
+    transition={{ repeat: Infinity, duration: 15 }}
+    style={{ bottom: "-10%", right: "-10%" }}
+  />
+
+  <div className="container mx-auto px-6 relative z-10">
+    {/* Gradient Flow Heading */}
+    <motion.h2
+      className="text-3xl md:text-4xl font-extrabold text-center 
+                 bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 
+                 bg-clip-text text-transparent animate-text"
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+    >
+      What Grad Manager Offers
+    </motion.h2>
+
+    <motion.p
+      className="max-w-3xl mx-auto text-center mt-3 text-neutral-dark"
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.1 }}
+      transition={{ delay: 0.1 }}
+    >
+      Everything from discovery to mentorship — built for applicants who want results and less stress.
+    </motion.p>
+
+    <motion.div
+      className="mt-10 grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.1 }}
+    >
+      {platformFeatures.map((feat, i) => (
+        <motion.div
+          key={i}
+          variants={item}
+          className="relative p-8 bg-white rounded-2xl shadow-lg border border-transparent overflow-hidden
+                     transform hover:scale-105 transition-all duration-300 group
+                     hover:shadow-xl"
+        >
+          <div className="absolute inset-0 border-2 border-primary rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"></div>
+          <div className="relative z-10 flex flex-col h-full">
+            <div className="rounded-full w-14 h-14 flex items-center justify-center bg-blue-100 text-primary mb-6">
+              {feat.icon}
+            </div>
+
+            {/* Feature Title with gradient font */}
+            <h4 className="font-bold text-lg pb-16 h-12 flex items-start 
+                           bg-gradient-to-r from-blue-600 via-indigo-500 to-pink-500 
+                           bg-clip-text text-transparent animate-text">
+              {feat.title}
+            </h4>
+
+            <div className="rounded-lg w-full h-48 flex-grow-0 flex-shrink-0 flex items-center justify-center mb-4 overflow-hidden relative">
+              <img
+                src={feat.src}
+                alt={feat.title}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
+            <p className="mt-auto text-sm text-neutral-dark flex-grow whitespace-pre-wrap">
+              {feat.desc}
+            </p>
+
+            <button
+              onClick={() => setModalFeature(feat)}
+              className="mt-4 self-start text-sm font-semibold 
+                         bg-gradient-to-r from-blue-600 via-indigo-500 to-pink-500 
+                         bg-clip-text text-transparent hover:underline transition"
+            >
+              Dashboard View
+            </button>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  </div>
+</section>
 
                     {/* How it Works (Steps with images) */}
-                    <section className="bg-gradient-to-r from-blue-50 to-white py-14">
-                        <div className="container mx-auto px-6">
-                            <h3 className="text-3xl font-bold text-center text-secondary">How it works — 4 simple steps</h3>
-                            <p className="text-center max-w-2xl mx-auto mt-3 text-neutral-dark">From discovery to acceptance. Designed for clarity and speed.</p>
-                            <div className="mt-10 grid md:grid-cols-2 gap-8">
-                                {steps.map((s, i) => (
-                                    <motion.div key={i} className="flex gap-6 items-center bg-white rounded-2xl p-6 shadow" variants={item}>
-                                        <img src={s.img} alt={s.title} className="w-32 h-24 rounded-lg object-cover shadow-sm" />
-                                        <div>
-                                            <div className="flex items-center gap-3 text-primary font-semibold">{s.icon}<span>{i + 1}</span></div>
-                                            <h4 className="font-bold text-lg mt-2">{s.title}</h4>
-                                            <p className="text-sm text-neutral-dark mt-2 max-w-md">{s.desc}</p>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
+<section className="relative overflow-hidden py-14 bg-gradient-to-br from-blue-50 via-white to-blue-100">
+  {/* Floating blobs for motion background */}
+  <motion.div
+    className="absolute z-0 w-80 h-80 bg-pink-300 rounded-full opacity-20 blur-3xl"
+    animate={{ y: [0, -30, 0], x: [0, 30, 0] }}
+    transition={{ repeat: Infinity, duration: 14 }}
+    style={{ top: "-8%", left: "-8%" }}
+  />
+  <motion.div
+    className="absolute z-0 w-[26rem] h-[26rem] bg-purple-400 rounded-full opacity-20 blur-3xl"
+    animate={{ y: [0, 25, 0], x: [0, -25, 0] }}
+    transition={{ repeat: Infinity, duration: 18 }}
+    style={{ bottom: "-8%", right: "-8%" }}
+  />
+
+  <div className="container mx-auto px-6 relative z-10">
+    {/* Gradient Flow Heading */}
+    <h3
+      className="text-3xl md:text-4xl font-extrabold text-center 
+                 bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 
+                 bg-clip-text text-transparent animate-text"
+    >
+      How it works — 4 simple steps
+    </h3>
+
+    <p className="text-center max-w-2xl mx-auto mt-3 text-neutral-dark">
+      From discovery to acceptance. Designed for clarity and speed.
+    </p>
+
+    <div className="mt-10 grid md:grid-cols-2 gap-8">
+      {steps.map((s, i) => (
+        <motion.div
+          key={i}
+          className="flex gap-6 items-center bg-white rounded-2xl p-6 shadow-lg border border-transparent
+                     transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
+          variants={item}
+        >
+          <img
+            src={s.img}
+            alt={s.title}
+            className="w-32 h-24 rounded-lg object-cover shadow-md"
+          />
+          <div>
+            {/* Step Number with gradient */}
+            <div className="flex items-center gap-3 font-bold">
+              <span
+                className="text-xl bg-gradient-to-r from-pink-600 via-red-500 to-yellow-500 
+                           bg-clip-text text-transparent animate-text"
+              >
+                {i + 1}
+              </span>
+              <span className="text-primary">{s.icon}</span>
+            </div>
+
+            {/* Step Title with subtle gradient */}
+            <h4
+              className="font-bold text-lg mt-2 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 
+                         bg-clip-text text-transparent"
+            >
+              {s.title}
+            </h4>
+
+            <p className="text-sm text-neutral-dark mt-2 max-w-md">{s.desc}</p>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+</section>
+
 
                     {/* Scholarship Showcase */}
-                    <section className="container mx-auto px-6 py-14">
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-2xl font-bold text-secondary">Featured Scholarships & Funding</h3>
-                            <Link to="/programs" className="text-primary font-semibold">Browse all</Link>
-                        </div>
-                        <motion.div className="grid md:grid-cols-3 gap-6" variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                            {featuredScholarships.map((s, i) => <ScholarshipCard key={i} school={s} />)}
-                        </motion.div>
-                    </section>
+<section className="container mx-auto px-6 py-14">
+  <div className="flex items-center justify-between mb-8">
+    <h3 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 bg-clip-text text-transparent tracking-wide drop-shadow-sm">
+      Featured Scholarships & Funding
+    </h3>
+    <Link 
+      to="/programs" 
+      className="font-semibold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent hover:from-blue-600 hover:to-purple-600 transition-all duration-300"
+    >
+      Browse all →
+    </Link>
+  </div>
+
+  <motion.div 
+    className="grid md:grid-cols-3 gap-6"
+    variants={container} 
+    initial="hidden" 
+    whileInView="show" 
+    viewport={{ once: true }}
+  >
+    {featuredScholarships.map((s, i) => (
+      <ScholarshipCard key={i} school={s} />
+    ))}
+  </motion.div>
+</section>
+
 
                     {/* Video Walkthrough */}
-                    <section className="py-14 bg-neutral-50">
-                        <div className="container mx-auto px-6 text-center">
-                            <h3 className="text-3xl font-bold text-secondary">See Grad Manager in action</h3>
-                            <p className="max-w-2xl mx-auto mt-3 text-neutral-dark">Watch this short walkthrough to see how quickly you can find fully-funded programs and manage applications.</p>
-                            <div className="mt-8 max-w-4xl mx-auto rounded-2xl overflow-hidden shadow-2xl aspect-video">
-                                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Demo" allowFullScreen className="w-full h-full"></iframe>
-                            </div>
-                        </div>
-                    </section>
+{/* Video Walkthrough */}
+<section className="relative overflow-hidden py-20 bg-gradient-to-r from-blue-100 via-white to-purple-100 animate-gradient">
+  {/* Soft floating blobs */}
+  <motion.div
+    className="absolute -top-16 -left-16 w-72 h-72 rounded-full bg-blue-300/30 blur-3xl"
+    animate={{ y: [0, -25, 0], x: [0, 25, 0] }}
+    transition={{ repeat: Infinity, duration: 14, ease: "easeInOut" }}
+  />
+  <motion.div
+    className="absolute -bottom-20 -right-20 w-[22rem] h-[22rem] rounded-full bg-pink-300/30 blur-3xl"
+    animate={{ y: [0, 20, 0], x: [0, -20, 0] }}
+    transition={{ repeat: Infinity, duration: 16, ease: "easeInOut" }}
+  />
+
+  <div className="container mx-auto px-6 text-center relative z-10">
+    {/* Heading with flowing gradient text */}
+    <motion.h3
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6 }}
+      className="text-4xl md:text-5xl font-extrabold tracking-tight
+                 bg-gradient-to-r from-blue-700 via-indigo-600 to-pink-600
+                 bg-clip-text text-transparent animate-text"
+    >
+      See Grad Manager in Action
+    </motion.h3>
+
+    {/* Animated accent underline */}
+    <motion.div
+      initial={{ opacity: 0, scaleX: 0.6 }}
+      whileInView={{ opacity: 1, scaleX: 1 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, delay: 0.1 }}
+      className="mx-auto mt-3 h-1 w-24 rounded-full
+                 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 animate-gradient"
+    />
+
+    {/* Subtext with gentle motion; key phrase in gradient */}
+    <motion.p
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.7, delay: 0.15 }}
+      className="max-w-2xl mx-auto mt-4 text-lg text-neutral-700"
+    >
+      Watch this short walkthrough to see how quickly you can find{" "}
+      <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-pink-600 bg-clip-text text-transparent">
+        fully-funded programs
+      </span>{" "}
+      and manage applications in one place.
+    </motion.p>
+
+    {/* Video with animated gradient border + subtle reveal */}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.8, delay: 0.25, ease: "easeOut" }}
+      className="group mt-10 max-w-4xl mx-auto rounded-3xl p-[3px]
+                 bg-gradient-to-r from-blue-600 via-indigo-600 to-pink-600 animate-gradient shadow-2xl"
+    >
+      <div className="rounded-3xl overflow-hidden bg-white">
+        <iframe
+          src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+          title="GradManager Demo"
+          allowFullScreen
+          className="w-full h-[56.25vw] max-h-[640px] md:h-[480px]"
+        />
+      </div>
+    </motion.div>
+  </div>
+</section>
+
+
+
 
                     {/* Testimonials & Success Stories */}
                     <section className="container mx-auto px-6 py-14">

@@ -89,7 +89,7 @@ export const platformFeatures: Feature[] = [
     { 
         icon: <FaPenNib className="text-2xl" />, 
         src: SOP, 
-        title: 'SOP and CV live writing', 
+        title: 'SOP and CV Live Writing', 
         desc: "Struggling with your first draft? Get paired with a mentor who will co-write your SOP and CV from scratch with you over Zoom, guiding you step by step.",
         fullDesc: 'Feeling overwhelmed staring at a blank page? You’re not alone—most students struggle to put their dreams into words. That’s where we come in. In a live Zoom session, you’ll work one-on-one with an expert mentor who understands the pressure you’re under. Together, we’ll turn your raw ideas into a polished SOP and CV that capture your true potential. No more second-guessing or rejection fears—just powerful, professional documents that open doors and give you the confidence to chase your future.',
         fullImage: SOP2,
