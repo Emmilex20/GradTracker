@@ -5,38 +5,55 @@ import { useAuth } from '../../context/AuthContext';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import Modal from '../Modal';
-import FinancialSupportHistory from './FinancialSupportHistory'; // We'll create this next
+import FinancialSupportHistory from './FinancialSupportHistory';
 
-interface FinancialSupportCardProps {
-    applications: any[]; // You can type this more strictly later if needed
+// The Group type definition is now imported or defined here
+interface Group {
+    id: string;
+    name: string;
 }
 
-const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ applications }) => {
+interface FinancialSupportCardProps {
+    applications: any[];
+    userGroups: Group[]; // NEW PROP: Pass the user's groups here
+}
+
+const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ applications, userGroups }) => {
     const { currentUser } = useAuth();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [selectedApplicationId, setSelectedApplicationId] = useState('');
     const [notes, setNotes] = useState('');
-    const [requestedAmount, setRequestedAmount] = useState(''); // NEW STATE FOR AMOUNT
+    const [requestedAmount, setRequestedAmount] = useState('');
+    const [selectedGroupId, setSelectedGroupId] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleRequest = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Check for required fields: user, application, and the new requested amount
-        if (!currentUser || !selectedApplicationId || !requestedAmount) {
-            alert('Please select an application, enter the requested amount, and make sure you are logged in.');
+        
+        if (!currentUser || !selectedApplicationId || !requestedAmount || !selectedGroupId) {
+            alert('Please select an application, a group, and enter the requested amount.');
             return;
         }
 
         const selectedApp = applications.find(app => app.id === selectedApplicationId);
+        
+        if (!selectedApp) {
+            alert('Selected application not found. Please try again or refresh the page.');
+            return;
+        }
+
+        setLoading(true);
 
         try {
             await addDoc(collection(db, "financial_support_requests"), {
                 userId: currentUser.uid,
-                userEmail: currentUser.email, // ADDED USER EMAIL
+                userEmail: currentUser.email,
                 applicationId: selectedApplicationId,
-                universityName: selectedApp?.schoolName || '', // ADDED UNIVERSITY NAME
-                requestedAmount: parseFloat(requestedAmount), // CONVERT TO NUMBER
+                universityName: selectedApp.schoolName || '',
+                requestedAmount: parseFloat(requestedAmount),
                 notes,
+                groupId: selectedGroupId,
                 status: 'pending',
                 requestedAt: Timestamp.now(),
             });
@@ -46,9 +63,12 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
             setSelectedApplicationId('');
             setNotes('');
             setRequestedAmount('');
+            setSelectedGroupId('');
         } catch (error) {
             console.error('Error sending financial support request:', error);
             alert('Failed to send request. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -79,7 +99,6 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                 </button>
             </div>
 
-            {/* Request Form Modal */}
             {isFormOpen && (
                 <Modal onClose={() => setIsFormOpen(false)}>
                     <div className="p-8">
@@ -87,21 +106,50 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                         <form onSubmit={handleRequest} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Select Application</label>
-                                <select
-                                    value={selectedApplicationId}
-                                    onChange={(e) => setSelectedApplicationId(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                                    required
-                                >
-                                    <option value="">-- Select an application --</option>
-                                    {applications.map(app => (
-                                        <option key={app.id} value={app.id}>
-                                            {app.schoolName} - {app.programName}
-                                        </option>
-                                    ))}
-                                </select>
+                                {applications.length > 0 ? (
+                                    <select
+                                        value={selectedApplicationId}
+                                        onChange={(e) => setSelectedApplicationId(e.target.value)}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                        required
+                                    >
+                                        <option value="">-- Select an application --</option>
+                                        {applications.map(app => (
+                                            <option key={app.id} value={app.id}>
+                                                {app.schoolName} - {app.programName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <p className="mt-2 text-sm text-gray-500">
+                                        No applications found. Please add an application on your dashboard first.
+                                    </p>
+                                )}
                             </div>
-                            {/* NEW FIELD: Requested Amount */}
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Select Group</label>
+                                {userGroups.length > 0 ? (
+                                    <select
+                                        value={selectedGroupId}
+                                        onChange={(e) => setSelectedGroupId(e.target.value)}
+                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                        required
+                                    >
+                                        <option value="">-- Select a group --</option>
+                                        {userGroups.map(group => (
+                                            <option key={group.id} value={group.id}>
+                                                {group.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <p className="mt-2 text-sm text-gray-500">
+                                        No groups found. You are not a member of any financial support groups.
+                                    </p>
+                                )}
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Requested Amount ($)</label>
                                 <input
@@ -126,15 +174,15 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                             <button
                                 type="submit"
                                 className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
+                                disabled={loading || applications.length === 0 || userGroups.length === 0}
                             >
-                                Submit Request
+                                {loading ? 'Sending...' : 'Submit Request'}
                             </button>
                         </form>
                     </div>
                 </Modal>
             )}
 
-            {/* History Modal */}
             {showHistoryModal && (
                 <Modal onClose={() => setShowHistoryModal(false)}>
                     <FinancialSupportHistory onClose={() => setShowHistoryModal(false)} />

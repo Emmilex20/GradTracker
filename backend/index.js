@@ -6,12 +6,12 @@ import mongoose from 'mongoose';
 import session from 'express-session';
 import passport from './auth/googleAuth.js';
 import MongoStore from 'connect-mongo';
-import http from 'http';
-import { Server } from 'socket.io';
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { v2 as cloudinary } from 'cloudinary';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 // Services & Models
 import startCronJob from './services/cron-job.js';
@@ -39,6 +39,8 @@ import agoraRoutes from './routes/agoraRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
 import interviewPrepRoutes from './routes/interviewPrepRoutes.js';
 import financialSupportRoutes from './routes/financialSupportRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
+import cvServiceRoutes from './routes/cvServiceRoutes.js';
 
 // === NEW AI ROUTES IMPORT ===
 import aiRoutes from './routes/aiRoutes.js';
@@ -46,18 +48,11 @@ import aiRoutes from './routes/aiRoutes.js';
 // === NEW ROUTE IMPORT ===
 import visaInterviewPrepRoutes from './routes/visaInterviewPrepRoutes.js';
 
-
 const app = express();
-const server = http.createServer(app);
 
-// Initialize Socket.IO server
-const io = new Server(server, {
-    path: '/api/socket.io',
-    cors: {
-        origin: process.env.CLIENT_URL,
-        methods: ["GET", "POST", "PUT", "DELETE"]
-    }
-});
+// **ES Module fix for __dirname**
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Database connection
 mongoose.connect(process.env.MONGO_URI)
@@ -67,8 +62,13 @@ mongoose.connect(process.env.MONGO_URI)
     })
     .catch(err => console.error('MongoDB connection error:', err));
 
-// Middleware
-app.use(cors());
+const corsOptions = {
+  origin: process.env.CLIENT_URL, // Use the variable from .env
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json());
 
 // === Express Session Configuration ===
@@ -295,85 +295,24 @@ app.use('/api/groups', groupsRoutes);
 app.use('/api/agora', agoraRoutes);
 app.use('/api/projects', verifyToken, projectRoutes);
 app.use('/api/interview-prep', verifyToken, interviewPrepRoutes);
+app.use('/api/chats', verifyToken, chatRoutes);
+app.use('/api/cv-service', verifyToken, cvServiceRoutes);
 
 // === NEW VISA INTERVIEW PREP ROUTE ===
 app.use('/api/visa-prep', verifyToken, visaInterviewPrepRoutes);
 app.use('/api/financial-support', verifyToken, financialSupportRoutes);
-
-// === NEW GET Route for fetching historical messages ===
-app.get('/api/messages/:chatId', async (req, res) => {
-    try {
-        const { chatId } = req.params;
-        const messagesRef = admin.firestore().collection('chats').doc(chatId).collection('messages');
-        const snapshot = await messagesRef.orderBy('createdAt', 'asc').get();
-
-        const messages = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate().toISOString() || null,
-        }));
-
-        res.status(200).json(messages);
-    } catch (error) {
-        console.error('Error fetching historical messages:', error);
-        res.status(500).json({ message: 'Failed to fetch messages.' });
-    }
-});
-
 
 // Root route
 app.get('/', (req, res) => {
     res.send('Grad School Application API is running!');
 });
 
-// === Socket.IO Connection Handling ===
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-    const db = admin.firestore();
+// The catch-all route that serves your frontend application's index.html file.
+// This must be placed AFTER all API routes to prevent them from being intercepted.
 
-    // Join a room for one-on-one chat or group chat
-    socket.on('join_chat', (chatId) => {
-        socket.join(chatId);
-        console.log(`User ${socket.id} joined chat room: ${chatId}`);
-    });
 
-    // Handle sending and receiving messages for both one-on-one and group chats
-    socket.on('send_message', async (data) => {
-        const { chatId, senderId, text } = data;
-
-        try {
-            // Save message to Firestore
-            const messageRef = await db.collection('chats').doc(chatId).collection('messages').add({
-                senderId,
-                text,
-                createdAt: admin.firestore.FieldValue.serverTimestamp()
-            });
-
-            const messageDoc = await messageRef.get();
-            const messageData = messageDoc.data();
-
-            // Ensure a valid createdAt string is always present
-            const createdAt = messageData.createdAt ? messageData.createdAt.toDate().toISOString() : new Date().toISOString();
-
-            // Emit the message to all clients in the chat room
-            io.to(chatId).emit('receive_message', {
-                id: messageDoc.id,
-                senderId: messageData.senderId,
-                text: messageData.text,
-                createdAt,
-            });
-        } catch (error) {
-            console.error('Error saving message to Firestore:', error);
-        }
-    });
-
-    socket.on('disconnect', () => {
-        console.log('A user disconnected:', socket.id);
-    });
-});
-
-// Start server (use the http server, not the express app)
+// Start server (use the express app directly since there's no Socket.IO)
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
+app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
+}); 

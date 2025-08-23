@@ -1,5 +1,3 @@
-// src/components/Dashboard.tsx
-
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -28,12 +26,18 @@ import InterviewPrepHistory from './Dashboard/InterviewPrepHistory';
 import VisaInterviewPrepForm from './VisaInterviewPrepForm';
 import VisaInterviewHistory from './Dashboard/VisaInterviewHistory';
 import Modal from './Modal';
+import { fetchMyGroups } from '../services/groupService';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore'; 
 import { db } from '../firebase';
 
-// NEW IMPORTS
+// Services & Models
 import FinancialSupportCard from './Dashboard/FinancialSupportCard';
+import type { Group } from '../types/Group';
+import AcademicCVServiceCard from './Dashboard/AcademicCVServiceCard';
+import AcademicCVRequestModal from './AcademicCVRequestModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -43,6 +47,13 @@ interface MentorRequest {
     mentorName: string;
     status: 'pending' | 'accepted' | 'declined';
     createdAt: string;
+}
+
+// Corrected type for the Academic CV request data to match the card component
+interface AcademicCVRequest {
+    id: string;
+    status: 'pending' | 'completed' | 'none'; // 'review_complete' is mapped to 'completed'
+    correctedCvUrl?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -56,7 +67,8 @@ const Dashboard: React.FC = () => {
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
     const [upcomingDeadlines, setUpcomingDeadlines] = useState<Application[]>([]);
     const [selectedApplicationForTabs, setSelectedApplicationForTabs] = useState<Application | null>(null);
-    
+    const [userGroups, setUserGroups] = useState<Group[]>([]);
+
     const [mentorRequests, setMentorRequests] = useState<MentorRequest[]>([]);
     const [loadingMentorRequests, setLoadingMentorRequests] = useState(true);
 
@@ -68,6 +80,10 @@ const Dashboard: React.FC = () => {
 
     const [isVisaPrepFormOpen, setIsVisaPrepFormOpen] = useState(false);
     const [showVisaPrepHistoryModal, setShowVisaPrepHistoryModal] = useState(false);
+    
+    // NEW STATE FOR ACADEMIC CV SERVICE
+    const [isCVServiceModalOpen, setIsCVServiceModalOpen] = useState(false);
+    const [cvRequest, setCvRequest] = useState<AcademicCVRequest | null>(null);
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
     const statusColumns = ['Interested', 'Submitted', 'Accepted', 'Rejected'];
@@ -109,6 +125,40 @@ const Dashboard: React.FC = () => {
             setLoadingMentorRequests(false);
         }
     }, [token]);
+    
+    const fetchUserGroups = useCallback(async () => {
+        if (!currentUser || !token) return;
+        try {
+            const groups = await fetchMyGroups(currentUser.uid, token);
+            setUserGroups(groups);
+        } catch (error) {
+            console.error('Error fetching user groups:', error);
+        }
+    }, [currentUser, token]);
+    
+    // UPDATED FUNCTION TO FETCH ACADEMIC CV REQUEST
+    const fetchCVRequest = useCallback(async () => {
+        if (!currentUser || !token) return;
+        try {
+            const response = await axios.get(`${API_URL}/cv-service/my-request`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (response.data.status === 'none') {
+                setCvRequest(null);
+            } else {
+                // Corrected logic: Map 'review_complete' to 'completed'
+                const status = response.data.status === 'review_complete' ? 'completed' : response.data.status;
+                setCvRequest({
+                    id: response.data.id,
+                    status: status,
+                    correctedCvUrl: response.data.correctedCvUrl
+                });
+            }
+        } catch (error) {
+            console.error('Error fetching CV request:', error);
+            setCvRequest(null);
+        }
+    }, [currentUser, token]);
 
     const handleRequestSOPWriting = async (applicationId: string) => {
         if (!currentUser) return;
@@ -136,12 +186,46 @@ const Dashboard: React.FC = () => {
         alert('Visa preparation request sent successfully! We will be in touch shortly.');
     };
 
+    // Corrected HANDLER FOR ACADEMIC CV SERVICE
+    const handleRequestCVService = async (file: File) => {
+        if (!currentUser || !token) {
+            toast.error('You must be logged in to submit a request.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('cvFile', file);
+
+        try {
+            // Unused 'response' variable is removed for cleaner code
+            await axios.post(`${API_URL}/cv-service/submit`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            toast.success('Your CV request has been submitted successfully!');
+            setIsCVServiceModalOpen(false);
+            fetchCVRequest(); // Refresh the status to show "pending"
+
+        } catch (error: unknown) { // Changed 'any' to 'unknown'
+            console.error('Failed to submit CV request:', error);
+            if (axios.isAxiosError(error) && error.response?.status === 409) {
+                toast.error('You already have a pending CV review request.');
+            } else {
+                toast.error('Failed to submit request. Please try again.');
+            }
+        }
+    };
+
     useEffect(() => {
         if (currentUser && token) {
             fetchApplications();
             fetchMentorRequests();
+            fetchUserGroups();
+            fetchCVRequest(); // Fetch CV request data on mount
         }
-    }, [currentUser, token, fetchApplications, fetchMentorRequests]);
+    }, [currentUser, token, fetchApplications, fetchMentorRequests, fetchUserGroups, fetchCVRequest]);
 
     useEffect(() => {
         const today = new Date();
@@ -188,7 +272,7 @@ const Dashboard: React.FC = () => {
         } catch (err) {
             console.error('Failed to update application status:', err);
             fetchApplications();
-            alert('Failed to update application status. Please try again.');
+            toast.error('Failed to update application status. Please try again.');
         }
     };
 
@@ -295,7 +379,7 @@ const Dashboard: React.FC = () => {
                                         </h3>
                                         <DocumentReview
                                             application={selectedApplicationForTabs}
-                                            onDocumentUpdated={fetchApplications}
+                                            onDocumentUpdated={handleApplicationUpdated}
                                         />
                                     </div>
                                 ) : (
@@ -317,6 +401,13 @@ const Dashboard: React.FC = () => {
                     applications={applications}
                     onRequestSOPWriting={handleRequestSOPWriting}
                     currentUserUid={currentUser.uid}
+                />
+
+                {/* Academic CV Service Card */}
+                <AcademicCVServiceCard 
+                    onRequestCVService={() => setIsCVServiceModalOpen(true)} 
+                    requestStatus={cvRequest?.status || 'none'}
+                    downloadUrl={cvRequest?.correctedCvUrl}
                 />
 
                 {/* Admission Interview Prep Card */}
@@ -375,8 +466,8 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* NEW: Financial Support Card */}
-                <FinancialSupportCard applications={applications} />
+                {/* Financial Support Card */}
+                <FinancialSupportCard applications={applications} userGroups={userGroups} />
 
                 <AIPredictor 
                     applications={applications}
@@ -489,9 +580,12 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
             
-            {/* Admission Interview History Modal */}
+            {/* Admission Interview History Modal - Corrected */}
             {showInterviewPrepHistoryModal && (
-                <Modal onClose={() => setShowInterviewPrepHistoryModal(false)}>
+                <Modal 
+                    isOpen={showInterviewPrepHistoryModal} // Fix: Added isOpen prop
+                    onClose={() => setShowInterviewPrepHistoryModal(false)}
+                >
                     <InterviewPrepHistory onClose={() => setShowInterviewPrepHistoryModal(false)} />
                 </Modal>
             )}
@@ -504,9 +598,12 @@ const Dashboard: React.FC = () => {
                 />
             )}
 
-            {/* Visa Interview History Modal */}
+            {/* Visa Interview History Modal - Corrected */}
             {showVisaPrepHistoryModal && (
-                <Modal onClose={() => setShowVisaPrepHistoryModal(false)}>
+                <Modal 
+                    isOpen={showVisaPrepHistoryModal} // Fix: Added isOpen prop
+                    onClose={() => setShowVisaPrepHistoryModal(false)}
+                >
                     <VisaInterviewHistory onClose={() => setShowVisaPrepHistoryModal(false)} />
                 </Modal>
             )}
@@ -519,6 +616,15 @@ const Dashboard: React.FC = () => {
                 onViewDetailsModal={handleViewDetailsFromTracker}
                 onViewDashboardSections={handleViewDashboardSections}
             />
+
+            {/* Academic CV Service Modal - Corrected */}
+            <AcademicCVRequestModal
+                isOpen={isCVServiceModalOpen}
+                onClose={() => setIsCVServiceModalOpen(false)}
+                onConfirm={handleRequestCVService}
+            />
+
+            <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
         </div>
     );
 };

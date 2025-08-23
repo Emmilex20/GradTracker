@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { FaFileAlt, FaBullhorn, FaPenFancy, FaTasks, FaCalendarCheck, FaPassport, FaMoneyBillWave } from 'react-icons/fa'; // Import the new icon
+import { FaFileAlt, FaBullhorn, FaPenFancy, FaTasks, FaCalendarCheck, FaPassport, FaMoneyBillWave, FaFilePdf } from 'react-icons/fa'; // Added FaFilePdf icon
 import AdminReviewPage from './AdminReviewPage';
 import AdminNotificationForm from '../components/AdminDashboard/AdminNotificationForm';
 import AdminSOPRequests from './AdminDashboard/AdminSOPRequests';
 import AdminProjectReview from './AdminDashboard/AdminProjectReview';
 import AdminInterviewPrepRequests from './AdminDashboard/AdminInterviewPrepRequests'; 
 import AdminVisaPrepRequests from './AdminDashboard/AdminVisaPrepRequests';
-// NEW IMPORT
-import AdminFinancialSupportRequests from './AdminDashboard/AdminFinancialSupportRequests'; 
+import AdminFinancialSupportRequests from './AdminDashboard/AdminFinancialSupportRequests';
+import AdminAcademicCVService from './AdminDashboard/AdminAcademicCVService'; // Imported the new component
 
 const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState('sopRequests');
@@ -26,8 +26,10 @@ const AdminDashboard: React.FC = () => {
                 return <AdminInterviewPrepRequests />;
             case 'visaPrepRequests':
                 return <AdminVisaPrepRequests />;
-            case 'financialSupportRequests': // New case for financial support requests
+            case 'financialSupportRequests':
                 return <AdminFinancialSupportRequests />;
+            case 'academicCVService': // New case for Academic CV Service
+                return <AdminAcademicCVService />;
             default:
                 return null;
         }
@@ -36,7 +38,7 @@ const AdminDashboard: React.FC = () => {
     return (
         <div className="container mx-auto p-4 sm:p-6 lg:p-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Admin Dashboard</h1>
-
+            
             {/* Tab Navigation */}
             <div className="flex flex-wrap mb-6 border-b border-gray-200">
                 <button
@@ -99,8 +101,8 @@ const AdminDashboard: React.FC = () => {
                 >
                     <FaPassport className="inline mr-2" /> Visa Prep
                 </button>
-                 <button
-                    onClick={() => setActiveTab('financialSupportRequests')} // New tab
+                <button
+                    onClick={() => setActiveTab('financialSupportRequests')}
                     className={`px-4 py-2 font-medium text-sm transition-colors duration-200 ${
                         activeTab === 'financialSupportRequests'
                             ? 'text-blue-600 border-b-2 border-blue-600'
@@ -108,6 +110,16 @@ const AdminDashboard: React.FC = () => {
                     }`}
                 >
                     <FaMoneyBillWave className="inline mr-2" /> Financial Support
+                </button>
+                <button
+                    onClick={() => setActiveTab('academicCVService')} // Added new tab
+                    className={`px-4 py-2 font-medium text-sm transition-colors duration-200 ${
+                        activeTab === 'academicCVService'
+                            ? 'text-blue-600 border-b-2 border-blue-600'
+                            : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    <FaFilePdf className="inline mr-2" /> Academic CV Service
                 </button>
             </div>
 

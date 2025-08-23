@@ -1,16 +1,31 @@
 import express from 'express';
 import { admin } from '../config/firebase-config.js';
+import verifyToken from '../middleware/auth.js'; // Assuming this middleware exists
 
 const router = express.Router();
 
-// Route to handle financial support requests
-router.post('/requests', async (req, res) => {
+/**
+ * @route POST /api/financial-support/requests
+ * @desc Submit a financial support request.
+ * @access Private (requires authentication)
+ */
+router.post('/requests', verifyToken, async (req, res) => {
     try {
-        const { userId, userEmail, applicationId, universityName, notes, requestedAmount } = req.body;
+        // User details are now securely accessed from the request object
+        // after being set by the verifyToken middleware.
+        const userId = req.user.uid; 
+        const userEmail = req.user.email;
+        const { applicationId, universityName, notes, requestedAmount } = req.body;
 
         // Basic validation for required fields
-        if (!userId || !userEmail || !applicationId || !universityName || !requestedAmount) {
-            return res.status(400).json({ message: 'Missing required fields.' });
+        if (!applicationId || !universityName || !requestedAmount) {
+            return res.status(400).json({ message: 'Missing required fields: applicationId, universityName, or requestedAmount.' });
+        }
+
+        // Validate and sanitize input
+        const numericAmount = parseFloat(requestedAmount);
+        if (isNaN(numericAmount) || numericAmount <= 0) {
+            return res.status(400).json({ message: 'Requested amount must be a positive number.' });
         }
 
         const newRequest = {
@@ -18,7 +33,7 @@ router.post('/requests', async (req, res) => {
             userEmail,
             applicationId,
             universityName,
-            requestedAmount,
+            requestedAmount: numericAmount, // Use the sanitized value
             notes: notes || '',
             status: 'pending', // Initial status
             requestedAt: admin.firestore.FieldValue.serverTimestamp(),

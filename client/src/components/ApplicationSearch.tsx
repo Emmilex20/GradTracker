@@ -1,15 +1,6 @@
-// src/components/ApplicationSearch.tsx
-
 import React from 'react';
-import { FaSearch, FaFlask, FaLaptopCode, FaChartBar, FaGraduationCap } from 'react-icons/fa';
+import { FaSearch } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-
-const categories = [
-    { name: 'Data Science', icon: <FaChartBar />, link: '/programs?category=data-science' },
-    { name: 'Computer Science', icon: <FaLaptopCode />, link: '/programs?category=computer-science' },
-    { name: 'Biomedical Science', icon: <FaFlask />, link: '/programs?category=biomedical-science' },
-    { name: 'All Programs', icon: <FaGraduationCap />, link: '/programs' },
-];
 
 const ApplicationSearch: React.FC = () => {
     return (
@@ -30,20 +21,19 @@ const ApplicationSearch: React.FC = () => {
                 </Link>
             </div>
 
-            {/* Popular Categories Section */}
+            {/* Enticing Text Section */}
             <div className="text-center">
-                <h3 className="text-lg font-bold text-neutral-dark mb-4">GradManager Categories</h3>
-                <div className="flex flex-wrap justify-center gap-4">
-                    {categories.map((category, index) => (
-                        <Link
-                            key={index}
-                            to={category.link}
-                            className="flex flex-col items-center p-4 bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-                        >
-                            <span className="text-2xl text-primary mb-2">{category.icon}</span>
-                            <span className="text-sm font-medium text-secondary">{category.name}</span>
-                        </Link>
-                    ))}
+                <h3 className="text-lg font-bold text-neutral-dark mb-2">Explore Your Future.</h3>
+                <p className="text-md text-neutral-dark/80 max-w-xl">
+                    Find the perfect graduate program that aligns with your ambitions and career goals.
+                </p>
+                <div className="mt-4">
+                    <Link
+                        to="/programs"
+                        className="py-2 px-6 rounded-full bg-primary text-white font-medium hover:bg-primary-dark transition-colors duration-300"
+                    >
+                        Start Exploring
+                    </Link>
                 </div>
             </div>
         </div>

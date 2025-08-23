@@ -25,17 +25,24 @@ const GroupCallComponent: React.FC = () => {
     const localVideoRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!groupId || !currentUser?.uid || !token) { // NEW: Check for token
-            setIsLoading(false);
-            return;
-        }
+        if (!groupId || !currentUser?.uid || !token || joined) {
+        setIsLoading(false);
+        return;
+    }
 
-        const joinCall = async () => {
+    const joinCall = async () => {
             try {
                 // 1. Get token from backend
-                const response = await axios.post(`${API_URL}/agora/rtc-token`, { channelName: groupId }, {
-                    headers: { Authorization: `Bearer ${token}` } // NEW: Use the 'token' variable
-                });
+                const response = await axios.post(
+    `${API_URL}/agora/rtc-token`, 
+    { 
+        channelName: groupId, 
+        uid: currentUser.uid 
+    }, 
+    {
+        headers: { Authorization: `Bearer ${token}` }
+    }
+);
                 const { token: rtcToken, uid } = response.data; // Changed variable name to avoid conflict
 
                 // 2. Join the Agora channel
@@ -147,7 +154,7 @@ const GroupCallComponent: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col h-screen bg-gray-900 text-white">
+        <div className="flex flex-col h-screen mt-16 bg-gray-900 text-white">
             <div className="flex-1 p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-auto">
                 <div className="relative bg-gray-800 rounded-lg overflow-hidden shadow-lg aspect-video">
                     <div ref={localVideoRef} className="w-full h-full" id="local-video"></div>
