@@ -244,7 +244,7 @@ export default function HomePage() {
       <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-gray-800 lg:text-blue-900 drop-shadow-sm">
         Grad School Applications, <br />
         <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-          Simplified for You.
+          Simplified for You
         </span>
       </h1>
       <p className="mt-6 text-lg text-gray-600 max-w-2xl leading-relaxed">
@@ -507,7 +507,6 @@ export default function HomePage() {
 
 
                     {/* Video Walkthrough */}
-{/* Video Walkthrough */}
 <section className="relative overflow-hidden py-20 bg-gradient-to-r from-blue-100 via-white to-purple-100 animate-gradient">
   {/* Soft floating blobs */}
   <motion.div
@@ -581,155 +580,400 @@ export default function HomePage() {
   </div>
 </section>
 
-
-
-
                     {/* Testimonials & Success Stories */}
-                    <section className="container mx-auto px-6 py-14">
-                        <h3 className="text-3xl font-bold text-secondary text-center">Success stories</h3>
-                        <p className="text-center max-w-2xl mx-auto mt-3 text-neutral-dark">Real people. Real offers. Real change.</p>
-                        <div className="mt-8 grid md:grid-cols-3 gap-6">
-                            <motion.div variants={item} className="col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-8 shadow-lg">
-                                <div className="flex items-center gap-6">
-                                    <img src={testimonials[0].image} alt={testimonials[0].name} className="w-20 h-20 rounded-lg object-cover shadow" />
-                                    <div>
-                                        <div className="font-bold text-xl">{testimonials[0].name}</div>
-                                        <div className="text-sm opacity-90">{testimonials[0].role}</div>
-                                    </div>
-                                </div>
-                                <blockquote className="mt-6 italic">"{testimonials[0].quote}"</blockquote>
-                                <div className="mt-6 flex gap-3">
-                                    <Link to="/stories" className="underline">Read full story</Link>
-                                    <div className="ml-auto flex items-center gap-2">
-                                        <FaStar /> <FaStar /> <FaStar /> <FaStar /> <FaStar />
-                                    </div>
-                                </div>
-                            </motion.div>
-                            <motion.div variants={item} className="bg-white rounded-2xl p-6 shadow">
-                                <div className="flex items-center gap-4">
-                                    <img src={testimonials[1].image} alt={testimonials[1].name} className="w-16 h-16 rounded-lg object-cover" />
-                                    <div>
-                                        <div className="font-bold">{testimonials[1].name}</div>
-                                        <div className="text-sm opacity-90">{testimonials[1].role}</div>
-                                    </div>
-                                </div>
-                                <p className="mt-4 text-neutral-dark">"{testimonials[1].quote}"</p>
-                                <div className="mt-4">
-                                    <Link to="/stories" className="text-primary font-semibold">More stories</Link>
-                                </div>
-                            </motion.div>
-                        </div>
-                    </section>
+<section className="relative overflow-hidden py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50 animate-gradient">
+  {/* floating decorative blobs */}
+  <motion.div
+    className="absolute -top-16 -left-20 w-72 h-72 rounded-full bg-blue-300/30 blur-3xl"
+    animate={{ y: [0, -25, 0], x: [0, 25, 0] }}
+    transition={{ repeat: Infinity, duration: 16, ease: "easeInOut" }}
+  />
+  <motion.div
+    className="absolute -bottom-20 -right-20 w-[22rem] h-[22rem] rounded-full bg-purple-300/30 blur-3xl"
+    animate={{ y: [0, 25, 0], x: [0, -25, 0] }}
+    transition={{ repeat: Infinity, duration: 18, ease: "easeInOut" }}
+  />
+
+  <div className="container mx-auto px-6 relative z-10">
+    {/* Section Heading */}
+    <motion.h3
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6 }}
+      className="text-4xl md:text-5xl font-extrabold text-center
+                 bg-gradient-to-r from-blue-700 via-indigo-600 to-pink-600
+                 bg-clip-text text-transparent animate-text"
+    >
+      Success Stories
+    </motion.h3>
+
+    {/* underline accent */}
+    <motion.div
+      initial={{ opacity: 0, scaleX: 0.6 }}
+      whileInView={{ opacity: 1, scaleX: 1 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.6, delay: 0.1 }}
+      className="mx-auto mt-3 h-1 w-24 rounded-full
+                 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 animate-gradient"
+    />
+
+    {/* subtext */}
+    <motion.p
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.7, delay: 0.15 }}
+      className="text-center max-w-2xl mx-auto mt-4 text-lg text-neutral-700"
+    >
+      Real people. Real offers. Real change.
+    </motion.p>
+
+    {/* Testimonials grid */}
+    <motion.div
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.2 }}
+      className="mt-12 grid md:grid-cols-3 gap-8"
+    >
+      {/* Highlighted testimonial */}
+      <motion.div
+        variants={item}
+        className="col-span-2 relative p-10 rounded-3xl shadow-xl overflow-hidden
+                   bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white"
+      >
+        <div className="flex items-center gap-6">
+          <img
+            src={testimonials[0].image}
+            alt={testimonials[0].name}
+            className="w-20 h-20 rounded-2xl object-cover shadow-lg"
+          />
+          <div>
+            <div className="font-bold text-xl">{testimonials[0].name}</div>
+            <div className="text-sm opacity-90">{testimonials[0].role}</div>
+          </div>
+        </div>
+        <blockquote className="mt-6 italic text-lg leading-relaxed">"{testimonials[0].quote}"</blockquote>
+        <div className="mt-6 flex gap-3 items-center">
+          <Link to="/stories" className="underline font-semibold">Read full story</Link>
+          <div className="ml-auto flex items-center gap-1 text-yellow-300">
+            <FaStar /> <FaStar /> <FaStar /> <FaStar /> <FaStar />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Secondary testimonial */}
+      <motion.div
+        variants={item}
+        className="relative bg-white rounded-2xl p-8 shadow-lg border border-gray-100
+                   hover:shadow-xl transition-all duration-300"
+      >
+        <div className="flex items-center gap-4">
+          <img
+            src={testimonials[1].image}
+            alt={testimonials[1].name}
+            className="w-16 h-16 rounded-xl object-cover"
+          />
+          <div>
+            <div className="font-bold text-neutral-800">{testimonials[1].name}</div>
+            <div className="text-sm text-neutral-600">{testimonials[1].role}</div>
+          </div>
+        </div>
+        <p className="mt-4 text-neutral-700 italic leading-relaxed">"{testimonials[1].quote}"</p>
+        <div className="mt-6">
+          <Link to="/stories" className="text-primary font-semibold hover:underline">More stories</Link>
+        </div>
+      </motion.div>
+    </motion.div>
+  </div>
+</section>
+
                     
                     {/* Blog Section */}
-                    <section className="container mx-auto px-6 py-14">
-                        <div className="flex items-center justify-between mb-8">
-                            <h3 className="text-3xl font-bold text-secondary">GradManager Blog</h3>
-                            <Link to="/blog" className="text-primary font-semibold hover:underline">Read all articles</Link>
-                        </div>
-                        <motion.div className="grid md:grid-cols-3 gap-6" variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}>
-                            {blogPosts.map((post, i) => (
-                                <motion.div key={i} variants={item} className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition transform hover:-translate-y-1">
-                                    <img src={post.image} alt={post.title} className="w-full h-48 object-cover" />
-                                    <div className="p-6">
-                                        <div className="text-sm text-neutral-dark">{post.date}</div>
-                                        <h4 className="font-bold text-xl mt-2 text-secondary">{post.title}</h4>
-                                        <p className="mt-2 text-neutral-dark text-sm">{post.blurb}</p>
-                                        <div className="mt-4">
-                                            <Link to="/blog" className="text-primary font-semibold flex items-center gap-1 hover:underline">
-                                                Read more <FaBolt />
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </motion.div>
-                    </section>
+<section className="relative overflow-hidden py-20 bg-gradient-to-br from-white via-blue-50 to-indigo-50 animate-gradient">
+  {/* floating blobs */}
+  <motion.div
+    className="absolute -top-16 -left-20 w-72 h-72 rounded-full bg-blue-300/25 blur-3xl"
+    animate={{ y: [0, -25, 0], x: [0, 25, 0] }}
+    transition={{ repeat: Infinity, duration: 14, ease: "easeInOut" }}
+  />
+  <motion.div
+    className="absolute -bottom-20 -right-20 w-[22rem] h-[22rem] rounded-full bg-purple-300/25 blur-3xl"
+    animate={{ y: [0, 25, 0], x: [0, -25, 0] }}
+    transition={{ repeat: Infinity, duration: 18, ease: "easeInOut" }}
+  />
 
-                    {/* Community and impact counters */}
-                    <section className="relative py-16 overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 animate-gradient bg-[length:400%_400%]"></div>
-                        <div className="absolute top-0 left-0 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-                        <div className="absolute bottom-0 right-0 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse delay-700"></div>
-                        <div className="relative container mx-auto px-8 flex flex-wrap items-center justify-center gap-28 text-white text-center">
-                            <div className="hover:scale-110 transition-transform duration-500">
-                                <div className="font-bold text-4xl drop-shadow-lg">
-                                    <CountUp end={300} suffix="+" />
-                                </div>
-                                <div className="opacity-90 text-lg">Mentors</div>
-                            </div>
-                            <div className="hover:scale-110 transition-transform duration-500">
-                                <div className="font-bold text-4xl drop-shadow-lg">
-                                    <CountUp end={2000} suffix="+" />
-                                </div>
-                                <div className="opacity-90 text-lg">Students helped</div>
-                            </div>
-                            <div className="hover:scale-110 transition-transform duration-500">
-                                <div className="font-bold text-4xl drop-shadow-lg">
-                                    <CountUp end={95} suffix="%" />
-                                </div>
-                                <div className="opacity-90 text-lg">Success rate</div>
-                            </div>
-                        </div>
-                        <style>{`
-                            @keyframes gradientAnimation {
-                                0% { background-position: 0% 50%; }
-                                50% { background-position: 100% 50%; }
-                                100% { background-position: 0% 50%; }
-                            }
-                            .animate-gradient {
-                                animation: gradientAnimation 8s ease infinite;
-                            }
-                        `}</style>
-                    </section>
+  <div className="container mx-auto px-6 relative z-10">
+    {/* Section Heading */}
+    <div className="flex items-center justify-between mb-10">
+      <motion.h3
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.6 }}
+        className="text-4xl md:text-5xl font-extrabold
+                   bg-gradient-to-r from-blue-700 via-indigo-600 to-pink-600
+                   bg-clip-text text-transparent animate-text"
+      >
+        Grad Manager Blog
+      </motion.h3>
+      <Link
+        to="/blog"
+        className="text-primary font-semibold hover:underline"
+      >
+        Read all articles
+      </Link>
+    </div>
+
+    {/* Blog Grid */}
+    <motion.div
+      className="grid md:grid-cols-3 gap-8"
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.2 }}
+    >
+      {blogPosts.map((post, i) => (
+        <motion.div
+          key={i}
+          variants={item}
+          whileHover={{ y: -8 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className="group relative bg-white rounded-2xl shadow-lg overflow-hidden border border-transparent hover:border-primary/40 transition-all"
+        >
+          <div className="overflow-hidden">
+            <img
+              src={post.image}
+              alt={post.title}
+              className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+          <div className="p-6">
+            <div className="text-sm text-neutral-500">{post.date}</div>
+            <h4 className="font-bold text-xl mt-2 text-neutral-900 group-hover:text-primary transition">
+              {post.title}
+            </h4>
+            <p className="mt-2 text-neutral-600 text-sm">{post.blurb}</p>
+            <div className="mt-4">
+              <Link
+                to="/blog"
+                className="text-primary font-semibold flex items-center gap-1 hover:underline"
+              >
+                Read more <FaBolt className="animate-pulse" />
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  </div>
+</section>
+
+
+                    {/* Community and Impact Counters */}
+<section className="relative py-20 overflow-hidden">
+  {/* Animated gradient background */}
+  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 animate-gradient bg-[length:400%_400%]" />
+  <div className="absolute top-0 left-0 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply blur-3xl opacity-20 animate-pulse" />
+  <div className="absolute bottom-0 right-0 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply blur-3xl opacity-20 animate-pulse delay-700" />
+
+  <div className="relative container mx-auto px-8 flex flex-wrap items-center justify-center gap-20 md:gap-28 text-center">
+    {[
+      { value: 300, suffix: "+", label: "Mentors" },
+      { value: 2000, suffix: "+", label: "Students Helped" },
+      { value: 95, suffix: "%", label: "Success Rate" },
+    ].map((stat, i) => (
+      <motion.div
+        key={i}
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ delay: i * 0.2, duration: 0.8 }}
+        viewport={{ once: true }}
+        whileHover={{ scale: 1.1 }}
+        className="relative group"
+      >
+        {/* glowing ring on hover */}
+        <div className="absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-40 transition duration-500 bg-white/40" />
+
+        <div className="relative font-extrabold text-5xl bg-gradient-to-r from-white via-yellow-200 to-pink-200 bg-clip-text text-transparent animate-text drop-shadow-lg">
+          <CountUp end={stat.value} suffix={stat.suffix} />
+        </div>
+        <div className="mt-3 text-lg font-medium text-white/90 tracking-wide">
+          {stat.label}
+        </div>
+      </motion.div>
+    ))}
+  </div>
+
+  <style>{`
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .animate-gradient {
+      animation: gradientAnimation 8s ease infinite;
+    }
+    .animate-text {
+      background-size: 300% 300%;
+      animation: gradientAnimation 6s ease infinite;
+    }
+  `}</style>
+</section>
 
                     {/* FAQs */}
-                    <section className="container mx-auto px-6 py-14">
-                        <h3 className="text-3xl font-bold text-secondary text-center">Frequently asked questions</h3>
-                        <div className="mt-8 grid md:grid-cols-3 gap-6">
-                            <div className="bg-white rounded-2xl p-6 shadow">
-                                <h4 className="font-semibold">Are programs verified?</h4>
-                                <p className="mt-2 text-sm text-neutral-dark">We verify funding types and application fees—but always include original program links so you can confirm details.</p>
-                            </div>
-                            <div className="bg-white rounded-2xl p-6 shadow">
-                                <h4 className="font-semibold">How does document review work?</h4>
-                                <p className="mt-2 text-sm text-neutral-dark">Upload drafts, pick a mentor or paid reviewer, and receive feedback with suggested edits and comments.</p>
-                            </div>
-                            <div className="bg-white rounded-2xl p-6 shadow">
-                                <h4 className="font-semibold">Is Grad Manager free?</h4>
-                                <p className="mt-2 text-sm text-neutral-dark">Yes — core discovery and tracking features are free. Premium services such as in-depth review are paid.</p>
-                            </div>
-                        </div>
-                    </section>
+<section className="relative py-20 overflow-hidden">
+  {/* flowing gradient background */}
+  <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 animate-gradient bg-[length:400%_400%]" />
+  <div className="absolute top-10 left-0 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply blur-3xl opacity-20 animate-pulse" />
+  <div className="absolute bottom-0 right-0 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply blur-3xl opacity-20 animate-pulse delay-700" />
+
+  <div className="relative container mx-auto px-6">
+    {/* title */}
+    <motion.h3
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      viewport={{ once: true }}
+      className="text-3xl md:text-4xl font-extrabold text-center 
+                 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 
+                 bg-clip-text text-transparent animate-text"
+    >
+      Frequently Asked Questions
+    </motion.h3>
+
+    {/* faq cards */}
+    <div className="mt-12 grid md:grid-cols-3 gap-8">
+      {[
+        {
+          q: "Are programs verified?",
+          a: "We verify funding types and application fees — but always include original program links so you can confirm details."
+        },
+        {
+          q: "How does document review work?",
+          a: "Upload drafts, pick a mentor or paid reviewer, and receive feedback with suggested edits and comments."
+        },
+        {
+          q: "Is Grad Manager free?",
+          a: "Yes — core discovery and tracking features are free. Premium services such as in-depth review are paid."
+        },
+      ].map((faq, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.2, duration: 0.8 }}
+          viewport={{ once: true }}
+          whileHover={{ scale: 1.05 }}
+          className="relative bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition"
+        >
+          {/* glow effect */}
+          <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-20 bg-gradient-to-r from-blue-400 to-indigo-400 blur-lg transition" />
+          <h4 className="font-semibold text-lg text-secondary">{faq.q}</h4>
+          <p className="mt-3 text-sm text-neutral-dark">{faq.a}</p>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+
+  <style>{`
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .animate-gradient {
+      animation: gradientAnimation 12s ease infinite;
+    }
+    .animate-text {
+      background-size: 300% 300%;
+      animation: gradientAnimation 6s ease infinite;
+    }
+  `}</style>
+</section>
 
                     {/* FINAL CTA */}
-                    {!currentUser && (
-                        <section className="relative overflow-hidden py-16">
-                            <div className="absolute inset-0 bg-gradient-to-tr from-blue-50 via-white to-blue-100 z-0"></div>
-                            <motion.div
-                                className="absolute z-0 w-80 h-80 bg-blue-200 rounded-full opacity-16 blur-3xl"
-                                animate={{ y: [0, -20, 0] }}
-                                transition={{ repeat: Infinity, duration: 9 }}
-                                style={{ top: '12%', left: '-6%' }}
-                            />
-                            <motion.div
-                                className="absolute z-0 w-96 h-96 bg-blue-300 rounded-full opacity-14 blur-3xl"
-                                animate={{ y: [0, 30, 0] }}
-                                transition={{ repeat: Infinity, duration: 11 }}
-                                style={{ bottom: '6%', right: '-10%' }}
-                            />
-                            <div className="container mx-auto px-6 relative z-10 text-center">
-                                <div className="max-w-3xl mx-auto bg-white/50 backdrop-blur-lg p-10 rounded-3xl shadow-lg border border-white/50">
-                                    <h3 className="text-3xl font-bold text-blue-800">Ready to find your funded path?</h3>
-                                    <p className="max-w-2xl mx-auto mt-3 text-gray-700">Sign up free and get personalized matches — plus one free document review when you create your profile.</p>
-                                    <div className="mt-6 flex items-center justify-center gap-4">
-                                        <Link to="/signup" className="bg-blue-600 text-white font-bold px-6 py-3 rounded-full shadow hover:bg-blue-700 transition">Create free account</Link>
-                                        <Link to="/contact" className="underline text-blue-700">Contact sales</Link>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-                    )}
+{!currentUser && (
+  <section className="relative overflow-hidden py-20">
+    {/* background gradient animation */}
+    <div className="absolute inset-0 bg-gradient-to-tr from-blue-100 via-indigo-50 to-purple-100 animate-gradient bg-[length:400%_400%]" />
+
+    {/* floating blobs */}
+    <motion.div
+      className="absolute z-0 w-80 h-80 bg-blue-300 rounded-full opacity-20 blur-3xl"
+      animate={{ y: [0, -25, 0] }}
+      transition={{ repeat: Infinity, duration: 9 }}
+      style={{ top: '12%', left: '-6%' }}
+    />
+    <motion.div
+      className="absolute z-0 w-96 h-96 bg-purple-300 rounded-full opacity-20 blur-3xl"
+      animate={{ y: [0, 30, 0] }}
+      transition={{ repeat: Infinity, duration: 11 }}
+      style={{ bottom: '6%', right: '-10%' }}
+    />
+
+    <div className="container mx-auto px-6 relative z-10 text-center">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+        className="max-w-3xl mx-auto bg-white/60 backdrop-blur-xl p-12 rounded-3xl shadow-2xl border border-white/40"
+      >
+        {/* headline */}
+        <h3 className="text-3xl md:text-4xl font-extrabold 
+                       bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 
+                       bg-clip-text text-transparent animate-text">
+          Ready to find your funded path?
+        </h3>
+
+        {/* subtext */}
+        <p className="max-w-2xl mx-auto mt-4 text-gray-700 text-lg">
+          Join thousands of students discovering fully funded opportunities.  
+          Sign up for free and get <span className="font-semibold text-indigo-600">your first document review on us.</span>
+        </p>
+
+        {/* buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="mt-8 flex flex-wrap items-center justify-center gap-5"
+        >
+          <Link
+            to="/signup"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold px-8 py-3 rounded-full 
+                       shadow-lg hover:shadow-xl hover:scale-105 transform transition-all duration-300"
+          >
+            Create free account
+          </Link>
+          <Link
+            to="/contact"
+            className="underline text-indigo-700 font-semibold hover:text-indigo-900 transition"
+          >
+            Contact sales
+          </Link>
+        </motion.div>
+      </motion.div>
+    </div>
+
+    <style>{`
+      @keyframes gradientAnimation {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      .animate-gradient {
+        animation: gradientAnimation 10s ease infinite;
+      }
+      .animate-text {
+        background-size: 300% 300%;
+        animation: gradientAnimation 6s ease infinite;
+      }
+    `}</style>
+  </section>
+)}
 
                     <AnimatePresence>
                         {modalFeature && <FeatureModal feature={modalFeature} onClose={() => setModalFeature(null)} />}
