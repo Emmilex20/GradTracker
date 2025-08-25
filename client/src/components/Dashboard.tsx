@@ -1,3 +1,4 @@
+// src/components/Dashboard.tsx
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -16,7 +17,6 @@ import AddApplicationForm from './AddApplicationForm';
 import EditApplicationForm from './EditApplicationForm';
 import FeedbackForm from './FeedbackForm';
 import ApplicationSearch from './ApplicationSearch';
-import SOPRequestCard from './Dashboard/SOPRequestCard';
 import ProjectsCard from './Dashboard/ProjectsCard';
 import JoinProjectsModal from './JoinProjectsModal';
 import ApplicationTrackerModal from './ApplicationTrackerModal';
@@ -36,8 +36,10 @@ import { db } from '../firebase';
 // Services & Models
 import FinancialSupportCard from './Dashboard/FinancialSupportCard';
 import type { Group } from '../types/Group';
-import AcademicCVServiceCard from './Dashboard/AcademicCVServiceCard';
+// Import the new combined component
+import DocumentReviewServices from './Dashboard/DocumentReviewServices';
 import AcademicCVRequestModal from './AcademicCVRequestModal';
+import type { AcademicCVRequest } from '../types/AcademicCVRequest';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -47,16 +49,6 @@ interface MentorRequest {
     mentorName: string;
     status: 'pending' | 'accepted' | 'declined';
     createdAt: string;
-}
-
-// Corrected type for the Academic CV request data to match the card component
-interface AcademicCVRequest {
-    id: string;
-    status: 'pending' | 'scheduled' | 'completed' | 'none';
-    scheduledDate?: string;
-    scheduledTime?: string;
-    zoomLink?: string;
-    correctedCvUrl?: string;
 }
 
 const Dashboard: React.FC = () => {
@@ -435,20 +427,13 @@ const Dashboard: React.FC = () => {
                     )}
                 </div>
 
-                <SOPRequestCard
+                {/* The new combined component goes here */}
+                <DocumentReviewServices 
                     applications={applications}
                     onRequestSOPWriting={handleRequestSOPWriting}
                     currentUserUid={currentUser.uid}
-                />
-
-                {/* Academic CV Service Card */}
-                <AcademicCVServiceCard 
                     onRequestCVService={() => setIsCVServiceModalOpen(true)} 
-                    requestStatus={cvRequest?.status || 'none'}
-                    scheduledDate={cvRequest?.scheduledDate}
-                    scheduledTime={cvRequest?.scheduledTime}
-                    zoomLink={cvRequest?.zoomLink}
-                    downloadUrl={cvRequest?.correctedCvUrl}
+                    cvRequest={cvRequest}
                 />
 
                 {/* Admission Interview Prep Card */}
