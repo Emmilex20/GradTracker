@@ -6,7 +6,7 @@ import type { Application } from '../types/Application';
 import type { DropResult } from '@hello-pangea/dnd';
 import DocumentReview from './DocumentReview';
 import type { UserProfile } from '../types/UserProfile';
-import { FaTimes, FaPaperclip, FaGraduationCap, FaLink, FaComments, FaCalendarAlt, FaHistory } from 'react-icons/fa';
+import { FaTimes, FaPaperclip, FaGraduationCap, FaLink, FaComments, FaCalendarAlt, FaHistory, FaFileAlt } from 'react-icons/fa';
 
 import DashboardHeader from './Dashboard/DashboardHeader';
 import ApplicationStats from './Dashboard/ApplicationStats';
@@ -36,7 +36,6 @@ import { db } from '../firebase';
 // Services & Models
 import FinancialSupportCard from './Dashboard/FinancialSupportCard';
 import type { Group } from '../types/Group';
-// Import the new combined component
 import DocumentReviewServices from './Dashboard/DocumentReviewServices';
 import AcademicCVRequestModal from './AcademicCVRequestModal';
 import type { AcademicCVRequest } from '../types/AcademicCVRequest';
@@ -76,8 +75,9 @@ const Dashboard: React.FC = () => {
     const [isVisaPrepFormOpen, setIsVisaPrepFormOpen] = useState(false);
     const [showVisaPrepHistoryModal, setShowVisaPrepHistoryModal] = useState(false);
     
-    // NEW STATE FOR ACADEMIC CV SERVICE
+    // NEW STATE FOR ACADEMIC CV SERVICE AND DOCUMENT REVIEW MODAL
     const [isCVServiceModalOpen, setIsCVServiceModalOpen] = useState(false);
+    const [isDocumentReviewModalOpen, setIsDocumentReviewModalOpen] = useState(false);
     const [cvRequest, setCvRequest] = useState<AcademicCVRequest | null>(null);
 
     const detailsSectionRef = useRef<HTMLDivElement>(null);
@@ -131,7 +131,6 @@ const Dashboard: React.FC = () => {
         }
     }, [currentUser, token]);
     
-    // UPDATED FUNCTION TO FETCH ACADEMIC CV REQUEST
     const fetchCVRequest = useCallback(async () => {
         if (!currentUser || !token) return;
         try {
@@ -144,7 +143,6 @@ const Dashboard: React.FC = () => {
             if (backendData.status === 'none') {
                 setCvRequest(null);
             } else {
-                // Map the status and include all relevant data
                 const status = backendData.status === 'review_complete' ? 'completed' : backendData.status;
 
                 setCvRequest({
@@ -188,7 +186,6 @@ const Dashboard: React.FC = () => {
         toast.success('Visa preparation request sent successfully! We will be in touch shortly.');
     };
 
-    // Corrected HANDLER FOR ACADEMIC CV SERVICE - Uploading file
     const handleCVUpload = async (file: File) => {
         if (!currentUser || !token) {
             toast.error('You must be logged in to submit a request.');
@@ -207,7 +204,7 @@ const Dashboard: React.FC = () => {
             });
             toast.success('Your CV has been uploaded and submitted for review!');
             setIsCVServiceModalOpen(false);
-            fetchCVRequest(); // Refresh the status to show "pending"
+            fetchCVRequest();
         } catch (error: unknown) {
             console.error('Failed to upload CV file:', error);
             if (axios.isAxiosError(error)) {
@@ -219,11 +216,10 @@ const Dashboard: React.FC = () => {
             } else {
                 toast.error('An unexpected error occurred during file upload.');
             }
-            throw error; // Re-throw to trigger the modal's error state
+            throw error;
         }
     };
 
-    // Corrected HANDLER for new CV request with notes
     const handleNewCVRequest = async (data: { notes: string }) => {
         if (!currentUser || !token) {
             toast.error('You must be logged in to submit a request.');
@@ -253,7 +249,7 @@ const Dashboard: React.FC = () => {
             fetchApplications();
             fetchMentorRequests();
             fetchUserGroups();
-            fetchCVRequest(); // Fetch CV request data on mount
+            fetchCVRequest();
         }
     }, [currentUser, token, fetchApplications, fetchMentorRequests, fetchUserGroups, fetchCVRequest]);
 
@@ -427,14 +423,24 @@ const Dashboard: React.FC = () => {
                     )}
                 </div>
 
-                {/* The new combined component goes here */}
-                <DocumentReviewServices 
-                    applications={applications}
-                    onRequestSOPWriting={handleRequestSOPWriting}
-                    currentUserUid={currentUser.uid}
-                    onRequestCVService={() => setIsCVServiceModalOpen(true)} 
-                    cvRequest={cvRequest}
-                />
+                {/* Button to open the Document Review Services Modal */}
+                <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
+                    <div className="text-center sm:text-left mb-4 sm:mb-0">
+                        <h3 className="text-lg sm:text-xl font-bold text-secondary flex items-center">
+                            <FaFileAlt className="mr-2 text-primary" /> SOPs & CVs Live Writing Services
+                        </h3>
+                        <p className="text-neutral-dark mt-1 text-sm sm:text-base">
+                            Access our professional SOP writing and Academic CV review services.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => setIsDocumentReviewModalOpen(true)}
+                        className="bg-primary text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2"
+                    >
+                        <span>Explore Services</span>
+                        <FaPaperclip />
+                    </button>
+                </div>
 
                 {/* Admission Interview Prep Card */}
                 <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 mt-6 flex flex-col sm:flex-row justify-between items-center transition-all duration-300 transform hover:scale-[1.01]">
@@ -606,7 +612,6 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
             
-            {/* Admission Interview History Modal - Corrected */}
             {showInterviewPrepHistoryModal && (
                 <Modal 
                     isOpen={showInterviewPrepHistoryModal}
@@ -616,7 +621,6 @@ const Dashboard: React.FC = () => {
                 </Modal>
             )}
 
-            {/* Visa Interview Prep Form Modal */}
             {isVisaPrepFormOpen && (
                 <VisaInterviewPrepForm
                     onClose={() => setIsVisaPrepFormOpen(false)}
@@ -624,7 +628,6 @@ const Dashboard: React.FC = () => {
                 />
             )}
 
-            {/* Visa Interview History Modal - Corrected */}
             {showVisaPrepHistoryModal && (
                 <Modal 
                     isOpen={showVisaPrepHistoryModal}
@@ -643,13 +646,37 @@ const Dashboard: React.FC = () => {
                 onViewDashboardSections={handleViewDashboardSections}
             />
 
-            {/* Academic CV Service Modal - Corrected */}
             <AcademicCVRequestModal
                 isOpen={isCVServiceModalOpen}
                 onClose={() => setIsCVServiceModalOpen(false)}
                 onUpload={handleCVUpload}
                 onNewRequest={handleNewCVRequest}
             />
+
+            {/* Modal for DocumentReviewServices with improved styling and scrollability */}
+            {isDocumentReviewModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+                    <div className="relative w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in overflow-y-auto max-h-[90vh]">
+                        <button
+                            onClick={() => setIsDocumentReviewModalOpen(false)}
+                            className="absolute top-4 right-4 text-neutral-dark hover:text-red-500 transition-colors text-2xl"
+                            aria-label="Close modal"
+                        >
+                            <FaTimes />
+                        </button>
+                        <DocumentReviewServices
+                            applications={applications}
+                            onRequestSOPWriting={handleRequestSOPWriting}
+                            currentUserUid={currentUser.uid}
+                            onRequestCVService={() => {
+                                setIsDocumentReviewModalOpen(false);
+                                setIsCVServiceModalOpen(true);
+                            }}
+                            cvRequest={cvRequest}
+                        />
+                    </div>
+                </div>
+            )}
 
             <ToastContainer position="bottom-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
         </div>

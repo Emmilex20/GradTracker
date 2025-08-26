@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// src/components/AcademicCVRequestModal.tsx
 import React, { useState } from 'react';
 import Modal from './Modal';
 import { FaUpload, FaTimes, FaFileAlt, FaPencilAlt } from 'react-icons/fa';
@@ -10,8 +12,8 @@ interface NewCVRequestData {
 interface AcademicCVRequestModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onUpload: (file: File) => void; // Renamed for clarity
-    onNewRequest: (data: NewCVRequestData) => void; // New prop for the new request
+    onUpload: (file: File) => Promise<void>; // Use Promise<void> for async operations
+    onNewRequest: (data: NewCVRequestData) => Promise<void>; // Use Promise<void> for async operations
 }
 
 const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen, onClose, onUpload, onNewRequest }) => {
@@ -45,9 +47,10 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
             setIsSubmitting(true);
             try {
                 await onUpload(selectedFile);
-                onClose(); // Close the modal on success
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                handleClose(); // Close the modal on success
             } catch (err) {
+                // The error is handled by the parent component (Dashboard.tsx)
+                // which shows a toast, so we just set an error state here for the modal.
                 setError('Failed to upload file. Please try again.');
             } finally {
                 setIsSubmitting(false);
@@ -64,9 +67,10 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
         setIsSubmitting(true);
         try {
             await onNewRequest({ notes: newCVNotes });
-            onClose();
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            handleClose(); // Close the modal on success
         } catch (err) {
+            // The error is handled by the parent component (Dashboard.tsx)
+            // which shows a toast, so we just set an error state here for the modal.
             setError('Failed to submit request. Please try again.');
         } finally {
             setIsSubmitting(false);
