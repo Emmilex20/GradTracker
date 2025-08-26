@@ -6,6 +6,7 @@ import { useAuth } from './context/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import ProfileSetupModal from './components/ProfileSetupModal';
+import { Analytics } from "@vercel/analytics/react"; // Import Analytics component
 
 // Lazily import the larger page components to be loaded on demand
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -19,7 +20,7 @@ const CommunityPage = lazy(() => import('./pages/CommunityPage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const SupportPage = lazy(() => import('./components/Support'));
 const FAQsPage = lazy(() => import('./components/FAQs'));
-const ProjectRoom = lazy(() => import('./components/ProjectRoom')); // NEW: Import ProjectRoom component
+const ProjectRoom = lazy(() => import('./components/ProjectRoom'));
 
 // Authentication components
 const Signup = lazy(() => import('./components/Signup'));
@@ -80,7 +81,7 @@ const App: React.FC = () => {
                         <Route path="/group-chat/:groupId" element={<GroupChatPage />} />
                         <Route path="/group-call/:groupId" element={<GroupCallComponent />} />
                         <Route path="/community" element={<CommunityPage />} />
-                        <Route path="/project-room/:projectId" element={<ProjectRoom />} /> {/* NEW: Add the Project Room route */}
+                        <Route path="/project-room/:projectId" element={<ProjectRoom />} />
                     </Route>
 
                     {/* Admin-Only Routes */}
@@ -96,6 +97,7 @@ const App: React.FC = () => {
                 </Routes>
                 <ProfileSetupModal />
             </Suspense>
+            <Analytics /> {/* This is the key change: place the component outside of <Routes> */}
         </Layout>
     );
 };

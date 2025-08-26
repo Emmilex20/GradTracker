@@ -1,7 +1,8 @@
 import React from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import NotificationBell from './common/NotificationBell'; // Import the new component
+import NotificationBell from './common/NotificationBell';
+import VercelAnalytics from './VercelAnalytics'; // Import the new component
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -17,6 +18,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <NotificationBell />
             </div>
             <Footer />
+            {/* Vercel Analytics component added here for global tracking */}
+            <VercelAnalytics />
         </div>
     );
 };
