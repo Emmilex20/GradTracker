@@ -1,11 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
-import { FaDollarSign, FaHistory } from 'react-icons/fa';
+import { FaDollarSign, FaHistory, FaSpinner } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
 import Modal from '../Modal';
 import FinancialSupportHistory from './FinancialSupportHistory';
+import { toast } from 'react-toastify';
+import SuccessToast from '../common/Toasts/SuccessToast';
+import ErrorToast from '../common/Toasts/ErrorToast';
+import ConfirmationModal from '../common/ConfirmationModal';
+import type { Application } from '../../types/Application'; // Import the Application type
 
 // The Group type definition is now imported or defined here
 interface Group {
@@ -14,8 +18,8 @@ interface Group {
 }
 
 interface FinancialSupportCardProps {
-    applications: any[];
-    userGroups: Group[]; // NEW PROP: Pass the user's groups here
+    applications: Application[]; // Use the imported Application type
+    userGroups: Group[];
 }
 
 const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ applications, userGroups }) => {
@@ -27,30 +31,74 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
     const [requestedAmount, setRequestedAmount] = useState('');
     const [selectedGroupId, setSelectedGroupId] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [selectedApplicationData, setSelectedApplicationData] = useState<Application | null>(null);
 
-    const handleRequest = async (e: React.FormEvent) => {
+    const isFormValid = selectedApplicationId !== '' && requestedAmount !== '';
+
+    const handleOpenForm = () => {
+        setIsFormOpen(true);
+    };
+
+    const handleCloseForm = () => {
+        setIsFormOpen(false);
+        // Reset form state on close
+        setSelectedApplicationId('');
+        setNotes('');
+        setRequestedAmount('');
+        setSelectedGroupId('');
+        setSelectedApplicationData(null);
+    };
+
+    const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (!currentUser || !selectedApplicationId || !requestedAmount || !selectedGroupId) {
-            alert('Please select an application, a group, and enter the requested amount.');
+
+        if (!isFormValid) {
+            toast.error(<ErrorToast message="Please fill in all required fields." />);
             return;
         }
 
-        const selectedApp = applications.find(app => app.id === selectedApplicationId);
+        if (!currentUser) {
+            toast.error(<ErrorToast message="Authentication error. Please log in again." />);
+            return;
+        }
+
+        // Use 'app._id' to find the application, as defined in your type
+        const selectedApp = applications.find(app => app._id === selectedApplicationId);
         
+        // Console Log #1: Before opening the modal
+        console.log("handleFormSubmit: selectedApplicationId:", selectedApplicationId);
+        console.log("handleFormSubmit: selectedApp found?", !!selectedApp);
+
         if (!selectedApp) {
-            alert('Selected application not found. Please try again or refresh the page.');
+            toast.error(<ErrorToast message="Selected application not found. Please try again or refresh the page." />);
             return;
         }
 
+        setSelectedApplicationData(selectedApp);
+        setIsConfirmOpen(true);
+    };
+
+    const confirmRequest = async () => {
+        // Console Log #2: At the start of the confirmation function
+        console.log("confirmRequest: selectedApplicationId:", selectedApplicationId);
+        console.log("confirmRequest: selectedApplicationData:", selectedApplicationData);
+
+        setIsConfirmOpen(false);
         setLoading(true);
+
+        if (!currentUser || !selectedApplicationData) {
+            toast.error(<ErrorToast message="An unexpected error occurred. Please try again." />);
+            setLoading(false);
+            return;
+        }
 
         try {
             await addDoc(collection(db, "financial_support_requests"), {
                 userId: currentUser.uid,
                 userEmail: currentUser.email,
-                applicationId: selectedApplicationId,
-                universityName: selectedApp.schoolName || '',
+                applicationId: selectedApplicationData._id, // Use '_id' here
+                universityName: selectedApplicationData.schoolName || '',
                 requestedAmount: parseFloat(requestedAmount),
                 notes,
                 groupId: selectedGroupId,
@@ -58,15 +106,11 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                 requestedAt: Timestamp.now(),
             });
 
-            alert('Financial support request sent successfully!');
-            setIsFormOpen(false);
-            setSelectedApplicationId('');
-            setNotes('');
-            setRequestedAmount('');
-            setSelectedGroupId('');
+            toast.success(<SuccessToast message="Financial support request sent successfully!" />);
+            handleCloseForm();
         } catch (error) {
             console.error('Error sending financial support request:', error);
-            alert('Failed to send request. Please try again.');
+            toast.error(<ErrorToast message="Failed to send request. Please try again." />);
         } finally {
             setLoading(false);
         }
@@ -84,7 +128,7 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
             </div>
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
                 <button
-                    onClick={() => setIsFormOpen(true)}
+                    onClick={handleOpenForm}
                     className="bg-primary text-white font-semibold py-2 px-4 sm:py-3 sm:px-6 rounded-full shadow-lg hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2 w-full"
                 >
                     <span>Request Session</span>
@@ -100,10 +144,10 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
             </div>
 
             {isFormOpen && (
-                <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)}>
+                <Modal isOpen={isFormOpen} onClose={handleCloseForm}>
                     <div className="p-8">
                         <h2 className="text-2xl font-bold mb-4">Request Financial Support Session</h2>
-                        <form onSubmit={handleRequest} className="space-y-4">
+                        <form onSubmit={handleFormSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Select Application</label>
                                 {applications.length > 0 ? (
@@ -115,7 +159,7 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                                     >
                                         <option value="">-- Select an application --</option>
                                         {applications.map(app => (
-                                            <option key={app.id} value={app.id}>
+                                            <option key={app._id} value={app._id}>
                                                 {app.schoolName} - {app.programName}
                                             </option>
                                         ))}
@@ -126,15 +170,14 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                                     </p>
                                 )}
                             </div>
-                            
+
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Select Group</label>
+                                <label className="block text-sm font-medium text-gray-700">Select Group (Optional)</label>
                                 {userGroups.length > 0 ? (
                                     <select
                                         value={selectedGroupId}
                                         onChange={(e) => setSelectedGroupId(e.target.value)}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-                                        required
                                     >
                                         <option value="">-- Select a group --</option>
                                         {userGroups.map(group => (
@@ -145,7 +188,7 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                                     </select>
                                 ) : (
                                     <p className="mt-2 text-sm text-gray-500">
-                                        No groups found. You are not a member of any financial support groups.
+                                        You are not a member of any financial support groups.
                                     </p>
                                 )}
                             </div>
@@ -173,10 +216,17 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                             </div>
                             <button
                                 type="submit"
-                                className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
-                                disabled={loading || applications.length === 0 || userGroups.length === 0}
+                                className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                                disabled={loading || !isFormValid}
                             >
-                                {loading ? 'Sending...' : 'Submit Request'}
+                                {loading ? (
+                                    <>
+                                        <FaSpinner className="animate-spin" />
+                                        <span>Sending...</span>
+                                    </>
+                                ) : (
+                                    <span>Submit Request</span>
+                                )}
                             </button>
                         </form>
                     </div>
@@ -187,6 +237,17 @@ const FinancialSupportCard: React.FC<FinancialSupportCardProps> = ({ application
                 <Modal isOpen={showHistoryModal} onClose={() => setShowHistoryModal(false)}>
                     <FinancialSupportHistory onClose={() => setShowHistoryModal(false)} />
                 </Modal>
+            )}
+
+            {isConfirmOpen && (
+                <ConfirmationModal
+                isOpen={isConfirmOpen} // Add this line
+                message="Are you sure you want to submit this financial support request? A mentor will be notified."
+                onConfirm={confirmRequest}
+                onCancel={() => setIsConfirmOpen(false)}
+                title="Confirm Request"
+                confirmButtonText="Submit Request"
+                />
             )}
         </div>
     );

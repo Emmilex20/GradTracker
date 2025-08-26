@@ -6,6 +6,10 @@ import type { Application } from '../types/Application';
 import { useAuth } from '../context/AuthContext';
 import { FaTimes, FaEdit, FaTrashAlt, FaGraduationCap, FaLink, FaCalendarAlt, FaDollarSign, FaUserGraduate, FaFileAlt, FaFile, FaSpinner, FaChalkboardTeacher } from 'react-icons/fa';
 import DocumentReviewModal from './DocumentReviewModal';
+import { toast } from 'react-toastify';
+import SuccessToast from './common/Toasts/SuccessToast';
+import ErrorToast from './common/Toasts/ErrorToast';
+import ConfirmationModal from './common/ConfirmationModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -36,26 +40,33 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
     const { token } = useAuth();
     const [isDeleting, setIsDeleting] = React.useState(false);
     const [isDocModalOpen, setIsDocModalOpen] = React.useState(false);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = React.useState(false);
 
-    const handleDelete = async () => {
-        if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
-            setIsDeleting(true);
-            try {
-                await axios.delete(
-                    `${API_URL}/applications/${application._id}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
+    const confirmDelete = async () => {
+        setIsConfirmModalOpen(false);
+        setIsDeleting(true);
+        try {
+            await axios.delete(
+                `${API_URL}/applications/${application._id}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
                     }
-                );
-                onDelete(application._id);
-                onClose();
-            } catch (err) {
-                console.error('Failed to delete application:', err);
-            } finally {
-                setIsDeleting(false);
-            }
+                }
+            );
+
+            onDelete(application._id);
+            onClose();
+
+            toast.success(<SuccessToast message="Application deleted successfully!" />);
+
+        } catch (err) {
+            console.error('Failed to delete application:', err);
+
+            toast.error(<ErrorToast message="Failed to delete application. Please try again." />);
+
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -103,7 +114,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
 
                 {/* Main Content Area */}
                 <div className="flex-1 space-y-6 p-4 sm:p-6 md:p-8 overflow-y-auto">
-                    
+
                     {/* Key Information Card */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-2xl shadow-inner p-4 sm:p-6 border-l-4 border-blue-500">
                         <div className="flex items-start space-x-4">
@@ -121,17 +132,17 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                             </div>
                         </div>
                         {application.professors && (
-                             <div className="flex items-start space-x-4 col-span-full md:col-span-1">
-                                <FaChalkboardTeacher className="text-2xl text-orange-500 flex-shrink-0" />
-                                <div>
-                                    <p className="text-sm text-gray-500">Professors</p>
-                                    <p className="text-lg font-semibold text-gray-900">
-                                        <a href={application.professors} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                            Website
-                                        </a>
-                                    </p>
+                                <div className="flex items-start space-x-4 col-span-full md:col-span-1">
+                                    <FaChalkboardTeacher className="text-2xl text-orange-500 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-sm text-gray-500">Professors</p>
+                                        <p className="text-lg font-semibold text-gray-900">
+                                            <a href={application.professors} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                                Website
+                                            </a>
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
                         )}
                         {application.appLink && (
                             <div className="flex items-start space-x-4 col-span-full">
@@ -168,7 +179,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                         </h3>
                         <p className="text-gray-700 leading-relaxed text-sm">{application.notes || 'No notes added.'}</p>
                     </div>
-                    
+
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                         <button
@@ -188,7 +199,7 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                             <span>Edit Application</span>
                         </button>
                         <button
-                            onClick={handleDelete}
+                            onClick={() => setIsConfirmModalOpen(true)}
                             disabled={isDeleting}
                             className="flex items-center justify-center space-x-2 px-6 py-3 bg-red-600 text-white font-bold rounded-full shadow-lg hover:bg-red-700 transition-all transform hover:scale-105 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Delete this application"
@@ -208,6 +219,17 @@ const ApplicationDetail: React.FC<ApplicationDetailProps> = ({ application, onCl
                     onDocumentUpdated={onApplicationUpdated}
                     isOpen={isDocModalOpen}
                 />
+            )}
+
+            {/* Render the new Confirmation Modal */}
+            {isConfirmModalOpen && (
+                <ConfirmationModal
+        isOpen={isConfirmModalOpen} // Add this line
+        message="Are you sure you want to delete this application? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={() => setIsConfirmModalOpen(false)}
+        confirmButtonText="Delete"
+    />
             )}
         </div>
     );

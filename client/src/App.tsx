@@ -1,12 +1,15 @@
+// src/App.tsx
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Import essential, small components directly for the initial load
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/Layout';
 import ProfileSetupModal from './components/ProfileSetupModal';
-import { Analytics } from "@vercel/analytics/react"; // Import Analytics component
+import { Analytics } from "@vercel/analytics/react";
 
 // Lazily import the larger page components to be loaded on demand
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -52,53 +55,56 @@ const ProtectedRoute: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <Layout>
-            <ScrollToTop />
-            <Suspense fallback={<div>Loading...</div>}>
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/about" element={<AboutPage />} />
-                    <Route path="/features" element={<FeaturesPage />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/signup" element={<Signup />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/programs" element={<ProgramList />} />
-                    <Route path="/search" element={<ProgramSearch />} />
-                    <Route path="/blog" element={<BlogPage />} />
-                    <Route path="/mentors" element={<MentorsPage />} />
-                    <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                    <Route path="/support" element={<SupportPage />} />
-                    <Route path="/faqs" element={<FAQsPage />} />
-                    
-                    {/* Authenticated Routes (for all logged-in users) */}
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/connections" element={<ConnectionsPage />} />
-                        <Route path="/chat/:recipientId" element={<ChatPage />} />
-                        <Route path="/groups" element={<GroupsPage />} />
-                        <Route path="/group-chat/:groupId" element={<GroupChatPage />} />
-                        <Route path="/group-call/:groupId" element={<GroupCallComponent />} />
-                        <Route path="/community" element={<CommunityPage />} />
-                        <Route path="/project-room/:projectId" element={<ProjectRoom />} />
-                    </Route>
+        <>
+            <Layout>
+                <ScrollToTop />
+                <Suspense fallback={<div>Loading...</div>}>
+                    <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/about" element={<AboutPage />} />
+                        <Route path="/features" element={<FeaturesPage />} />
+                        <Route path="/contact" element={<ContactPage />} />
+                        <Route path="/signup" element={<Signup />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                        <Route path="/programs" element={<ProgramList />} />
+                        <Route path="/search" element={<ProgramSearch />} />
+                        <Route path="/blog" element={<BlogPage />} />
+                        <Route path="/mentors" element={<MentorsPage />} />
+                        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                        <Route path="/support" element={<SupportPage />} />
+                        <Route path="/faqs" element={<FAQsPage />} />
+                        
+                        {/* Authenticated Routes (for all logged-in users) */}
+                        <Route element={<ProtectedRoute />}>
+                            <Route path="/dashboard" element={<Dashboard />} />
+                            <Route path="/connections" element={<ConnectionsPage />} />
+                            <Route path="/chat/:recipientId" element={<ChatPage />} />
+                            <Route path="/groups" element={<GroupsPage />} />
+                            <Route path="/group-chat/:groupId" element={<GroupChatPage />} />
+                            <Route path="/group-call/:groupId" element={<GroupCallComponent />} />
+                            <Route path="/community" element={<CommunityPage />} />
+                            <Route path="/project-room/:projectId" element={<ProjectRoom />} />
+                        </Route>
 
-                    {/* Admin-Only Routes */}
-                    <Route element={<AdminProtectedRoute />}>
-                        <Route path="/admin" element={<AdminDashboard />} />
-                        <Route path="/admin/mentorship-connections" element={<MentorshipConnectionsPage />} />
-                    </Route>
+                        {/* Admin-Only Routes */}
+                        <Route element={<AdminProtectedRoute />}>
+                            <Route path="/admin" element={<AdminDashboard />} />
+                            <Route path="/admin/mentorship-connections" element={<MentorshipConnectionsPage />} />
+                        </Route>
 
-                    {/* Mentor-Only Routes */}
-                    <Route element={<MentorProtectedRoute />}>
-                        <Route path="/mentor/connections" element={<MentorshipConnectionsPage />} />
-                    </Route>
-                </Routes>
-                <ProfileSetupModal />
-            </Suspense>
-            <Analytics /> {/* This is the key change: place the component outside of <Routes> */}
-        </Layout>
+                        {/* Mentor-Only Routes */}
+                        <Route element={<MentorProtectedRoute />}>
+                            <Route path="/mentor/connections" element={<MentorshipConnectionsPage />} />
+                        </Route>
+                    </Routes>
+                    <ProfileSetupModal />
+                </Suspense>
+                <Analytics />
+            </Layout>
+            <ToastContainer />
+        </>
     );
 };
 

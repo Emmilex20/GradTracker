@@ -6,6 +6,10 @@ import type { Program } from '../types/Program';
 import { useAuth } from '../context/AuthContext';
 import { FaPlus, FaSpinner, FaSearch, FaFilter } from 'react-icons/fa';
 import api from '../utils/api';
+import { toast } from 'react-toastify';
+// Import your custom toast components
+import SuccessToast from './common/Toasts/SuccessToast';
+import ErrorToast from './common/Toasts/ErrorToast';
 
 const useDebounce = <T,>(value: T, delay: number): T => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -59,6 +63,8 @@ const ProgramList: React.FC = () => {
       setPrograms(response.data);
     } catch (error) {
       console.error('Failed to fetch programs:', error);
+      // Use custom ErrorToast for fetching programs
+      toast.error(<ErrorToast message="Failed to load programs. Please try again." />);
     } finally {
       setLoading(false);
     }
@@ -70,7 +76,8 @@ const ProgramList: React.FC = () => {
 
   const handleAddToInterested = async (program: Program) => {
     if (!currentUser) {
-      alert('You must be logged in to add a program to your dashboard.');
+      // Use custom ErrorToast for not logged in
+      toast.error(<ErrorToast message="You must be logged in to add a program to your dashboard." />);
       return;
     }
 
@@ -91,16 +98,20 @@ const ProgramList: React.FC = () => {
         requiredDocs: program.requiredDocs,
         appLink: program.appLink,
       });
-      alert(
-        `✅ Successfully added ${program.department} at ${program.university} to your dashboard!`
+      
+      // Use custom SuccessToast for successful addition
+      toast.success(
+        <SuccessToast message={`Successfully added ${program.department} at ${program.university} to your dashboard!`} />
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('Failed to add program:', err);
       if (err.response && err.response.status === 409) {
-        alert('This program has already been added to your dashboard.');
+        // Use custom ErrorToast for duplicate program
+        toast.error(<ErrorToast message="This program has already been added to your dashboard." />);
       } else {
-        alert('Failed to add program to your dashboard. Please try again.');
+        // Use custom ErrorToast for general failure
+        toast.error(<ErrorToast message="Failed to add program to your dashboard. Please try again." />);
       }
     } finally {
       setAddingStates(prev => ({ ...prev, [program.id]: false }));

@@ -2,7 +2,11 @@
 // src/components/AcademicCVRequestModal.tsx
 import React, { useState } from 'react';
 import Modal from './Modal';
-import { FaUpload, FaTimes, FaFileAlt, FaPencilAlt } from 'react-icons/fa';
+import { FaUpload, FaTimes, FaFileAlt, FaPencilAlt, FaSpinner } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import SuccessToast from './common/Toasts/SuccessToast';
+import ErrorToast from './common/Toasts/ErrorToast';
+import ConfirmationModal from './common/ConfirmationModal';
 
 // The new interface for the new CV request data
 interface NewCVRequestData {
@@ -12,66 +16,79 @@ interface NewCVRequestData {
 interface AcademicCVRequestModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onUpload: (file: File) => Promise<void>; // Use Promise<void> for async operations
-    onNewRequest: (data: NewCVRequestData) => Promise<void>; // Use Promise<void> for async operations
+    onUpload: (file: File) => Promise<void>;
+    onNewRequest: (data: NewCVRequestData) => Promise<void>;
 }
 
 const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen, onClose, onUpload, onNewRequest }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [view, setView] = useState<'main' | 'upload' | 'new_request'>('main');
     const [newCVNotes, setNewCVNotes] = useState<string>('');
+    const [isConfirmUploadOpen, setIsConfirmUploadOpen] = useState(false);
+    const [isConfirmNewRequestOpen, setIsConfirmNewRequestOpen] = useState(false);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files && event.target.files[0];
         if (file) {
             const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             if (!allowedTypes.includes(file.type)) {
-                setError('Invalid file type. Please upload a PDF, DOC, or DOCX file.');
+                toast.error(<ErrorToast message="Invalid file type. Please upload a PDF, DOC, or DOCX file." />);
                 setSelectedFile(null);
                 return;
             }
             if (file.size > 5 * 1024 * 1024) { // 5 MB limit
-                setError('File size exceeds the 5MB limit.');
+                toast.error(<ErrorToast message="File size exceeds the 5MB limit." />);
                 setSelectedFile(null);
                 return;
             }
             setSelectedFile(file);
-            setError(null);
         }
     };
 
-    const handleUploadConfirm = async () => {
-        if (selectedFile) {
-            setIsSubmitting(true);
-            try {
-                await onUpload(selectedFile);
-                handleClose(); // Close the modal on success
-            } catch (err) {
-                // The error is handled by the parent component (Dashboard.tsx)
-                // which shows a toast, so we just set an error state here for the modal.
-                setError('Failed to upload file. Please try again.');
-            } finally {
-                setIsSubmitting(false);
-            }
-        }
-    };
-    
-    const handleNewRequestConfirm = async () => {
-        if (newCVNotes.trim() === '') {
-            setError('Please provide some notes for the new CV request.');
+    const handleUploadClick = () => {
+        if (!selectedFile) {
+            toast.error(<ErrorToast message="Please select a file to upload." />);
             return;
         }
+        setIsConfirmUploadOpen(true);
+    };
+
+    const confirmUpload = async () => {
+        setIsConfirmUploadOpen(false);
+        if (!selectedFile) return;
+
+        setIsSubmitting(true);
+        try {
+            await onUpload(selectedFile);
+            toast.success(<SuccessToast message="CV uploaded successfully!" />);
+            handleClose();
+        } catch (err) {
+            toast.error(<ErrorToast message="Failed to upload file. Please try again." />);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleNewRequestClick = () => {
+        if (newCVNotes.trim() === '') {
+            toast.error(<ErrorToast message="Please provide some notes for the new CV request." />);
+            return;
+        }
+        setIsConfirmNewRequestOpen(true);
+    };
+
+    const confirmNewRequest = async () => {
+        setIsConfirmNewRequestOpen(false);
+        if (newCVNotes.trim() === '') return;
 
         setIsSubmitting(true);
         try {
             await onNewRequest({ notes: newCVNotes });
-            handleClose(); // Close the modal on success
+            toast.success(<SuccessToast message="New CV request submitted successfully!" />);
+            handleClose();
         } catch (err) {
-            // The error is handled by the parent component (Dashboard.tsx)
-            // which shows a toast, so we just set an error state here for the modal.
-            setError('Failed to submit request. Please try again.');
+            toast.error(<ErrorToast message="Failed to submit request. Please try again." />);
         } finally {
             setIsSubmitting(false);
         }
@@ -80,9 +97,10 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
     const handleClose = () => {
         setSelectedFile(null);
         setNewCVNotes('');
-        setError(null);
         setIsSubmitting(false);
         setView('main'); // Reset view on close
+        setIsConfirmUploadOpen(false);
+        setIsConfirmNewRequestOpen(false);
         onClose();
     };
 
@@ -95,7 +113,7 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
                         <FaTimes size={20} />
                     </button>
                 </div>
-                
+
                 {view === 'main' && (
                     <div className="space-y-4">
                         <p className="mb-4 text-gray-700">
@@ -138,9 +156,6 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
                                     Selected file: {selectedFile.name}
                                 </p>
                             )}
-                            {error && (
-                                <p className="mt-2 text-sm text-red-600">{error}</p>
-                            )}
                         </div>
                         <div className="flex justify-end space-x-2">
                             <button
@@ -150,13 +165,13 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
                                 Back
                             </button>
                             <button
-                                onClick={handleUploadConfirm}
-                                disabled={!selectedFile || isSubmitting}
+                                onClick={handleUploadClick}
+                                disabled={isSubmitting || !selectedFile}
                                 className="bg-primary text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 flex items-center"
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <FaUpload className="mr-2 animate-pulse" /> Submitting...
+                                        <FaSpinner className="mr-2 animate-spin" /> Submitting...
                                     </>
                                 ) : (
                                     <>
@@ -185,9 +200,6 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
                                 className="w-full p-2 border rounded-md focus:ring-primary focus:border-primary"
                                 placeholder="E.g., previous degrees, research experience, publications, awards, etc."
                             ></textarea>
-                            {error && (
-                                <p className="mt-2 text-sm text-red-600">{error}</p>
-                            )}
                         </div>
                         <div className="flex justify-end space-x-2">
                             <button
@@ -197,13 +209,13 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
                                 Back
                             </button>
                             <button
-                                onClick={handleNewRequestConfirm}
+                                onClick={handleNewRequestClick}
                                 disabled={isSubmitting || newCVNotes.trim() === ''}
                                 className="bg-primary text-white font-semibold py-2 px-6 rounded-full shadow-lg hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 flex items-center"
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <FaPencilAlt className="mr-2 animate-pulse" /> Submitting...
+                                        <FaSpinner className="mr-2 animate-spin" /> Submitting...
                                     </>
                                 ) : (
                                     <>
@@ -215,6 +227,28 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
                     </>
                 )}
             </div>
+
+            {/* Confirmation Modal for Upload */}
+            {isConfirmUploadOpen && (
+                <ConfirmationModal
+                    message="Are you sure you want to submit this file for review? Once submitted, you cannot edit it until a mentor provides feedback."
+                    onConfirm={confirmUpload}
+                    onCancel={() => setIsConfirmUploadOpen(false)}
+                    title="Submit CV for Review"
+                    confirmButtonText="Submit for Review"
+                />
+            )}
+
+            {/* Confirmation Modal for New Request */}
+            {isConfirmNewRequestOpen && (
+                <ConfirmationModal
+                    message="Are you sure you want to submit this request? A mentor will use these notes to write a new CV for you."
+                    onConfirm={confirmNewRequest}
+                    onCancel={() => setIsConfirmNewRequestOpen(false)}
+                    title="Request New CV"
+                    confirmButtonText="Request New CV"
+                />
+            )}
         </Modal>
     );
 };

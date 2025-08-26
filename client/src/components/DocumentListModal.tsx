@@ -5,6 +5,10 @@ import type { Application } from '../types/Application';
 import { FaTimes, FaFile, FaDownload, FaTrash, FaPaperPlane, FaCheckCircle, FaSpinner } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { toast } from 'react-toastify';
+import SuccessToast from './common/Toasts/SuccessToast';
+import ErrorToast from './common/Toasts/ErrorToast';
+import ConfirmationModal from './common/ConfirmationModal';
 
 interface Document {
     _id: string;
@@ -34,10 +38,11 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
     documents,
     onDocumentUpdated,
 }) => {
-    // Removed currentUser from destructuring
-    const { token, userProfile } = useAuth(); 
+    const { token, userProfile } = useAuth();
     const [isSubmittingCorrection, setIsSubmittingCorrection] = React.useState<boolean>(false);
     const [correctedFile, setCorrectedFile] = React.useState<File | null>(null);
+    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = React.useState<string | null>(null);
+    const [isConfirmSubmitOpen, setIsConfirmSubmitOpen] = React.useState<string | null>(null);
 
     if (!isOpen) {
         return null;
@@ -45,8 +50,7 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
 
     const handleDownload = async (documentId: string, filename: string) => {
         if (!token) {
-            console.error('Authentication token is missing.');
-            alert('Authentication token is missing. Please log in again.');
+            toast.error(<ErrorToast message="Authentication token is missing. Please log in again." />);
             return;
         }
 
@@ -68,41 +72,43 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
             link.click();
             document.body.removeChild(link);
 
+            toast.success(<SuccessToast message="Download started successfully!" />);
+
         } catch (error) {
             console.error('Error downloading the document:', error);
             if (axios.isAxiosError(error) && error.response?.status === 403) {
-                alert('You do not have permission to download this document.');
+                toast.error(<ErrorToast message="You do not have permission to download this document." />);
             } else {
-                alert('Failed to download document. Please ensure you are logged in and have permission.');
+                toast.error(<ErrorToast message="Failed to download document. Please ensure you are logged in and have permission." />);
             }
         }
     };
 
-    const handleDeleteDocument = async (documentId: string) => {
-        if (window.confirm('Are you sure you want to delete this document?')) {
-            try {
-                await axios.delete(`${API_URL}/applications/${application._id}/documents/${documentId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                onDocumentUpdated();
-            } catch (error) {
-                console.error('Failed to delete document:', error);
-                alert('Failed to delete document. Please try again.');
-            }
+    const confirmDeletion = async (documentId: string) => {
+        setIsConfirmDeleteOpen(null);
+        try {
+            await axios.delete(`${API_URL}/applications/${application._id}/documents/${documentId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            onDocumentUpdated();
+            toast.success(<SuccessToast message="Document deleted successfully!" />);
+        } catch (error) {
+            console.error('Failed to delete document:', error);
+            toast.error(<ErrorToast message="Failed to delete document. Please try again." />);
         }
     };
 
-    const handleSubmitForReview = async (documentId: string) => {
-        if (window.confirm('Are you sure you want to submit this document for review?')) {
-            try {
-                await axios.put(`${API_URL}/applications/${application._id}/documents/${documentId}/submit-for-review`, {}, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                onDocumentUpdated();
-            } catch (error) {
-                console.error('Failed to submit for review:', error);
-                alert('Failed to submit document for review. Please try again.');
-            }
+    const confirmSubmitForReview = async (documentId: string) => {
+        setIsConfirmSubmitOpen(null);
+        try {
+            await axios.put(`${API_URL}/applications/${application._id}/documents/${documentId}/submit-for-review`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            onDocumentUpdated();
+            toast.success(<SuccessToast message="Document submitted for review successfully!" />);
+        } catch (error) {
+            console.error('Failed to submit for review:', error);
+            toast.error(<ErrorToast message="Failed to submit document for review. Please try again." />);
         }
     };
 
@@ -113,7 +119,10 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
     };
 
     const handleCorrectedUpload = async (documentId: string) => {
-        if (!correctedFile || !token) return;
+        if (!correctedFile || !token) {
+            toast.error(<ErrorToast message="Please select a file to upload." />);
+            return;
+        }
         setIsSubmittingCorrection(true);
 
         const formData = new FormData();
@@ -128,9 +137,10 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
             });
             setCorrectedFile(null);
             onDocumentUpdated();
+            toast.success(<SuccessToast message="Corrected document uploaded successfully!" />);
         } catch (error) {
             console.error('Failed to upload corrected document:', error);
-            alert('Failed to upload corrected document.');
+            toast.error(<ErrorToast message="Failed to upload corrected document." />);
         } finally {
             setIsSubmittingCorrection(false);
         }
@@ -147,7 +157,7 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
                     <FaTimes className="text-2xl" />
                 </button>
                 <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-2">Uploaded Documents</h2>
-                
+
                 {documents.length > 0 ? (
                     <ul className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
                         {documents.map(doc => (
@@ -177,7 +187,7 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
                                     {/* Submit for Review */}
                                     {userProfile?.role !== 'admin' && doc.status === 'uploaded' && (
                                         <button
-                                            onClick={() => handleSubmitForReview(doc._id)}
+                                            onClick={() => setIsConfirmSubmitOpen(doc._id)}
                                             className="p-2 text-purple-600 rounded-full hover:bg-purple-100 transition-colors duration-200"
                                             title="Submit for Review"
                                         >
@@ -215,7 +225,7 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
                                     {/* Delete button */}
                                     {userProfile?.role !== 'admin' && (
                                         <button
-                                            onClick={() => handleDeleteDocument(doc._id)}
+                                            onClick={() => setIsConfirmDeleteOpen(doc._id)}
                                             className="p-2 text-red-600 rounded-full hover:bg-red-100 transition-colors duration-200"
                                             title="Delete Document"
                                         >
@@ -230,6 +240,28 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
                     <p className="text-gray-500 italic p-4 text-center bg-gray-100 rounded-xl">No documents uploaded yet.</p>
                 )}
             </div>
+
+            {/* Confirmation Modal for Deletion */}
+            {isConfirmDeleteOpen && (
+                <ConfirmationModal
+                    message="Are you sure you want to delete this document? This action cannot be undone."
+                    onConfirm={() => confirmDeletion(isConfirmDeleteOpen)}
+                    onCancel={() => setIsConfirmDeleteOpen(null)}
+                    title="Delete Document"
+                    confirmButtonText="Delete" // Added prop
+                />
+            )}
+
+            {/* Confirmation Modal for Submission */}
+            {isConfirmSubmitOpen && (
+                <ConfirmationModal
+                    message="Are you sure you want to submit this document for mentor review? Once submitted, you cannot edit it until the review is complete."
+                    onConfirm={() => confirmSubmitForReview(isConfirmSubmitOpen)}
+                    onCancel={() => setIsConfirmSubmitOpen(null)}
+                    title="Submit for Review"
+                    confirmButtonText="Submit" // Added prop
+                />
+            )}
         </div>
     );
 };
