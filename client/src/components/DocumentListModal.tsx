@@ -244,22 +244,24 @@ const DocumentListModal: React.FC<DocumentListModalProps> = ({
             {/* Confirmation Modal for Deletion */}
             {isConfirmDeleteOpen && (
                 <ConfirmationModal
+                    isOpen={!!isConfirmDeleteOpen} // Add this prop
                     message="Are you sure you want to delete this document? This action cannot be undone."
                     onConfirm={() => confirmDeletion(isConfirmDeleteOpen)}
                     onCancel={() => setIsConfirmDeleteOpen(null)}
                     title="Delete Document"
-                    confirmButtonText="Delete" // Added prop
+                    confirmButtonText="Delete"
                 />
             )}
 
             {/* Confirmation Modal for Submission */}
             {isConfirmSubmitOpen && (
                 <ConfirmationModal
+                    isOpen={!!isConfirmSubmitOpen} // Add this prop
                     message="Are you sure you want to submit this document for mentor review? Once submitted, you cannot edit it until the review is complete."
                     onConfirm={() => confirmSubmitForReview(isConfirmSubmitOpen)}
                     onCancel={() => setIsConfirmSubmitOpen(null)}
                     title="Submit for Review"
-                    confirmButtonText="Submit" // Added prop
+                    confirmButtonText="Submit"
                 />
             )}
         </div>

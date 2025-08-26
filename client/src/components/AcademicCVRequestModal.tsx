@@ -231,6 +231,7 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
             {/* Confirmation Modal for Upload */}
             {isConfirmUploadOpen && (
                 <ConfirmationModal
+                    isOpen={isConfirmUploadOpen} // Add this prop
                     message="Are you sure you want to submit this file for review? Once submitted, you cannot edit it until a mentor provides feedback."
                     onConfirm={confirmUpload}
                     onCancel={() => setIsConfirmUploadOpen(false)}
@@ -242,6 +243,7 @@ const AcademicCVRequestModal: React.FC<AcademicCVRequestModalProps> = ({ isOpen,
             {/* Confirmation Modal for New Request */}
             {isConfirmNewRequestOpen && (
                 <ConfirmationModal
+                    isOpen={isConfirmNewRequestOpen} // Add this prop
                     message="Are you sure you want to submit this request? A mentor will use these notes to write a new CV for you."
                     onConfirm={confirmNewRequest}
                     onCancel={() => setIsConfirmNewRequestOpen(false)}
