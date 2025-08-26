@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import NotificationBell from './common/NotificationBell';
 import VercelAnalytics from './VercelAnalytics'; // Import the new component
+import CookieConsent from './common/CookieConsent';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -20,6 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Footer />
             {/* Vercel Analytics component added here for global tracking */}
             <VercelAnalytics />
+            <CookieConsent />
         </div>
     );
 };
