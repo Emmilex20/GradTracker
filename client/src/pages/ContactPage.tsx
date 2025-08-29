@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import {
   FaMapMarkerAlt,
   FaEnvelope,
-  FaPhone,
   FaFacebook,
   FaTwitter,
   FaLinkedin,
@@ -150,29 +149,23 @@ export default function ContactPage() {
           className="space-y-8"
         >
           <motion.div variants={item} className="bg-white p-8 rounded-2xl shadow-lg">
-            <h3 className="text-xl font-bold mb-4 text-blue-900">Our Office in Lekki</h3>
+            <h3 className="text-xl font-bold mb-4 text-blue-900">Our Office:</h3>
             <div className="space-y-4 text-neutral-dark">
               <div className="flex gap-3">
                 <FaMapMarkerAlt className="text-primary mt-1" />
                 <address className="not-italic">
-                  12A, Adewale Kolawole Crescent,
+                  Illorin, Kwara,
                   <br />
-                  Lekki Phase 1, Lagos State, Nigeria
+                  Houston Texas
                 </address>
               </div>
               <div className="flex gap-3">
                 <FaEnvelope className="text-primary mt-1" />
                 <a
-                  href="mailto:info.ng@yourdomain.com"
+                  href="mailto:gradmanager@futuregrin.com"
                   className="hover:underline"
                 >
-                  info.ng@yourdomain.com
-                </a>
-              </div>
-              <div className="flex gap-3">
-                <FaPhone className="text-primary mt-1" />
-                <a href="tel:+2349012345678" className="hover:underline">
-                  +234 901 234 5678
+                  gradmanager@futuregrin.com
                 </a>
               </div>
             </div>
@@ -221,14 +214,14 @@ export default function ContactPage() {
       <section className="py-12 text-center">
         <h2 className="text-2xl font-semibold mb-6 text-blue-900">Connect With Us</h2>
         <div className="flex justify-center gap-6 text-3xl text-primary">
-          <a href="https://facebook.com" target="_blank" rel="noreferrer">
-            <FaFacebook />
-          </a>
           <a href="https://twitter.com" target="_blank" rel="noreferrer">
             <FaTwitter />
           </a>
-          <a href="https://linkedin.com" target="_blank" rel="noreferrer">
+          <a href="https://www.linkedin.com/company/grad-manager" target="_blank" rel="noreferrer">
             <FaLinkedin />
+          </a>
+          <a href="https://facebook.com" target="_blank" rel="noreferrer">
+            <FaFacebook />
           </a>
         </div>
       </section>

@@ -73,7 +73,7 @@ export const platformFeatures: Feature[] = [
     {
         icon: <FaSearchDollar className="text-2xl" />, 
         src: scholarshipImage, 
-        title: 'Search for Graduate Program.', 
+        title: 'Search for Graduate Program', 
         desc: "Find schools faster. Filter by program, funding, waiver (app fee, GRE, IELTS..) - no more  endless searching.",
         fullDesc: 'Our advanced search engine allows you to filter and discover thousands of graduate programs with funding. You can search by degree level, subject, location, and even specific research interests. We provide verified information on funding availability, application fees, and key requirements, helping you save time and focus on the best-fit opportunities. The platform also gives you a personalized dashboard to track and manage your potential programs.',
         fullImage: scholarshipImage2,
@@ -106,7 +106,7 @@ export const platformFeatures: Feature[] = [
         icon: <FaUsers className="text-2xl" />, 
         src: Project2, 
         title: 'Join Ongoing Projects', 
-        desc: "Worried your CV isn't enough? Collaborate on real projects with peers to boost your portfolio (e.g write review papers for publications, build a model, do research e.t.c).",
+        desc: "Worried your CV is not strong enough? Collaborate on real projects with peers to boost your portfolio (e.g write review papers for publications, build a model, do research e.t.c).",
         fullDesc: "Worried your CV isn’t enough? Stand out by collaborating on real projects with driven peers—whether it’s writing impactful review papers, building innovative models, or contributing to research that gets noticed. Not only will you strengthen your portfolio, but you’ll also gain the kind of hands-on experience and credibility that admissions committees and employers truly value.",
         fullImage: Project,
     },

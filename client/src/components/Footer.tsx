@@ -1,7 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaTwitter, FaLinkedin, FaGithub } from 'react-icons/fa';
+import { FaTwitter, FaLinkedin, FaFacebook } from 'react-icons/fa';
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -74,11 +74,16 @@ const Footer: React.FC = () => {
           <div className="text-center md:text-left">
             <h4 className="text-lg font-semibold text-white mb-4">Follow Us</h4>
             <div className="flex justify-center md:justify-start space-x-6">
-              {[{ Icon: FaTwitter, label: 'Twitter' }, { Icon: FaLinkedin, label: 'LinkedIn' }, { Icon: FaGithub, label: 'GitHub' }].map((social, idx) => (
-                <a key={idx} href="#" aria-label={social.label} className="text-2xl text-white hover:text-primary transition-all duration-300 hover:scale-110 social-glow">
-                  <social.Icon />
-                </a>
-              ))}
+              {/* Updated href with specific social media links */}
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="text-2xl text-white hover:text-primary transition-all duration-300 hover:scale-110 social-glow">
+                <FaTwitter />
+              </a>
+              <a href="https://www.linkedin.com/company/grad-manager" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-2xl text-white hover:text-primary transition-all duration-300 hover:scale-110 social-glow">
+                <FaLinkedin />
+              </a>
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-2xl text-white hover:text-primary transition-all duration-300 hover:scale-110 social-glow">
+                <FaFacebook />
+              </a>
             </div>
           </div>
 

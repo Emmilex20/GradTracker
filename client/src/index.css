@@ -68,3 +68,13 @@
 }
 .animate-text { background-size: 200% auto; animation: textGradient 4s linear infinite; }
 
+/* === New Subtle Utility Enhancements === */
+.card-hover {
+  @apply transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl;
+}
+.section-gradient {
+  @apply bg-gradient-to-tr from-blue-50 via-white to-blue-100 animate-gradient-flow;
+}
+.text-gradient {
+  @apply bg-gradient-to-r from-primary via-secondary to-accent text-transparent bg-clip-text animate-text;
+}

@@ -249,7 +249,7 @@ export default function HomePage() {
       </h1>
       <p className="mt-6 text-lg text-gray-600 max-w-2xl leading-relaxed">
         From program search to SOPs, CVs, reference letters and deadlines —
-        GradManager makes the journey seamless in one powerful dashboard.
+        Grad Manager makes the journey seamless in one powerful dashboard.
       </p>
 
       {/* CTA */}

@@ -19,60 +19,15 @@ const item = { hidden: { y: 24, opacity: 0 }, show: { y: 0, opacity: 1, transiti
 
 // Sample mentor data
 const mentors: Mentor[] = [
-  {
-    id: 1,
-    name: 'Dr. Jane Doe',
-    title: 'Professor of Computer Science',
-    image: 'https://images.unsplash.com/photo-1542152648-c32274483733?w=800&q=80&auto=format&fit=crop',
-    bio: 'Dr. Jane Doe is an expert in machine learning and natural language processing. She specializes in guiding students through research proposals and academic writing.',
-    expertise: ['Machine Learning', 'NLP', 'Research Proposals'],
-    contactInfo: 'jane.doe@university.edu'
-  },
-  {
-    id: 2,
-    name: 'Dr. John Smith',
-    title: 'Data Scientist',
-    image: 'https://images.unsplash.com/photo-1519085360753-af0f3f225e52?w=800&q=80&auto=format&fit=crop',
-    bio: 'John Smith has 10 years of experience in data analytics and a PhD from Stanford. He can help with interview preparation and career planning in tech.',
-    expertise: ['Data Analytics', 'Career Planning', 'Interview Prep'],
-    contactInfo: 'john.smith@data.com'
-  },
-  {
-    id: 3,
-    name: 'Dr. Sarah Lee',
-    title: 'PhD Candidate in Biology',
-    image: 'https://images.unsplash.com/photo-1531746020795-81432f8dbb18?w=800&q=80&auto=format&fit=crop',
-    bio: 'Sarah is a current PhD student with a deep understanding of the graduate school application process. She offers advice on personal statements and campus visits.',
-    expertise: ['Biology', 'Personal Statements', 'Lab Rotations'],
-    contactInfo: 'sarah.lee@gradschool.edu'
-  },
-  {
-    id: 4,
-    name: 'Dr. Michael Chen',
-    title: 'Associate Professor of Electrical Engineering',
-    image: 'https://images.unsplash.com/photo-1557862921-37829c790f19?w=800&q=80&auto=format&fit=crop',
-    bio: "Michael's research focuses on robotics and embedded systems. He provides guidance on finding research positions and writing effective emails to professors.",
-    expertise: ['Robotics', 'Embedded Systems', 'Research'],
-    contactInfo: 'michael.chen@engineering.edu'
-  },
-  {
-    id: 5,
-    name: 'Dr. Emily Carter',
-    title: 'Marketing & Business Consultant',
-    image: 'https://images.unsplash.com/photo-1549237511-c91817c355f3?w=800&q=80&auto=format&fit=crop',
-    bio: 'With an MBA from Harvard, Emily helps prospective students craft their applications for top business programs and navigate career transitions.',
-    expertise: ['Business School', 'MBA Applications', 'Career Transitions'],
-    contactInfo: 'emily.carter@consulting.com'
-  },
-  {
-    id: 6,
-    name: 'Dr. Alex Rodriguez',
-    title: 'Medical School Resident',
-    image: 'https://images.unsplash.com/photo-1542152648-c32274483733?w=800&q=80&auto=format&fit=crop',
-    bio: 'Alex successfully navigated the competitive medical school application process. He offers invaluable tips on MCAT prep and personal essays.',
-    expertise: ['Medical School', 'MCAT', 'Personal Essays'],
-    contactInfo: 'alex.rodriguez@med.com'
-  },
+//  {
+//    id: 1,
+//    name: 'Dr. Jane Doe',
+//    title: 'Professor of Computer Science',
+//    image: 'https://images.unsplash.com/photo-1542152648-c32274483733?w=800&q=80&auto=format&fit=crop',
+//    bio: 'Dr. Jane Doe is an expert in machine learning and natural language processing. She specializes in guiding students through research proposals and academic writing.',
+//    expertise: ['Machine Learning', 'NLP', 'Research Proposals'],
+//    contactInfo: 'jane.doe@university.edu'
+//  },
 ];
 
 export default function MentorsPage() {
