@@ -18,7 +18,7 @@ const teamMembers = [
         image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=2861&auto=format&fit=crop&ixlib=rb-4.0.3',
     },
     {
-        name: 'John Smith',
+        name: 'Emmanuel Raphael',
         title: 'Co-Founder & CTO',
         bio: 'A brilliant software engineer and problem-solver, John holds a Computer Science degree from the Massachusetts Institute of Technology. He specializes in building scalable and intuitive web applications. John is the technical backbone of Grad Manager, responsible for the robust data pipeline and seamless user experience that makes the platform so powerful and reliable.',
         image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=2848&auto=format&fit=crop&ixlib=rb-4.0.3',
@@ -72,16 +72,16 @@ const impactStats = [
 
 const testimonials = [
     {
-        name: 'Alex M.',
-        role: 'MIT Graduate Student',
-        quote: 'Grad Manager transformed my application process into a clear, manageable journey. I landed my dream program thanks to this platform.',
-        image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80&auto=format&fit=crop',
+        name: 'Amina Yusuf',
+        role: 'Fulbright Scholar 2024',
+        quote: 'Grad Manager turned hours of research into one dashboard. I found funded programs and connected with a mentor who reviewed my SOP — I got in! ',
+        image: 'https://media.istockphoto.com/id/1053900704/photo/portrait-of-female-high-school-student-wearing-uniform-working-at-laptop-in-library.jpg?s=612x612&w=0&k=20&c=mU_6CHuXrvJBqK5It4XjcHEGiyo3b2VPmf2Pq2mw2EI=',
     },
     {
-        name: 'Sarah L.',
-        role: 'Fulbright Scholar',
+        name: 'Daniel Okoye',
+        role: 'Masters — Greenfield University',
         quote: 'The deadline reminders saved me from missing a key scholarship. The document review service is gold.',
-        image: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=800&q=80&auto=format&fit=crop',
+        image: 'https://media.istockphoto.com/id/1785382011/photo/campus-student-and-portrait-of-black-man-at-college-building-academy-and-school-for-education.jpg?s=612x612&w=0&k=20&c=BDhGY9HWCie8f22RASEIGBGaTMozUu9Zxm1o-X-tXFg=',
     },
 ];
 
@@ -127,10 +127,10 @@ export default function AboutPage() {
                     className="relative max-w-4xl px-4 z-10"
                 >
                     <h1 className="text-gradient font-extrabold mb-4">
-                        Beyond the Application: Our Story.
+                       Our Story. Our Mission. Our Passion.
                     </h1>
                     <p className="text-lg md:text-xl opacity-90 text-neutral-dark mt-6">
-                        We believe every dream deserves a clear path. Grad Manager was born from the chaos of our own application journeys, so you don't have to navigate yours alone.
+                        We are dedicated to building the ultimate tool for students navigating the graduate school application process.
                     </p>
                 </motion.div>
             </section>

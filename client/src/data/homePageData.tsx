@@ -139,7 +139,7 @@ export const platformFeatures: Feature[] = [
 export const featuredScholarships: Scholarship[] = [
     {
         name: 'Rice University',
-        location: 'United Kingdom',
+        location: 'United States',
         level: 'Masters',
         funding: 'Full Scholarship',
         deadline: '2025-12-01',
@@ -171,13 +171,13 @@ export const testimonials = [
         name: 'Amina Yusuf',
         role: 'Fulbright Scholar 2024',
         quote: 'Grad Manager turned hours of research into one dashboard. I found funded programs and connected with a mentor who reviewed my SOP — I got in! ',
-        image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80&auto=format&fit=crop',
+        image: 'https://media.istockphoto.com/id/1053900704/photo/portrait-of-female-high-school-student-wearing-uniform-working-at-laptop-in-library.jpg?s=612x612&w=0&k=20&c=mU_6CHuXrvJBqK5It4XjcHEGiyo3b2VPmf2Pq2mw2EI=',
     },
     {
         name: 'Daniel Okoye',
         role: 'Masters — Greenfield University',
         quote: 'The deadline reminders saved me from missing a key scholarship. The document review service is gold.',
-        image: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=800&q=80&auto=format&fit=crop',
+        image: 'https://media.istockphoto.com/id/1785382011/photo/campus-student-and-portrait-of-black-man-at-college-building-academy-and-school-for-education.jpg?s=612x612&w=0&k=20&c=BDhGY9HWCie8f22RASEIGBGaTMozUu9Zxm1o-X-tXFg=',
     },
 ];
 
